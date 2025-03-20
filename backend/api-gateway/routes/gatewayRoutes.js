@@ -18,16 +18,25 @@ router.use(
 //   createProxyMiddleware({ target: services.orderService, changeOrigin: true })
 // );
 
-// // Proxy to Restaurant Service (Protected)
-// router.use(
-//   "/api/restaurants",
-//   authMiddleware,
-//   createProxyMiddleware({
-//     target: services.restaurantService,
-//     changeOrigin: true,
-//   })
-// );
+// Proxy to Restaurant Service (Protected)
+router.use(
+  "/api/restaurants",
+  authMiddleware,
+  createProxyMiddleware({
+    target: services.restaurantService,
+    changeOrigin: true,
+  })
+);
 
+// Proxy to Menu Service (Protected)
+router.use(
+  "/api/menu",
+  authMiddleware,
+  createProxyMiddleware({
+    target: services.restaurantService,
+    changeOrigin: true,
+  })
+);
 // // Proxy to Delivery Service (Protected)
 // router.use(
 //   "/api/delivery",
