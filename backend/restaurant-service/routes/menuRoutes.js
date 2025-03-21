@@ -1,10 +1,21 @@
 const express = require("express");
-const { addMenuItem, getMenuItems } = require("../controllers/menuController");
+const {
+  getAllMenus,
+  getMenusByRestaurant,
+  getMenuById,
+  addMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+} = require("../controllers/menuController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/", authMiddleware, addMenuItem);
-router.get("/:restaurantId", getMenuItems);
+router.get("/", getAllMenus);
+router.get("/restaurant/:restaurantId", getMenusByRestaurant);
+router.get("/:id", getMenuById);
+router.post("/:restaurantId", authMiddleware, addMenuItem);
+router.put("/:id", authMiddleware, updateMenuItem);
+router.delete("/:id", authMiddleware, deleteMenuItem);
 
 module.exports = router;

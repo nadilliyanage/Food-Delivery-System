@@ -1,16 +1,20 @@
 const express = require("express");
 const {
-  createRestaurant,
   getRestaurants,
+  getRestaurantById,
+  createRestaurant,
   updateRestaurant,
   deleteRestaurant,
+  getUserRestaurants,
 } = require("../controllers/restaurantController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+router.get("/all", getRestaurants);
+router.get("/", authMiddleware, getUserRestaurants);
+router.get("/:id", getRestaurantById);
 router.post("/", authMiddleware, createRestaurant);
-router.get("/", getRestaurants);
 router.put("/:id", authMiddleware, updateRestaurant);
 router.delete("/:id", authMiddleware, deleteRestaurant);
 

@@ -18,5 +18,5 @@ app.use("/api/menu", menuRoutes);
 
 const PORT = process.env.PORT || 5003;
 app.listen(PORT, () =>
-  console.log(`Restaurant Service running on port ${PORT}`)
+  console.log(`🚀 Restaurant Service running on port ${PORT}`)
 );
