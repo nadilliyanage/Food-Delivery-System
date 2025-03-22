@@ -1,5 +1,6 @@
 const axios = require("axios");
 const Order = require("../models/Order");
+require("dotenv").config();
 
 // Load API Gateway service URLs from environment variables
 const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
