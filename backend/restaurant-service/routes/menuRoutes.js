@@ -15,7 +15,7 @@ router.get("/", getAllMenus);
 router.get("/restaurant/:restaurantId", getMenusByRestaurant);
 router.get("/:id", getMenuById);
 router.post("/:restaurantId", authMiddleware, addMenuItem);
-router.put("/:id", authMiddleware, updateMenuItem);
+router.patch("/:id", authMiddleware, updateMenuItem);
 router.delete("/:id", authMiddleware, deleteMenuItem);
 
 module.exports = router;

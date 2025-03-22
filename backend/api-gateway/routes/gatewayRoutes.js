@@ -4,7 +4,7 @@ const services = require("../config/services");
 
 const router = express.Router();
 
-// ✅ Function to Proxy Requests
+// Function to Proxy Requests
 const createServiceProxy = (serviceUrl) => {
   return createProxyMiddleware({
     target: serviceUrl,
@@ -19,9 +19,10 @@ const createServiceProxy = (serviceUrl) => {
   });
 };
 
-// ✅ API Gateway Routes
+// API Gateway Routes
 router.use("/api/auth", createServiceProxy(services.authService));
 router.use("/api/restaurants", createServiceProxy(services.restaurantService));
 router.use("/api/menu", createServiceProxy(services.restaurantMenuService));
+router.use("/api/orders", createServiceProxy(services.orderService));
 
 module.exports = router;
