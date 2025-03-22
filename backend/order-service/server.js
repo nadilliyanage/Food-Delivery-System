@@ -14,5 +14,5 @@ app.use(cors());
 
 app.use("/api/orders", orderRoutes);
 
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`🚀 Order Service running on port ${PORT}`));
