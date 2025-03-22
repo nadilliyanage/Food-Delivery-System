@@ -16,7 +16,7 @@ app.use(cors());
 app.use("/api/restaurants", restaurantRoutes);
 app.use("/api/menu", menuRoutes);
 
-const PORT = process.env.PORT || 5003;
+const PORT = process.env.PORT;
 app.listen(PORT, () =>
   console.log(`🚀 Restaurant Service running on port ${PORT}`)
 );
