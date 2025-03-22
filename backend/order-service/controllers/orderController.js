@@ -2,8 +2,7 @@ const axios = require("axios");
 const Order = require("../models/Order");
 
 // Load API Gateway service URLs from environment variables
-const RESTAURANT_SERVICE_URL =
-  process.env.RESTAURANT_SERVICE_URL || "http://localhost:5003";
+const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
 
 // ✅ Get All Orders for the Logged-in User
 const getUserOrders = async (req, res) => {
