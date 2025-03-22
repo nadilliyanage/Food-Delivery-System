@@ -7,7 +7,7 @@ const getRestaurants = async (req, res) => {
     const restaurants = await Restaurant.find();
     res.json(restaurants);
   } catch (error) {
-    console.error("❌ Error fetching restaurants:", error);
+    console.error("Error fetching restaurants:", error);
     res.status(500).json({ message: "Error fetching restaurants" });
   }
 };
@@ -21,7 +21,7 @@ const getUserRestaurants = async (req, res) => {
     );
     res.json(restaurants);
   } catch (error) {
-    console.error("❌ Error fetching user restaurants:", error);
+    console.error("Error fetching user restaurants:", error);
     res.status(500).json({ message: "Error fetching restaurants" });
   }
 };
