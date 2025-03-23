@@ -24,5 +24,6 @@ router.use("/api/auth", createServiceProxy(services.authService));
 router.use("/api/restaurants", createServiceProxy(services.restaurantService));
 router.use("/api/menu", createServiceProxy(services.restaurantMenuService));
 router.use("/api/orders", createServiceProxy(services.orderService));
+router.use("/api/deliveries", createServiceProxy(services.deliveryService));
 
 module.exports = router;

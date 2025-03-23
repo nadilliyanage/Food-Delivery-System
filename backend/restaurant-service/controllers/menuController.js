@@ -113,6 +113,7 @@ const deleteMenuItem = async (req, res) => {
   }
 };
 
+// Export the controller functions
 module.exports = {
   getAllMenus,
   getMenusByRestaurant,
