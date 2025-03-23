@@ -82,6 +82,20 @@ const deleteRestaurant = async (req, res) => {
   }
 };
 
+// Get Menu Items for a Restaurant
+const getMenuItems = async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findById(req.params.id).populate(
+      "menu"
+    );
+    if (!restaurant)
+      return res.status(404).json({ message: "Restaurant not found" });
+    res.json(restaurant.menu);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching menu items" });
+  }
+};
+
 module.exports = {
   getRestaurants,
   getRestaurantById,
@@ -89,4 +103,5 @@ module.exports = {
   updateRestaurant,
   deleteRestaurant,
   getUserRestaurants,
+  getMenuItems,
 };

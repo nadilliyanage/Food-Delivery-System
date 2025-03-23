@@ -4,12 +4,26 @@ const jwt = require("jsonwebtoken");
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
+
+    // Ensure `role` is provided
+    if (
+      !role ||
+      !["customer", "restaurant_admin", "delivery_personnel"].includes(role)
+    ) {
+      return res.status(400).json({ message: "Invalid role specified" });
+    }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword });
+
+    // Save the user with timestamps
+    const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
-    res.status(201).json({ message: "User registered" });
+
+    res.status(201).json({ message: "User registered", user });
   } catch (error) {
+    console.error("❌ Error registering user:", error);
     res.status(500).json({ message: "Error registering user" });
   }
 };
