@@ -1,17 +1,20 @@
 const express = require("express");
 const {
-  getUserDeliveries,
   assignDriver,
+  getUserDeliveries,
+  getDeliveryById,
   updateDeliveryStatus,
-  trackDelivery,
+  deleteDelivery,
 } = require("../controllers/deliveryController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// ✅ Delivery Routes
+router.post("/", authMiddleware, assignDriver);
 router.get("/", authMiddleware, getUserDeliveries);
-router.put("/:id/assign", authMiddleware, assignDriver);
-router.put("/:id/status", authMiddleware, updateDeliveryStatus);
-router.get("/:id/track", authMiddleware, trackDelivery);
+router.get("/:id", authMiddleware, getDeliveryById);
+router.put("/:id", authMiddleware, updateDeliveryStatus);
+router.delete("/:id", authMiddleware, deleteDelivery);
 
 module.exports = router;

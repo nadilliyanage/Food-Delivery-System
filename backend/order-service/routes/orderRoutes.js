@@ -16,4 +16,7 @@ router.post("/", authMiddleware, placeOrder);
 router.put("/:id", authMiddleware, updateOrder);
 router.delete("/:id", authMiddleware, cancelOrder);
 
+// ✅ Delivery Personnel Route: Fetch Order by ID
+router.get("/:id/delivery", authMiddleware, getOrderById);
+
 module.exports = router;

@@ -57,36 +57,59 @@ const getUserOrders = async (req, res) => {
 // ✅ Get a Specific Order by ID
 const getOrderById = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    console.log(`🔍 Fetching order ${req.params.id} for user ${userId}`);
+
+    // ✅ Allow Admins and Delivery Personnel to Fetch Any Order
     const order = await Order.findOne({
       _id: req.params.id,
-      customer: req.user.id,
+      ...(userRole === "customer" && { customer: userId }),
+      ...(userRole === "delivery_personnel" && {
+        status: { $in: ["Assigned", "Out for Delivery"] },
+      }),
     });
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 
-    // Fetch restaurant and menu details
-    const restaurantResponse = await axios.get(
-      `${RESTAURANT_SERVICE_URL}/api/restaurants/${order.restaurant}`
-    );
+    let restaurantDetails = null;
+    try {
+      const restaurantResponse = await axios.get(
+        `${RESTAURANT_SERVICE_URL}/api/restaurants/${order.restaurant}`
+      );
+      restaurantDetails = restaurantResponse.data;
+    } catch (error) {
+      console.error("❌ Error fetching restaurant:", error.message);
+    }
+
     const detailedItems = await Promise.all(
       order.items.map(async (item) => {
-        const menuResponse = await axios.get(
-          `${RESTAURANT_SERVICE_URL}/api/menu/${item.menuItem}`
-        );
-        return {
-          menuItem: menuResponse.data,
-          quantity: item.quantity,
-        };
+        try {
+          const menuResponse = await axios.get(
+            `${RESTAURANT_SERVICE_URL}/api/menu/${item.menuItem}`
+          );
+          return {
+            menuItem: menuResponse.data,
+            quantity: item.quantity,
+          };
+        } catch (error) {
+          console.error(
+            `❌ Error fetching menu item ${item.menuItem}:`,
+            error.message
+          );
+          return { menuItem: null, quantity: item.quantity };
+        }
       })
     );
 
     res.json({
       ...order.toObject(),
-      restaurant: restaurantResponse.data,
+      restaurant: restaurantDetails,
       items: detailedItems,
     });
   } catch (error) {
-    console.error("❌ Error fetching order:", error);
+    console.error("❌ Error fetching order:", error.message);
     res.status(500).json({ message: "Error fetching order" });
   }
 };
