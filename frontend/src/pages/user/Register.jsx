@@ -20,6 +20,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     photoUrl: "",
     role: "",
     gender: "",
@@ -87,7 +88,8 @@ const Register = () => {
                     name: user?.displayName,
                     email: user?.email,
                     photoUrl: formData.photoUrl,
-                    role: "user",
+                    password: data.password,
+                    role: "customer",
                     gender: data.gender,
                     phone: data.phone,
                     address: `${data.addressLine1}, ${data.addressLine2}, ${data.city}`,
@@ -98,7 +100,7 @@ const Register = () => {
 
                   if (userImp.email && user.displayName) {
                     return axios
-                      .post("http://localhost:3000/new-user", userImp)
+                      .post("http://localhost:3000/api/auth/register", userImp)
                       .then(() => {
                         setError("");
                         navigate("/");

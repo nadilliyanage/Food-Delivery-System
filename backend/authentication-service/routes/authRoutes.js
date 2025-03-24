@@ -3,6 +3,7 @@ const {
   register,
   login,
   getUserById,
+  getUserByEmail,
   getAllUsers,
   updateUser,
   deleteUser,
@@ -15,10 +16,10 @@ const router = express.Router();
 // ✅ Public Routes
 router.post("/register", register);
 router.post("/login", login);
-router.post("/set-token", setToken);
 
 // ✅ Protected Routes
 router.get("/users/:id", authMiddleware, getUserById);
+router.get("/user/:email", getUserByEmail);
 router.get("/users", authMiddleware, getAllUsers);
 router.put("/users/:id", authMiddleware, updateUser);
 router.delete("/users/:id", authMiddleware, deleteUser);

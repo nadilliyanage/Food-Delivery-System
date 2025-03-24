@@ -12,7 +12,7 @@ const DashboardNavigate = () => {
    }
 
   if (role === 'admin') return <Navigate to="/dashboard/admin-home" replace />
-  if (role === 'user') return <Navigate to="/dashboard/user-home" replace />
+  if (role === 'customer') return <Navigate to="/dashboard/user-home" replace />
 }
 
 export default DashboardNavigate

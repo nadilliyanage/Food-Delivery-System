@@ -7,8 +7,6 @@ import Swal from "sweetalert2";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { IoMdDownload } from "react-icons/io";
 import Scroll from "../../../hooks/useScroll";
-import InquiryForm from "../../Dashboard/Admin/QRManagement/InquiryForm";
-import InquiryImg from "../../../assets/gallery/inquiry.png";
 import SmallModal from "../../../components/Modal/Modal";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -27,11 +25,6 @@ const Profile = () => {
     address: userCredentials?.address || "",
     photoUrl: userCredentials?.photoUrl || "",
   });
-  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
-
-  const handleInquiryClick = () => {
-    setIsInquiryModalOpen(true); // Open the InquiryForm modal
-  };
 
   useEffect(() => {
     if (img) {
@@ -71,7 +64,7 @@ const Profile = () => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     axiosSecure
-      .put(`/update-user/${userCredentials._id}`, formData)
+      .put(`/api/auth/users/${userCredentials._id}`, formData)
       .then(() => {
         Swal.fire({
           title: "Updated!",
@@ -146,61 +139,6 @@ const Profile = () => {
           <div className="p-8 bg-white dark:bg-slate-700 rounded-lg shadow-lg lg:p-12">
             <form className="space-y-4" onSubmit={handleFormSubmit}>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 dark:text-white">
-                <div className="flex justify-between">
-                  <div>
-                    <img
-                      src={currentUser?.qrCodeUrl}
-                      alt="QR code"
-                      className="mx-auto cursor-pointer"
-                      onClick={openModal}
-                    />
-                  </div>
-
-                  {isModalOpen && (
-                    <div
-                      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-                      onClick={closeModal}
-                    >
-                      <div className="relative">
-                        <button
-                          className="absolute top-0 right-0 bg-white text-black rounded-full px-2 mx-2 text-xl"
-                          onClick={closeModal}
-                        >
-                          &times; {/* Close button */}
-                        </button>
-                        <img
-                          src={currentUser?.qrCodeUrl}
-                          alt="QR code"
-                          className="w-full h-96"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="text-center mt-3 flex-1 justify-center my-auto">
-                    <button
-                      className="bg-secondary text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-secondary-dark transition duration-300"
-                      onClick={downloadQRCode}
-                      type="button" // Ensure this button does not submit the form
-                    >
-                      <IoMdDownload className="text-2xl" />
-                      Download QR
-                    </button>
-
-                    <div
-                      className="flex flex-row my-auto bg-secondary rounded-lg mt-3"
-                      onClick={handleInquiryClick}
-                    >
-                      <img
-                        src={InquiryImg}
-                        alt="Inquiry"
-                        style={{ cursor: "pointer" }}
-                      />
-                      <p className="my-auto text-white -ml-3">Inquiries</p>
-                      
-                    </div>
-                  </div>
-                </div>
                 <div>
                   <label
                     htmlFor="photoUrl"
@@ -322,13 +260,7 @@ const Profile = () => {
         </div>
       </section>
 
-      <SmallModal
-        isOpen={isInquiryModalOpen}
-        onClose={() => setIsInquiryModalOpen(false)}
-        title="Inquiry Form"
-      >
-        <InquiryForm onClose={() => setIsInquiryModalOpen(false)} />
-      </SmallModal>
+      
 
       <ToastContainer />
     </div>

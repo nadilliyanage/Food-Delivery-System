@@ -141,7 +141,7 @@ const NavBar = () => {
             </div>
             <div onClick={() => navigate("/")} className="pl-5">
               <h1 className="text-2xl font-bold inline-flex gap-3 items-center">
-                EcoTech <img src={logo} alt="" className="w-8 h-8" />
+                EatEase <img src={logo} alt="" className="w-8 h-8" />
               </h1>
               <p className="font-bold text-[13px] tracking-[6px]">
                 Clean Green Efficient
@@ -341,19 +341,6 @@ const NavBar = () => {
             </>
           ) : (
             <>
-              {/* Admin-specific QR Scan button */}
-              {currentUser?.role === "admin" && (
-                <li>
-                  <NavLink
-                    to="/qr-scan"
-                    onClick={toggleMobileMenu}
-                    className="block font-bold py-1 text-black rounded-xl hover:text-secondary"
-                  >
-                    QR Scan
-                  </NavLink>
-                </li>
-              )}
-
               {currentUser?.role === "admin" && (
                 <li>
                   <NavLink

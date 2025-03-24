@@ -6,10 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
-import UserReport from "./Reports/UserReports";
 import { BlobProvider } from "@react-pdf/renderer";
 import { FaFileExcel, FaFilePdf } from "react-icons/fa";
-import { HiRefresh } from "react-icons/hi";
 import * as XLSX from "xlsx";
 import { writeFile } from "xlsx";
 import Button from "../../../components/Button/Button";
@@ -27,7 +25,7 @@ const ManageUsers = () => {
 
   useEffect(() => {
     axiosFetch
-      .get("/users")
+      .get("api/auth/users")
       .then((res) => {
         const user = res.data.filter((user) => user.role === "user");
         const sortedUsers = user.sort((a, b) =>
@@ -115,7 +113,7 @@ const ManageUsers = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <div className="flex space-x-4">
-          <BlobProvider
+          {/* <BlobProvider
             document={<UserReport dataList={filteredUsers} />}
             fileName="UserReport.pdf"
           >
@@ -124,7 +122,7 @@ const ManageUsers = () => {
                 <FaFilePdf className="text-3xl text-red-600" />
               </Button>
             )}
-          </BlobProvider>
+          </BlobProvider> */}
           <Button onClick={handleButtonClick}>
             <FaFileExcel className="text-3xl text-green-600" />
           </Button>

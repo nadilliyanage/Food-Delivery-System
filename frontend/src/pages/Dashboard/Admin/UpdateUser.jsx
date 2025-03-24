@@ -25,7 +25,7 @@ const UpdateUser = () => {
     email: userCredentials?.email || "",
     phone: userCredentials?.phone || "",
     address: userCredentials?.address || "",
-    role: userCredentials?.role || "user",
+    role: userCredentials?.role || "customer",
     photoUrl: userCredentials?.photoUrl || "",
   });
 
@@ -231,7 +231,7 @@ const UpdateUser = () => {
                     className="sr-only peer"
                     id="option1"
                     type="radio"
-                    value="user"
+                    value="customer"
                     name="role"
                     checked={formData.role === "user"}
                     onChange={handleChange}

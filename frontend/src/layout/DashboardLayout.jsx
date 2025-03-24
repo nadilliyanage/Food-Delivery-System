@@ -5,7 +5,6 @@ import useUser from "../hooks/useUser";
 import logo from "../assets/logo.png";
 import { BiHomeAlt, BiLogInCircle } from "react-icons/bi";
 import { FaUsers, FaUserAlt } from "react-icons/fa";
-import { BsQrCodeScan } from "react-icons/bs";
 import { RiDashboardFill } from "react-icons/ri";
 import Swal from "sweetalert2";
 import Scroll from "../hooks/useScroll";
@@ -49,16 +48,6 @@ const adminNavItems = [
     to: "/dashboard/payment-details",
     icon: <MdPayments className="text-2xl" />,
     label: "Payment Details",
-  },
-  {
-    to: "/dashboard/manage-inquiries",
-    icon: <MdError className="text-2xl" />,
-    label: "Inquiry Management",
-  },
-  {
-    to: "/dashboard/qr-scan",
-    icon: <BsQrCodeScan className="text-2xl" />,
-    label: "QR Code Scanner",
   },
 ];
 
@@ -127,7 +116,7 @@ const DashboardLayout = () => {
               !open && "scale-0"
             }`}
           >
-            EcoTech
+            EatEase
           </h1>
         </div>
 

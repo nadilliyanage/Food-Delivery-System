@@ -12,25 +12,7 @@ import UserHome from "../pages/Dashboard/User/UserHome";
 import AdminHome from "../pages/Dashboard/Admin/AdminHome";
 import ManageUsers from "../pages/Dashboard/Admin/ManageUsers";
 import UpdateUser from "../pages/Dashboard/Admin/UpdateUser";
-import QRManagement from "../pages/Dashboard/Admin/QRManagement";
-import LocationManagementDashboard from "../pages/Dashboard/Admin/LocationManagementDashboard";
 import Profile from "../pages/Dashboard/Profile/Profile";
-import GarbageRequest from "../pages/GarbageRequest/GarbageRequest";
-import ScheduleRequest from "../pages/GarbageRequest/ScheduleRequest";
-
-import ManageCollectors from "../pages/Dashboard/Admin/ManageCollectors";
-import UpdateCollector from "../pages/Dashboard/Admin/UpdateCollector";
-import SpecialRequests from "../pages/Dashboard/Admin/SpecialRequests";
-
-import PaymentHome from "../pages/Payment/PaymentHome";
-import Payment from "../pages/Payment/Payment";
-import PaymentHistory from "../pages/Payment/PaymentHistory";
-import MakePayment from "../pages/Payment/MakePayment";
-import CardPayment from "../pages/Payment/CardPayment";
-import Feedbacks from "../pages/Dashboard/Admin/Feedback";
-import Schedules from "../pages/Dashboard/Admin/Schedules";
-import Inquiry from "../pages/Dashboard/Admin/Inquiry";
-import PaymentDetails from "../pages/Dashboard/Admin/PaymentDetails";
 
 export const router = createBrowserRouter([
   {
@@ -62,47 +44,9 @@ export const router = createBrowserRouter([
         element: <Register />,
       },
       {
-        path: "/garbageRequest",
-        element: <GarbageRequest />,
-      },
-      {
-        path: "qr-scan",
-        element: <QRManagement />,
-      },
-      {
-        path: "manage-locations",
-        element: <LocationManagementDashboard />,
-      },
-      {
-        path: "scheduleRequest",
-        element: <ScheduleRequest />,
-      },
-      {
         path: "user-profile",
         element: <Profile />,
-      },
-      {
-        path: "/payments",
-        element: <Payment />,
-        children: [
-          {
-            path: "/payments/",
-            element: <PaymentHome />,
-          },
-          {
-            path: "/payments/make-payment",
-            element: <MakePayment />,
-          },
-          {
-            path: "/payments/payment-history",
-            element: <PaymentHistory />,
-          },
-          {
-            path: "/payments/card-payment",
-            element: <CardPayment />,
-          },
-        ],
-      },
+      }
     ],
   },
   {
@@ -123,10 +67,6 @@ export const router = createBrowserRouter([
         path: "user-home",
         element: <UserHome />,
       },
-      {
-        path: "location",
-        element: <Location />,
-      },
 
       // admin routes
       {
@@ -138,52 +78,10 @@ export const router = createBrowserRouter([
         element: <ManageUsers />,
       },
       {
-        path: "manage-collectors",
-        element: <ManageCollectors />,
-      },
-      {
-        path: "feedbacks",
-        element: <Feedbacks />,
-      },
-      {
-        path: "schedules",
-        element: <Schedules />,
-      },
-      {
         path: "update-user/:id",
         element: <UpdateUser />,
         loader: ({ params }) =>
-          fetch(`http://localhost:3000/users/${params.id}`),
-      },
-      {
-        path: "update-collector/:id",
-        element: <UpdateCollector />,
-        loader: ({ params }) =>
-          fetch(`http://localhost:3000/users/${params.id}`),
-      },
-      {
-        path: "special-requests",
-        element: <SpecialRequests />,
-      },
-
-      {
-        path: "payment-details",
-        element: <PaymentDetails />,
-      },
-
-
-      // qr management
-      {
-        path: "qr-scan",
-        element: <QRManagement />,
-      },
-      {
-        path: "manage-locations",
-        element: <LocationManagementDashboard />,
-      },
-      {
-        path: "manage-inquiries",
-        element: <Inquiry />,
+          fetch(`http://localhost:3000/api/auth/users/${params.id}`),
       },
     ],
   },

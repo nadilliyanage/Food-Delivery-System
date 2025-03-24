@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema(
       enum: ["customer", "restaurant_admin", "delivery_personnel", "admin"],
       required: true,
     },
+    address: { type: String },
+    phone: { type: String },
+    photoUrl: { type: String },
+    latitude: { type: Number },  // Add latitude for storing user's location
+    longitude: { type: Number }, // Add longitude for storing user's location
   },
   { timestamps: true }
 );
