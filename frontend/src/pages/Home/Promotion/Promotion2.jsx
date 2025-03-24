@@ -24,11 +24,11 @@ const Promotion2 = () => {
             </div>
             <div className="flex flex-wrap items-center gap-5">
               <Link to={"/order"}>
-                <button className="px-7 py-3 rounded-lg bg-secondary font-bold uppercase hover:scale-105 duration-300">
+                <button className="px-7 py-3 rounded-lg bg-primary font-bold uppercase hover:scale-105 duration-300">
                   Order Now
                 </button>
               </Link>
-              <button className="px-7 py-3 rounded-lg border hover:bg-secondary font-bold uppercase">
+              <button className="px-7 py-3 rounded-lg border hover:bg-primary font-bold uppercase">
                 Explore Menu
               </button>
             </div>

@@ -99,7 +99,7 @@ const UpdateUser = () => {
         </button>
       </div>
       <h1 className="mt-5 text-4xl font-bold text-center">
-        Update: <span className="text-secondary">{userCredentials?.name}</span>
+        Update: <span className="text-primary">{userCredentials?.name}</span>
       </h1>
       <p className="text-center">
         Change details about{" "}
@@ -165,7 +165,7 @@ const UpdateUser = () => {
                       Name
                     </label>
                     <input
-                      className="w-full p-3 mt-1 text-sm border rounded-lg outline-none border-secondary"
+                      className="w-full p-3 mt-1 text-sm border rounded-lg outline-none border-primary"
                       placeholder="Your Name"
                       type="text"
                       required
@@ -180,7 +180,7 @@ const UpdateUser = () => {
                       Email
                     </label>
                     <input
-                      className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-secondary"
+                      className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-primary"
                       placeholder="Email Address"
                       type="email"
                       required
@@ -197,7 +197,7 @@ const UpdateUser = () => {
                     Phone
                   </label>
                   <input
-                    className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-secondary"
+                    className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-primary"
                     placeholder="Phone Number"
                     type="tel"
                     required
@@ -212,7 +212,7 @@ const UpdateUser = () => {
                     Address
                   </label>
                   <input
-                    className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-secondary"
+                    className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-primary"
                     placeholder="Address"
                     type="text"
                     id="address"
@@ -238,7 +238,7 @@ const UpdateUser = () => {
                   />
                   <label
                     htmlFor="option1"
-                    className="block w-full p-3 border rounded-lg peer-checked:border-secondary peer-checked:bg-secondary peer-checked:text-white"
+                    className="block w-full p-3 border rounded-lg peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white"
                   >
                     <span className="text-sm font-medium">User</span>
                   </label>
@@ -255,7 +255,7 @@ const UpdateUser = () => {
                   />
                   <label
                     htmlFor="option2"
-                    className="block w-full p-3 border rounded-lg peer-checked:border-secondary peer-checked:bg-secondary peer-checked:text-white"
+                    className="block w-full p-3 border rounded-lg peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white"
                   >
                     <span className="text-sm font-medium">Admin</span>
                   </label>
@@ -265,7 +265,7 @@ const UpdateUser = () => {
               {/* Submit Button */}
               <div className="flex justify-center">
                 <button
-                  className="px-10 py-5 text-white rounded-lg bg-secondary hover:bg-red-500"
+                  className="px-10 py-5 text-white rounded-lg bg-primary hover:bg-red-500"
                   type="submit"
                 >
                   Update User

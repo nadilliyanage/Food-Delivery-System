@@ -163,7 +163,7 @@ const Register = () => {
     <div className="flex justify-center items-center pt-14 bg-white dark:bg-gray-900 -mt-14">
       <Scroll />
       <div className="bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-3xl font-bold text-center text-secondary mb-6">
+        <h2 className="text-3xl font-bold text-center text-primary mb-6">
           Register
         </h2>
 
@@ -403,7 +403,7 @@ const Register = () => {
           <div className="text-center">
             <button
               type="submit"
-              className="w-full bg-secondary text-white py-2 px-4 rounded-md hover:scale-105 transition duration-300"
+              className="w-full bg-primary text-white py-2 px-4 rounded-md hover:scale-105 transition duration-300"
             >
               Register
             </button>

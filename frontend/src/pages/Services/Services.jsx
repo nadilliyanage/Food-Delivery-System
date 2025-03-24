@@ -140,7 +140,7 @@ const Services = () => {
           how we can help your community stay clean and green.
         </p>
         <NavLink to={'/contact'}>
-          <button className="inline-block bg-secondary text-white px-6 py-3 rounded-md text-lg font-medium hover:bg-green-700 transition-all duration-300">
+          <button className="inline-block bg-primary text-white px-6 py-3 rounded-md text-lg font-medium hover:bg-green-700 transition-all duration-300">
             Contact Us
           </button>
         </NavLink>

@@ -42,7 +42,7 @@ const Footer = () => {
 
                   <div>
                     <NavLink to={"/register"}>
-                      <button className="mt-1 w-full bg-secondary px-6 py-3 text-sm font-bold uppercase tracking-wide text-white duration-300 hover:scale-105 hover:shadow-lg sm:mt-0 sm:w-auto sm:shrink-0 rounded-lg md:w-36">
+                      <button className="mt-1 w-full bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wide text-white duration-300 hover:scale-105 hover:shadow-lg sm:mt-0 sm:w-auto sm:shrink-0 rounded-lg md:w-36">
                         Sign Up
                       </button>
                     </NavLink>

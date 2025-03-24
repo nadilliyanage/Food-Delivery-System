@@ -25,12 +25,12 @@ const SearchBar = ({ onSearch }) => {
           onChange={handleChange}
           placeholder="Search"
           title="Enter search keyword"
-          className="flex-1 p-2 border-2 border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+          className="flex-1 p-2 border-2 border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
         />
         <button
           type="submit"
           title="Search"
-          className="p-3 bg-secondary text-white rounded-r-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-secondary"
+          className="p-3 bg-primary text-white rounded-r-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <FaSearch />
         </button>
