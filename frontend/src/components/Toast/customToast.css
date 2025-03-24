@@ -1,0 +1,32 @@
+/* customToast.css */
+
+/* Default Toast container */
+.custom-toast .Toastify__toast-container {
+  width: 90%; /* Make the toast take up 90% of the screen width on mobile */
+  max-width: 500px; /* Limit the maximum width for larger screens */
+  margin: 0 auto; /* Center it */
+}
+
+.custom-toast .Toastify__toast {
+  border-radius: 8px; /* Round the corners */
+  padding: 12px 16px;
+}
+
+.custom-toast .Toastify__toast-body {
+  font-size: 16px; /* Make text readable on smaller screens */
+}
+
+.custom-toast .Toastify__progress-bar {
+  height: 4px;
+}
+
+/* Media Query for small devices */
+@media (max-width: 640px) {
+  .custom-toast .Toastify__toast-container {
+    width: 100%; /* Full width for very small devices */
+  }
+
+  .custom-toast .Toastify__toast-body {
+    font-size: 14px; /* Slightly smaller font for very small screens */
+  }
+}

@@ -73,6 +73,14 @@ const login = async (req, res) => {
   }
 };
 
+const setToken = async (req, res) => {
+  const user = req.body;
+  const token = jwt.sign(user, process.env.JWT_SECRET, {
+    expiresIn: "24h",
+  });
+  res.send({ token });
+}
+
 // ✅ Get User by ID
 const getUserById = async (req, res) => {
   try {
@@ -136,11 +144,20 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const setToken = async (req, res) => {
+  const user = req.body;
+  const token = jwt.sign(user, process.env.JWT_SECRET, {
+    expiresIn: "24h",
+  });
+  res.send({ token });
+}
+
 module.exports = {
   register,
-  login,
+  login, setToken,
   getUserById,
   getAllUsers,
   updateUser,
   deleteUser,
+  setToken,
 };
