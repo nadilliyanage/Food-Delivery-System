@@ -6,11 +6,13 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 //create payment
 const createPayment = async (req, res) => {
   try {
-    const { orderId, amount } = req.body;
+    const { orderId } = req.body;
 
-    //verify order from order service
+    // ✅ Get Authorization Token from Header
     const authToken = req.headers.authorization;
-    const paymentResponse = await axios.get(
+
+    // ✅ Verify Order & Get Total Price & Customer ID from Order Service
+    const orderResponse = await axios.get(
       `${process.env.ORDER_SERVICE_URL}/api/orders/${orderId}`,
       {
         headers: {
@@ -19,32 +21,38 @@ const createPayment = async (req, res) => {
       }
     );
 
-    if (!paymentResponse.data.success) {
-      return res.status(404).json({ error: "Invalid order" });
+    if (
+      !orderResponse.data ||
+      !orderResponse.data.totalPrice ||
+      !orderResponse.data.customer
+    ) {
+      return res.status(404).json({ error: "Invalid order or missing data" });
     }
 
-    //create payment intent
+    const amount = Math.round(orderResponse.data.totalPrice * 100); // Convert to cents
+    const customerId = orderResponse.data.customer; // Get customer ID from order
+
+    // ✅ Create Payment Intent in Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "usd",
     });
 
-    //save payment to database
+    // ✅ Save Payment in Database
     const payment = new Payment({
       orderId,
-      customer: req.user.id,
-      amount,
+      customer: customerId, // Store customer ID from order
+      amount: orderResponse.data.totalPrice, // Store in dollars
       status: "pending",
       stripePaymentIntentId: paymentIntent.id,
     });
 
     await payment.save();
-    res
-      .status(201)
-      .json({
-        message: "Payment initiated",
-        clientSecret: paymentIntent.client_secret,
-      });
+
+    res.status(201).json({
+      message: "Payment initiated",
+      clientSecret: paymentIntent.client_secret,
+    });
   } catch (error) {
     console.error("❌ Error creating payment:", error);
     res.status(500).json({ message: "Payment processing failed" });

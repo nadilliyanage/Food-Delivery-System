@@ -5,11 +5,13 @@ const {
   placeOrder,
   updateOrder,
   cancelOrder,
+  getOrders,
 } = require("../controllers/orderController");
 const authMiddleware = require("../middleware/middleware");
 
 const router = express.Router();
 
+router.get("/all", authMiddleware, getOrders);
 router.get("/", authMiddleware, getUserOrders);
 router.get("/:id", authMiddleware, getOrderById);
 router.post("/", authMiddleware, placeOrder);
