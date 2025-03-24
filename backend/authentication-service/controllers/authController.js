@@ -6,13 +6,12 @@ const jwt = require("jsonwebtoken");
 const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+    const newUser = req.body;
 
     // Ensure `role` is valid
     if (
       !role ||
-      !["customer", "restaurant_admin", "delivery_personnel", "admin"].includes(
-        role
-      )
+      !["customer", "restaurant_admin", "delivery_personnel", "admin"].includes(role)
     ) {
       return res.status(400).json({ message: "Invalid role specified" });
     }
@@ -20,33 +19,35 @@ const register = async (req, res) => {
     // Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.log("❌ Email already registered:", email); // Log if email exists
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Save the user with timestamps
-    const user = new User({ name, email, password: hashedPassword, role });
-    await user.save();
+    const result = await User.create({ ...newUser, password: hashedPassword });
+    await result.save();
 
     // Generate JWT token for the newly registered user
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: result._id, role: result.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
+    // Send response with token
     res.status(201).json({
       message: "User registered successfully",
-      user,
+      user: result, // Log the saved user in the response
       token, // ✅ Send token on successful registration
     });
   } catch (error) {
-    console.error("❌ Error registering user:", error);
+    console.error("❌ Error registering user:", error); // Log the error in case of failure
     res.status(500).json({ message: "Error registering user" });
   }
 };
+
 
 // ✅ Login User and Generate JWT Token
 const login = async (req, res) => {
@@ -80,6 +81,26 @@ const getUserById = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json(user);
+  } catch (error) {
+    console.error("❌ Error fetching user:", error);
+    res.status(500).json({ message: "Error fetching user" });
+  }
+};
+
+// ✅ Get User by Email
+const getUserByEmail = async (req, res) => {
+  try {
+    const email = req.params.email || req.query.email;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
   } catch (error) {
     console.error("❌ Error fetching user:", error);
     res.status(500).json({ message: "Error fetching user" });
@@ -136,11 +157,21 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const setToken = async (req, res) => {
+  const user = req.body;
+  const token = jwt.sign(user, process.env.JWT_SECRET, {
+    expiresIn: "24h",
+  });
+  res.send({ token });
+}
+
 module.exports = {
   register,
-  login,
+  login, setToken,
   getUserById,
+  getUserByEmail,
   getAllUsers,
   updateUser,
   deleteUser,
+  setToken,
 };
