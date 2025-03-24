@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restaurant-config
+data:
+  MONGO_URI: "mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Restaurant?retryWrites=true&w=majority&appName=Cluster"
+  PORT: "3003"
