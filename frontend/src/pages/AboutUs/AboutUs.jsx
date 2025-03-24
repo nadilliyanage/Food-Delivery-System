@@ -86,7 +86,7 @@ const AboutUs = () => {
           to improve waste management and recycling. Together, we can shape a more sustainable future.
         </p>
         <a href="/contact">
-          <button className="bg-secondary text-white px-6 py-3 rounded-md text-lg font-medium hover:bg-green-700 transition-all duration-300">
+          <button className="bg-primary text-white px-6 py-3 rounded-md text-lg font-medium hover:bg-green-700 transition-all duration-300">
             Get in Touch
           </button>
         </a>

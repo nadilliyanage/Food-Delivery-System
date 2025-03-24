@@ -112,7 +112,7 @@ const DashboardLayout = () => {
           />
           <h1
             onClick={() => setOpen(!open)}
-            className={`text-secondary cursor-pointer font-bold origin-left text-xl duration-200 ${
+            className={`text-primary cursor-pointer font-bold origin-left text-xl duration-200 ${
               !open && "scale-0"
             }`}
           >
@@ -139,7 +139,7 @@ const DashboardLayout = () => {
                     to={menuItem.to}
                     className={({ isActive }) =>
                       `flex ${
-                        isActive ? "bg-secondary text-white" : "text-[#413F44]"
+                        isActive ? "bg-primary text-white" : "text-[#413F44]"
                       } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
                     }
                   >
@@ -169,7 +169,7 @@ const DashboardLayout = () => {
                 to={menuItem.to}
                 className={({ isActive }) =>
                   `flex ${
-                    isActive ? "bg-secondary text-white" : "text-[#413F44]"
+                    isActive ? "bg-primary text-white" : "text-[#413F44]"
                   } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
                 }
               >

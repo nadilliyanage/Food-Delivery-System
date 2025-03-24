@@ -102,7 +102,7 @@ const ManageUsers = () => {
   return (
     <div className="px-4 sm:px-0">
       <h1 className="text-center text-4xl font-bold my-7">
-        Manage <span className="text-secondary">Users</span>
+        Manage <span className="text-primary">Users</span>
       </h1>
 
       {/* Search and Filter Inputs */}

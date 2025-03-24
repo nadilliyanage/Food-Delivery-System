@@ -20,7 +20,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
                 onClick={() => handlePageClick(number)}
                 className={`px-4 py-2 rounded-lg ${
                   number === currentPage
-                    ? "bg-secondary text-white"
+                    ? "bg-primary text-white"
                     : "bg-gray-200 text-gray-700"
                 }`}
               >

@@ -130,7 +130,7 @@ const NavBar = () => {
               <button
                 type="button"
                 onClick={toggleMobileMenu}
-                className="text-secondary hover:text-white focus:outline-none"
+                className="text-primary hover:text-white focus:outline-none"
               >
                 {isMobileMenuOpen ? (
                   <FaTimes className="h-6 w-6 hover:text-white" /> // Show close icon when menu is open
@@ -155,7 +155,7 @@ const NavBar = () => {
                 <img
                   src={currentUser?.photoUrl || userImg}
                   alt="User Avatar"
-                  className="w-10 h-10 rounded-full object-cover border-4 border-secondary"
+                  className="w-10 h-10 rounded-full object-cover border-4 border-primary"
                 />
               </Link>
             </div>
@@ -172,11 +172,11 @@ const NavBar = () => {
                       className={({ isActive }) =>
                         `font-bold ${
                           isActive
-                            ? "text-secondary"
+                            ? "text-primary"
                             : navBg.includes("bg-transparent") && isHome
                             ? "text-white"
                             : "text-black dark:text-white"
-                        } hover:text-secondary duration-300`
+                        } hover:text-primary duration-300`
                       }
                     >
                       {link.name}
@@ -191,11 +191,11 @@ const NavBar = () => {
                       className={({ isActive }) =>
                         `font-bold ${
                           isActive
-                            ? "text-secondary"
+                            ? "text-primary"
                             : navBg.includes("bg-transparent") && isHome
                             ? "text-white"
                             : "text-black dark:text-white"
-                        } hover:text-secondary duration-300`
+                        } hover:text-primary duration-300`
                       }
                     >
                       Map
@@ -211,13 +211,13 @@ const NavBar = () => {
                       className={({ isActive }) =>
                         `font-bold ${
                           isActive
-                            ? "text-secondary"
+                            ? "text-primary"
                             : `${
                                 navBg.includes("bg-transparent")
                                   ? "text-white"
                                   : "text-black dark:text-white"
                               }`
-                        } hover:text-secondary duration-300`
+                        } hover:text-primary duration-300`
                       }
                     >
                       Register
@@ -230,13 +230,13 @@ const NavBar = () => {
                       className={({ isActive }) =>
                         `font-bold ${
                           isActive
-                            ? "text-secondary"
+                            ? "text-primary"
                             : `${
                                 navBg.includes("bg-transparent")
                                   ? "text-white"
                                   : "text-black dark:text-white"
                               }`
-                        } hover:text-secondary duration-300`
+                        } hover:text-primary duration-300`
                       }
                     >
                       Login
@@ -251,13 +251,13 @@ const NavBar = () => {
                       className={({ isActive }) =>
                         `font-bold ${
                           isActive
-                            ? "text-secondary"
+                            ? "text-primary"
                             : `${
                                 navBg.includes("bg-transparent")
                                   ? "text-white"
                                   : "text-black dark:text-white"
                               }`
-                        } hover:text-secondary duration-300`
+                        } hover:text-primary duration-300`
                       }
                     >
                       Dashboard
@@ -282,7 +282,7 @@ const NavBar = () => {
                     <NavLink
                       onClick={handleLogout}
                       className={
-                        "font-bold px-3 py-2 bg-secondary text-white rounded-xl"
+                        "font-bold px-3 py-2 bg-primary text-white rounded-xl"
                       }
                     >
                       Logout
@@ -307,7 +307,7 @@ const NavBar = () => {
               <NavLink
                 to={link.route}
                 onClick={toggleMobileMenu}
-                className="block font-bold text-black dark:text-white hover:text-secondary"
+                className="block font-bold text-black dark:text-white hover:text-primary"
               >
                 {link.name}
               </NavLink>
@@ -322,7 +322,7 @@ const NavBar = () => {
                   <NavLink
                     to="/register"
                     onClick={toggleMobileMenu}
-                    className="block font-bold text-black dark:text-white hover:text-secondary"
+                    className="block font-bold text-black dark:text-white hover:text-primary"
                   >
                     Register
                   </NavLink>
@@ -332,7 +332,7 @@ const NavBar = () => {
                   <NavLink
                     to="/login"
                     onClick={toggleMobileMenu}
-                    className="block font-bold text-black dark:text-white hover:text-secondary"
+                    className="block font-bold text-black dark:text-white hover:text-primary"
                   >
                     Login
                   </NavLink>
@@ -346,7 +346,7 @@ const NavBar = () => {
                   <NavLink
                     to="/manage-locations"
                     onClick={toggleMobileMenu}
-                    className="block font-bold py-1 text-black rounded-xl hover:text-secondary"
+                    className="block font-bold py-1 text-black rounded-xl hover:text-primary"
                   >
                     Map
                   </NavLink>
@@ -356,7 +356,7 @@ const NavBar = () => {
               <li>
                 <button
                   onClick={handleLogout}
-                  className="font-bold px-3 py-2 bg-secondary text-white rounded-xl"
+                  className="font-bold px-3 py-2 bg-primary text-white rounded-xl"
                 >
                   Logout
                 </button>

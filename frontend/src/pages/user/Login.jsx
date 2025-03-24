@@ -33,7 +33,7 @@ const Login = () => {
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 lg:px-8">
       <Scroll />
-      <h1 className="text-2xl font-bold text-secondary sm:text-3xl text-center">
+      <h1 className="text-2xl font-bold text-primary sm:text-3xl text-center">
         Log In to Your Account
       </h1>
       <p className="mx-auto mt-4 max-w-md text-center text-gray-500">
@@ -92,7 +92,7 @@ const Login = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="block w-full rounded-lg bg-secondary px-5 py-3 text-sm font-medium text-white hover:scale-105 duration-300"
+            className="block w-full rounded-lg bg-primary px-5 py-3 text-sm font-medium text-white hover:scale-105 duration-300"
             disabled={loader} // Disable button when loading
           >
             {loader ? "Signing in..." : "Sign in"}

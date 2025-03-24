@@ -130,7 +130,7 @@ const Profile = () => {
     <div className="mt-20">
       <Scroll />
       <h1 className="mt-5 text-4xl font-bold text-center dark:text-white">
-        Update <span className="text-secondary">Profile</span>
+        Update <span className="text-primary">Profile</span>
       </h1>
       <p className="text-center">Change your details</p>
 
@@ -184,7 +184,7 @@ const Profile = () => {
                       Name
                     </label>
                     <input
-                      className="w-full p-3 mt-1 text-sm border rounded-lg outline-none border-secondary dark:bg-slate-800"
+                      className="w-full p-3 mt-1 text-sm border rounded-lg outline-none border-primary dark:bg-slate-800"
                       placeholder="Your Name"
                       type="text"
                       required
@@ -202,7 +202,7 @@ const Profile = () => {
                       You can't edit your email
                     </span>
                     <input
-                      className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-secondary"
+                      className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-primary"
                       placeholder="Email Address"
                       disabled
                       type="email"
@@ -221,7 +221,7 @@ const Profile = () => {
                     Phone
                   </label>
                   <input
-                    className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-secondary dark:bg-slate-800"
+                    className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-primary dark:bg-slate-800"
                     placeholder="Phone Number"
                     type="tel"
                     required
@@ -236,7 +236,7 @@ const Profile = () => {
                     Address
                   </label>
                   <input
-                    className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-secondary dark:bg-slate-800"
+                    className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-primary dark:bg-slate-800"
                     placeholder="Address"
                     type="text"
                     value={formData.address}
@@ -249,7 +249,7 @@ const Profile = () => {
 
               <div className="flex justify-center">
                 <button
-                  className="px-10 py-5 text-white rounded-lg bg-secondary hover:bg-red-500"
+                  className="px-10 py-5 text-white rounded-lg bg-primary hover:bg-red-500"
                   type="submit"
                 >
                   Update
