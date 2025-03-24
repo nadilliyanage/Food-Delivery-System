@@ -5,6 +5,33 @@ require("dotenv").config();
 // Load API Gateway service URLs from environment variables
 const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
 
+// ✅ Get All Orders (For Admins and Restaurant Owners)
+const getOrders = async (req, res) => {
+  try {
+    const userRole = req.user.role;
+    const userId = req.user.id;
+
+    console.log(`🔍 Fetching all orders for role: ${userRole}`);
+
+    let orders;
+
+    if (userRole === "admin") {
+      // ✅ Admins can see all orders
+      orders = await Order.find();
+    } else if (userRole === "restaurant_admin") {
+      // ✅ Restaurant owners can only see orders for their restaurant
+      orders = await Order.find({ restaurant: userId });
+    } else {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    res.json(orders);
+  } catch (error) {
+    console.error("❌ Error fetching orders:", error);
+    res.status(500).json({ message: "Error fetching orders" });
+  }
+};
+
 // ✅ Get All Orders for the Logged-in User
 const getUserOrders = async (req, res) => {
   try {
@@ -207,4 +234,5 @@ module.exports = {
   updateOrder,
   cancelOrder,
   trackOrderStatus,
+  getOrders,
 };
