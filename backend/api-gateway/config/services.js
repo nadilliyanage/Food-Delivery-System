@@ -7,4 +7,5 @@ module.exports = {
   orderService: `${process.env.ORDER_SERVICE_URL}/api/orders`,
   deliveryService: `${process.env.DELIVER_SERVICE_URL}/api/deliveries`,
   paymentService: `${process.env.PAYMENT_SERVICE_URL}/api/payment`,
+  notificationService: `${process.env.NOTIFICATION_SERVICE_URL}/api/notifications`,
 };
