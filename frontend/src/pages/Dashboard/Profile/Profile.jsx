@@ -5,26 +5,37 @@ import useAxiosSecure from "../../../hooks/useAxiosSecure";
 import storage from "../../../config/firebase.init";
 import Swal from "sweetalert2";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { IoMdDownload } from "react-icons/io";
 import Scroll from "../../../hooks/useScroll";
-import SmallModal from "../../../components/Modal/Modal";
 import { ToastContainer, toast } from "react-toastify";
 
 const Profile = () => {
-  const { currentUser } = useUser();
+  const { currentUser, refetch } = useUser();
   const userCredentials = currentUser;
   const axiosSecure = useAxiosSecure();
   const [img, setImg] = useState(undefined);
   const [imgPerc, setImgPerc] = useState(0);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal
+  const [isUploading, setIsUploading] = useState(false);
+  const [imgUploaded, setImgUploaded] = useState(false);
   const [formData, setFormData] = useState({
     name: userCredentials?.name || "",
     phone: userCredentials?.phone || "",
     address: userCredentials?.address || "",
     photoUrl: userCredentials?.photoUrl || "",
   });
+
+  // Update formData when userCredentials changes
+  useEffect(() => {
+    if (userCredentials) {
+      setFormData({
+        name: userCredentials.name || "",
+        phone: userCredentials.phone || "",
+        address: userCredentials.address || "",
+        photoUrl: userCredentials.photoUrl || "",
+      });
+    }
+  }, [userCredentials]);
 
   useEffect(() => {
     if (img) {
@@ -36,48 +47,65 @@ const Profile = () => {
     const fileName = new Date().getTime() + file.name;
     const storageRef = ref(storage, "images/profilePictures/" + fileName);
     const uploadTask = uploadBytesResumable(storageRef, file);
-    setUploading(true);
-
+    
+    setIsUploading(true);
+    setImgUploaded(false);
+  
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setImgPerc(Math.round(progress));
       },
       (error) => {
         console.error(error);
-        setUploading(false);
+        setIsUploading(false);
       },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setFormData((prev) => ({
-            ...prev,
-            [fileType]: downloadURL,
-          }));
-          setUploading(false);
-        });
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        setFormData((prev) => ({
+          ...prev,
+          [fileType]: downloadURL,
+        }));
+        setIsUploading(false);
+        setImgUploaded(true);
+        toast.success("Image uploaded successfully!");
       }
     );
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    axiosSecure
-      .put(`/api/auth/users/${userCredentials._id}`, formData)
-      .then(() => {
-        Swal.fire({
-          title: "Updated!",
-          text: "Your details have been updated successfully.",
-          icon: "success",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.reload(); // Reload only after "OK" is clicked
-          }
-        });
-      })
-      .catch((err) => console.error(err));
-  };
+  
+    if (isUploading) {
+      toast.warning("Please wait until the image finishes uploading.");
+      return;
+    }
+  
+    if (!imgUploaded && img) {
+      toast.warning("Please wait until the image is fully uploaded before submitting.");
+      return;
+    }
+  
+    try {
+      const response = await axiosSecure.put(`/api/auth/users/${userCredentials._id}`, formData);
+      
+      // Update local storage with new user data
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // Refetch user data to update the state
+      await refetch();
+      
+      Swal.fire({
+        title: "Updated!",
+        text: "Your details have been updated successfully.",
+        icon: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong while updating!");
+    }
+  };  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,44 +114,6 @@ const Profile = () => {
 
   const handlePencilClick = () => {
     fileInputRef.current.click(); // Trigger file input on pencil icon click
-  };
-
-  // Function to download the QR code image
-  const downloadQRCode = (e) => {
-    e.preventDefault(); // Prevent form submission
-
-    Swal.fire({
-      title: "Are you sure you want to download the QR code?",
-      text: "",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, download!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const link = document.createElement("a");
-        link.href = currentUser?.qrCodeUrl;
-        link.download = `qr-code-of-${currentUser.name}`; // Name of the downloaded file
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        Swal.fire({
-          title: "Downloaded!",
-          text: "You have successfully downloaded the QR code.",
-          icon: "success",
-        });
-      }
-    });
-  };
-
-  // Function to toggle modal for full-screen QR code
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
   };
 
   return (
@@ -161,6 +151,7 @@ const Profile = () => {
 
                     {/* Pencil Icon */}
                     <button
+                      type="button"
                       onClick={handlePencilClick}
                       className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2 shadow-md hover:bg-gray-200"
                     >

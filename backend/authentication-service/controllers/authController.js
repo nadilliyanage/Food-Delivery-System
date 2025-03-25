@@ -125,18 +125,18 @@ const getAllUsers = async (req, res) => {
 // ✅ Update User
 const updateUser = async (req, res) => {
   try {
-    const { name, email, role } = req.body;
+    const { name, email, role, address, phone, photoUrl } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { name, email, role },
+      { name, email, role, address, phone, photoUrl },
       { new: true }
     );
 
     if (!updatedUser)
       return res.status(404).json({ message: "User not found" });
 
-    res.json({ message: "User updated successfully", updatedUser });
+    res.json({ message: "User updated successfully", user: updatedUser });
   } catch (error) {
     console.error("❌ Error updating user:", error);
     res.status(500).json({ message: "Error updating user" });

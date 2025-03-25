@@ -25,7 +25,7 @@ const ManageUsers = () => {
 
   useEffect(() => {
     axiosFetch
-      .get("api/auth/users")
+      .get("/api/auth/users")
       .then((res) => {
         const user = res.data.filter((user) => user.role === "user");
         const sortedUsers = user.sort((a, b) =>

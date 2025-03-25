@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema(
     photoUrl: { type: String },
     latitude: { type: Number },  // Add latitude for storing user's location
     longitude: { type: Number }, // Add longitude for storing user's location
+    gender: { type: String },
   },
   { timestamps: true }
 );
