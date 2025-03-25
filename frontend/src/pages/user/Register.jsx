@@ -45,7 +45,6 @@ const Register = () => {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
           });
-          toast.success("Location access granted!");
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -188,21 +187,6 @@ const Register = () => {
         <h2 className="text-3xl font-bold text-center text-primary mb-6">
           Register
         </h2>
-
-        {/* Location Status */}
-        <div className="mb-4 p-3 rounded-lg bg-gray-100">
-          <p className="text-sm text-gray-600">
-            {location.latitude && location.longitude ? (
-              <span className="text-green-600">
-                ✓ Location access granted
-              </span>
-            ) : (
-              <span className="text-yellow-600">
-                ⚠️ Location access pending or denied
-              </span>
-            )}
-          </p>
-        </div>
 
         <form onSubmit={onSubmit}>
           <div className="flex items-center gap-5">
