@@ -8,6 +8,7 @@ import { AuthContext } from "../../utilities/providers/AuthProvider";
 import Swal from "sweetalert2";
 import useUser from "../../hooks/useUser";
 import logo from "../../assets/logo.png";
+import { isAuthenticated } from "../../utils/auth";
 
 const navLinks = [
   { name: "Home", route: "/" },
@@ -40,6 +41,9 @@ const NavBar = () => {
   const [navBg, setNavBg] = useState("bg-[#15151580]");
   const { logout, user } = useContext(AuthContext);
   const { currentUser } = useUser();
+  
+  // Check if user is authenticated (using either context or token)
+  const isUserAuthenticated = !!user || isAuthenticated();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -97,14 +101,14 @@ const NavBar = () => {
       confirmButtonText: "Yes, Logout me!",
     }).then((result) => {
       if (result.isConfirmed) {
-        logout().then(
+        logout().then(() => {
           Swal.fire({
             title: "Logged Out!",
             text: "You have been successfully logged out.",
             icon: "success",
-          })
-        );
-        navigate("/").catch((error) => console.log(error));
+          });
+          navigate("/");
+        }).catch((error) => console.log(error));
       }
     });
   };
@@ -149,9 +153,9 @@ const NavBar = () => {
             </div>
           </div>
 
-          {user && (
+          {isUserAuthenticated && (
             <div className="md:hidden">
-              <Link to={`/user-profile`}>
+              <Link to={`/dashboard/user-profile`}>
                 <img
                   src={currentUser?.photoUrl || userImg}
                   alt="User Avatar"
@@ -204,7 +208,7 @@ const NavBar = () => {
                 )}
 
                 {/* based on users */}
-                {user ? null : isLogin ? (
+                {isUserAuthenticated ? null : isLogin ? (
                   <li>
                     <NavLink
                       to="/register"
@@ -244,7 +248,7 @@ const NavBar = () => {
                   </li>
                 )}
 
-                {user && (
+                {isUserAuthenticated && (
                   <li>
                     <NavLink
                       to="/dashboard"
@@ -265,7 +269,7 @@ const NavBar = () => {
                   </li>
                 )}
 
-                {user && (
+                {isUserAuthenticated && (
                   <li>
                     <Link to={`/dashboard/user-profile`}>
                       <img
@@ -277,7 +281,7 @@ const NavBar = () => {
                   </li>
                 )}
 
-                {user && (
+                {isUserAuthenticated && (
                   <li>
                     <NavLink
                       onClick={handleLogout}
@@ -315,7 +319,7 @@ const NavBar = () => {
           ))}
 
           {/* based on user status */}
-          {!user ? (
+          {!isUserAuthenticated ? (
             <>
               {isLogin ? (
                 <li>
@@ -352,6 +356,16 @@ const NavBar = () => {
                   </NavLink>
                 </li>
               )}
+
+              <li>
+                <NavLink
+                  to="/dashboard"
+                  onClick={toggleMobileMenu}
+                  className="block font-bold py-1 text-black rounded-xl hover:text-primary"
+                >
+                  Dashboard
+                </NavLink>
+              </li>
 
               <li>
                 <button

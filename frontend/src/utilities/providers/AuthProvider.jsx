@@ -1,112 +1,146 @@
 import React, { createContext, useEffect, useState } from "react";
-import { app } from "../../config/firebase.init";
-import axios from 'axios'
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup,
-  onAuthStateChanged,
-} from "firebase/auth";
+import axios from 'axios';
+import { 
+  registerUser as registerUserFn,
+  loginUser as loginUserFn,
+  logout as logoutUserFn,
+  getCurrentUser,
+  isAuthenticated
+} from '../../utils/auth';
 
 export const AuthContext = createContext()
 
 const AuthProvider = ({children}) => {
-
    const [user, setUser] = useState(null);
    const [loader, setLoader] = useState(true);
    const [error, setError] = useState('');
 
-   const auth = getAuth(app);
-
-   //sign up new user
-   const signUp = async (email, password) => {
+   // Sign up new user
+   const signUp = async (userData) => {
       try {
          setLoader(true);
-         return await createUserWithEmailAndPassword(auth, email, password)
+         console.log("AuthProvider: Starting signup with data:", userData);
+         const result = await registerUserFn(userData);
+         console.log("AuthProvider: Registration result:", result);
+         
+         // Ensure the user data is properly set
+         if (result && result.user) {
+            // Make sure photoUrl is included in the user data
+            if (userData.photoUrl && !result.user.photoUrl) {
+               result.user.photoUrl = userData.photoUrl;
+            }
+            setUser(result.user);
+         }
+         
+         return result;
       } catch (error) {
-         setError(error.code);
+         setError(error.message);
          throw error;
+      } finally {
+         setLoader(false);
       }
    }
 
-   // login user
-   const login = async (email, password) => {
+   // Login user
+   const login = async (credentials) => {
       try {
          setLoader(true);
-         return await signInWithEmailAndPassword(auth, email, password);
+         const result = await loginUserFn(credentials);
+         setUser(result.user);
+         return result;
       } catch (error) {
-         setError(error.code);
+         setError(error.message);
          throw error;
+      } finally {
+         setLoader(false);
       }
    }
 
-   // logout user
+   // Logout user
    const logout = async () => {
       try {
-         return await signOut(auth);
+         await logoutUserFn();
+         setUser(null);
       } catch (error) {
-         setError(error.code);
+         setError(error.message);
          throw error;
       }
    } 
 
-   // update user profile
-   const updateUser = async (name, photo) => {
+   // Update user profile
+   const updateUser = async (userData) => {
       try {
-         await updateProfile(auth.currentUser, {
-            displayName: name, photoURL: photo
-         });
-         setUser(auth.currentUser)
+         // Make API call to update user
+         const response = await axios.put(
+            `http://localhost:3000/api/auth/users/${userData._id}`, 
+            userData,
+            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+         );
+         
+         // Update local storage
+         if (response.data) {
+            localStorage.setItem('user', JSON.stringify(response.data));
+            setUser(response.data);
+         }
+         
+         return response.data;
       } catch (error) {
-         setError(error.code);
+         setError(error.message);
          throw error;
       }
    }
 
-   // google login
-   const googleProvider = new GoogleAuthProvider();
+   // Google login - you would implement this with your backend
    const googleLogin = async () => {
       try {
          setLoader(true);
-         return await signInWithPopup(auth, googleProvider);
+         // This would call your backend's Google auth endpoint
+         throw new Error("Google login not implemented with JWT yet");
       } catch (error) {
-         setError(error.code);
+         setError(error.message);
          throw error;
+      } finally {
+         setLoader(false);
       }
    }
 
-   // observer for users
+   // Check authentication status on mount and when localStorage changes
    useEffect(() => {
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-         setUser(user);
-
-         if (user) {
-            axios.post('http://localhost:3000/api/auth/set-token', {email: user.email, name: user.displayName})
-            .then((data) => {
-               if(data.data.token) {
-                  localStorage.setItem('token', data.data.token)
-                  setLoader(false);
-               }
-            })
+      const checkAuth = () => {
+         if (isAuthenticated()) {
+            const currentUser = getCurrentUser();
+            setUser(currentUser);
          } else {
-            localStorage.removeItem('token');
-            setLoader(false);
+            setUser(null);
          }
-      })
+         setLoader(false);
+      };
+      
+      checkAuth();
+      
+      // Listen for storage events to sync auth state across tabs
+      window.addEventListener('storage', checkAuth);
+      return () => window.removeEventListener('storage', checkAuth);
+   }, []);
 
-      return () => unsubscribe();
-   }, [])
-
-   const contextValue = {user, signUp, login, logout, updateUser, googleLogin, error, setError, loader, setLoader}
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  )
+   const contextValue = {
+      user, 
+      signUp, 
+      login, 
+      logout, 
+      updateUser, 
+      googleLogin, 
+      error, 
+      setError, 
+      loader, 
+      setLoader
+   }
+   
+   return (
+      <AuthContext.Provider value={contextValue}>
+         {children}
+      </AuthContext.Provider>
+   )
 }
 
 export default AuthProvider

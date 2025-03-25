@@ -10,24 +10,29 @@ const Login = () => {
   const location = useLocation();
   const { login, error, setError, loader, setLoader } = useAuth();
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
-  const handleSubmit = (e) => {
-    setError(""); // Clear any previous error
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const data = new FormData(e.target);
-    const formData = Object.fromEntries(data);
-
-    setLoader(true); // Show loader when submitting
-    login(formData.email, formData.password)
-      .then(() => {
-        setLoader(false); // Hide loader after successful login
-        navigate(location.state?.from || "/");
-      })
-      .catch((err) => {
-        setError("Invalid email or password. Please try again.");
-        setLoader(false); // Hide loader after error
-      });
+    setError('');
+    
+    try {
+      await login(formData);
+      navigate(location.state?.from || "/");
+    } catch (err) {
+      console.error('Login error:', err);
+      // Error is already set by the AuthContext
+    }
   };
 
   return (
@@ -54,6 +59,8 @@ const Login = () => {
                 name="email"
                 placeholder="Enter email"
                 className="w-full border outline-none rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
+                value={formData.email}
+                onChange={handleChange}
               />
               <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
                 <MdOutlineAlternateEmail className="h-4 w-4 text-gray-400" />
@@ -72,6 +79,8 @@ const Login = () => {
                 name="password"
                 placeholder="Enter password"
                 className="w-full border outline-none rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
+                value={formData.password}
+                onChange={handleChange}
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
@@ -93,7 +102,7 @@ const Login = () => {
           <button
             type="submit"
             className="block w-full rounded-lg bg-primary px-5 py-3 text-sm font-medium text-white hover:scale-105 duration-300"
-            disabled={loader} // Disable button when loading
+            disabled={loader}
           >
             {loader ? "Signing in..." : "Sign in"}
           </button>

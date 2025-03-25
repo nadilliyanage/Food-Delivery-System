@@ -9,7 +9,7 @@ import Scroll from "../../../hooks/useScroll";
 import { ToastContainer, toast } from "react-toastify";
 
 const Profile = () => {
-  const { currentUser } = useUser();
+  const { currentUser, refetch } = useUser();
   const userCredentials = currentUser;
   const axiosSecure = useAxiosSecure();
   const [img, setImg] = useState(undefined);
@@ -24,6 +24,18 @@ const Profile = () => {
     address: userCredentials?.address || "",
     photoUrl: userCredentials?.photoUrl || "",
   });
+
+  // Update formData when userCredentials changes
+  useEffect(() => {
+    if (userCredentials) {
+      setFormData({
+        name: userCredentials.name || "",
+        phone: userCredentials.phone || "",
+        address: userCredentials.address || "",
+        photoUrl: userCredentials.photoUrl || "",
+      });
+    }
+  }, [userCredentials]);
 
   useEffect(() => {
     if (img) {
@@ -76,15 +88,18 @@ const Profile = () => {
     }
   
     try {
-      await axiosSecure.put(`/api/auth/users/${userCredentials._id}`, formData);
+      const response = await axiosSecure.put(`/api/auth/users/${userCredentials._id}`, formData);
+      
+      // Update local storage with new user data
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // Refetch user data to update the state
+      await refetch();
+      
       Swal.fire({
         title: "Updated!",
         text: "Your details have been updated successfully.",
         icon: "success",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.reload();
-        }
       });
     } catch (err) {
       console.error(err);
@@ -136,6 +151,7 @@ const Profile = () => {
 
                     {/* Pencil Icon */}
                     <button
+                      type="button"
                       onClick={handlePencilClick}
                       className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2 shadow-md hover:bg-gray-200"
                     >

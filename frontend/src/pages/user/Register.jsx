@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import storage from "../../config/firebase.init";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { useForm } from "react-hook-form";
 import { AiOutlineLock, AiOutlineMail, AiOutlinePhone, AiOutlineUser } from "react-icons/ai";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,6 +9,7 @@ import GoogleLogin from "../../components/Social/GoogleLogin";
 import { AuthContext } from "../../utilities/providers/AuthProvider";
 import axios from "axios";
 import Scroll from "../../hooks/useScroll";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -22,15 +23,44 @@ const Register = () => {
     email: "",
     password: "",
     photoUrl: "",
-    role: "",
+    role: "customer", // Default role
     gender: "",
     phone: "",
+    addressLine1: "",
+    addressLine2: "",
     city: "",
-    address: "",
   });
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [imageUploaded, setImageUploaded] = useState(false);
 
   const [location, setLocation] = useState({ latitude: null, longitude: null });
+
+  // Function to get user's location
+  const getUserLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+          toast.success("Location access granted!");
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast.error("Location access denied. You can still register without location.");
+        }
+      );
+    } else {
+      toast.error("Geolocation is not supported by your browser");
+    }
+  };
+
+  // Call getUserLocation when component mounts
+  useEffect(() => {
+    getUserLocation();
+  }, []);
 
   useEffect(() => {
     if (img) {
@@ -43,6 +73,7 @@ const Register = () => {
     const storageRef = ref(storage, "images/profilePictures/" + fileName);
     const uploadTask = uploadBytesResumable(storageRef, file);
     setUploading(true);
+    setImageUploaded(false);
 
     uploadTask.on(
       "state_changed",
@@ -53,6 +84,7 @@ const Register = () => {
       (error) => {
         console.log(error);
         setUploading(false);
+        setImageUploaded(false);
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
@@ -61,67 +93,59 @@ const Register = () => {
             [fileType]: downloadURL,
           }));
           setUploading(false);
+          setImageUploaded(true);
+          console.log("Upload complete. Photo URL:", downloadURL);
         });
       }
     );
   };
 
-  const onSubmit = (data) => {
-    setError("");
-    setGeneralError("");
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
-    // Get user's current location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ latitude, longitude });
-
-          signUp(data.email, data.password)
-            .then((result) => {
-              const user = result.user;
-
-              if (user) {
-                return updateUser(data.name, formData.photoUrl).then(() => {
-                  const userImp = {
-                    name: user?.displayName,
-                    email: user?.email,
-                    photoUrl: formData.photoUrl,
-                    password: data.password,
-                    role: "customer",
-                    gender: data.gender,
-                    phone: data.phone,
-                    address: `${data.addressLine1}, ${data.addressLine2}, ${data.city}`,
-                    latitude, // Save latitude
-                    longitude // Save longitude
-                  };
-
-                  if (userImp.email && user.displayName) {
-                    return axios
-                      .post("http://localhost:3000/api/auth/register", userImp)
-                      .then(() => {
-                        setError("");
-                        navigate("/");
-                      })
-                      .catch((err) => {
-                        setGeneralError(
-                          err.response?.data?.message || "An error occurred. Please try again."
-                        );
-                      });
-                  }
-                });
-              }
-            })
-            .catch((err) => {
-              setGeneralError(err.message);
-            });
-        },
-        (error) => {
-          setGeneralError("Could not retrieve location.");
-        }
-      );
-    } else {
-      setGeneralError("Geolocation is not supported by this browser.");
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setGeneralError('');
+    
+    // Check if image is still uploading
+    if (img && uploading) {
+      setGeneralError("Please wait for image upload to complete");
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      // Combine address fields into a single address
+      const combinedAddress = `${formData.addressLine1}, ${formData.addressLine2}, ${formData.city}`;
+      
+      // Create the final registration data
+      const registrationData = {
+        ...formData,
+        address: combinedAddress,
+        latitude: location.latitude,
+        longitude: location.longitude
+      };
+      
+      // Remove the individual address fields before sending
+      delete registrationData.addressLine1;
+      delete registrationData.addressLine2;
+      delete registrationData.city;
+      
+      console.log("Submitting registration with data:", registrationData);
+      const result = await signUp(registrationData);
+      console.log("Registration successful:", result);
+      
+      navigate('/');
+    } catch (err) {
+      setGeneralError(err.message);
+      console.error('Registration error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -145,8 +169,11 @@ const Register = () => {
   };
 
   const handleAddressChange = (e) => {
-    const inputValue = e.target.value.replace(/[^a-zA-Z0-9\s,\/.]/g, "");
-    setFormData({ ...formData, address: inputValue });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleCityChange = (e) => {
@@ -162,7 +189,22 @@ const Register = () => {
           Register
         </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Location Status */}
+        <div className="mb-4 p-3 rounded-lg bg-gray-100">
+          <p className="text-sm text-gray-600">
+            {location.latitude && location.longitude ? (
+              <span className="text-green-600">
+                ✓ Location access granted
+              </span>
+            ) : (
+              <span className="text-yellow-600">
+                ⚠️ Location access pending or denied
+              </span>
+            )}
+          </p>
+        </div>
+
+        <form onSubmit={onSubmit}>
           <div className="flex items-center gap-5">
             <div className="mb-4">
               <label
@@ -372,7 +414,6 @@ const Register = () => {
             )}
           </div>
 
-
           <div className="mb-4">
             <label
               htmlFor="city"
@@ -396,9 +437,10 @@ const Register = () => {
           <div className="text-center">
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-primary text-white py-2 px-4 rounded-md hover:scale-105 transition duration-300"
             >
-              Register
+              {loading ? 'Registering...' : 'Register'}
             </button>
           </div>
           {generalError && (
