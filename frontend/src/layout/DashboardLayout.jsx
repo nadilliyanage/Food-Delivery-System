@@ -21,6 +21,11 @@ const adminNavItems = [
     label: "Dashboard",
   },
   {
+    to: "/dashboard/restaurant-requests",
+    icon: <MdFoodBank className="text-2xl" />,
+    label: "Restaurant Requests",
+  },
+  {
     to: "/dashboard/special-requests",
     icon: <MdRequestQuote className="text-2xl" />,
     label: "Special Requests",

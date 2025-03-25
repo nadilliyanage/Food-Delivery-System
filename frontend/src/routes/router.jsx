@@ -13,6 +13,8 @@ import AdminHome from "../pages/Dashboard/Admin/AdminHome";
 import ManageUsers from "../pages/Dashboard/Admin/ManageUsers";
 import UpdateUser from "../pages/Dashboard/Admin/UpdateUser";
 import Profile from "../pages/Dashboard/Profile/Profile";
+import RestaurantRegistration from "../pages/RestaurantRegistration/RestaurantRegistration";
+import RestaurantRequests from "../pages/Dashboard/Admin/RestaurantRequests";
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +48,10 @@ export const router = createBrowserRouter([
       {
         path: "user-profile",
         element: <Profile />,
+      },
+      {
+        path: "restaurant-registration",
+        element: <RestaurantRegistration />,
       }
     ],
   },
@@ -76,6 +82,10 @@ export const router = createBrowserRouter([
       {
         path: "manage-users",
         element: <ManageUsers />,
+      },
+      {
+        path: "restaurant-requests",
+        element: <RestaurantRequests />,
       },
       {
         path: "update-user/:id",
