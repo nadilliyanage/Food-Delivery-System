@@ -6,11 +6,19 @@ const jwt = require("jsonwebtoken");
 const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    const newUser = req.body;
+
+    // Validate required fields
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate password
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
 
     // Ensure `role` is valid
     if (
-      !role ||
       !["customer", "restaurant_admin", "delivery_personnel", "admin"].includes(role)
     ) {
       return res.status(400).json({ message: "Invalid role specified" });
@@ -19,17 +27,29 @@ const register = async (req, res) => {
     // Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log("❌ Email already registered:", email); // Log if email exists
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password with a higher salt rounds for better security
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Save the user with timestamps
-    const result = await User.create({ ...newUser, password: hashedPassword });
-    await result.save();
+    // Create new user with hashed password
+    const userData = {
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      address: req.body.address,
+      phone: req.body.phone,
+      photoUrl: req.body.photoUrl,
+      latitude: req.body.latitude,
+      longitude: req.body.longitude
+    };
 
-    // Generate JWT token for the newly registered user
+    const result = await User.create(userData);
+
+    // Generate JWT token
     const token = jwt.sign(
       { id: result._id, role: result.role },
       process.env.JWT_SECRET,
@@ -39,15 +59,24 @@ const register = async (req, res) => {
     // Send response with token
     res.status(201).json({
       message: "User registered successfully",
-      user: result, // Log the saved user in the response
-      token, // ✅ Send token on successful registration
+      user: {
+        _id: result._id,
+        name: result.name,
+        email: result.email,
+        role: result.role,
+        address: result.address,
+        phone: result.phone,
+        photoUrl: result.photoUrl,
+        latitude: result.latitude,
+        longitude: result.longitude
+      },
+      token,
     });
   } catch (error) {
-    console.error("❌ Error registering user:", error); // Log the error in case of failure
+    console.error("❌ Error registering user:", error);
     res.status(500).json({ message: "Error registering user" });
   }
 };
-
 
 // ✅ Login User and Generate JWT Token
 const login = async (req, res) => {
@@ -56,7 +85,24 @@ const login = async (req, res) => {
 
     // Find user by email
     const user = await User.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (user) {
+      console.log("User details:", {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        hasPassword: !!user.password,
+        passwordLength: user.password ? user.password.length : 0
+      });
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Compare passwords
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -67,7 +113,20 @@ const login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.json({ token, user });
+    res.json({ 
+      token, 
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        address: user.address,
+        phone: user.phone,
+        photoUrl: user.photoUrl,
+        latitude: user.latitude,
+        longitude: user.longitude
+      }
+    });
   } catch (error) {
     console.error("❌ Error during login:", error);
     res.status(500).json({ message: "Login failed" });
