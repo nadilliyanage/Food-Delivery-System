@@ -4,12 +4,13 @@ import useAuth from "../hooks/useAuth";
 import useUser from "../hooks/useUser";
 import logo from "../assets/logo.png";
 import { BiHomeAlt, BiLogInCircle } from "react-icons/bi";
-import { FaUsers, FaUserAlt } from "react-icons/fa";
+import { FaUsers, FaUserAlt, FaHistory } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
+import { FaBars, FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Scroll from "../hooks/useScroll";
 import Loader from "../components/Loader/Loader";
-import { MdFeedback, MdRequestQuote, MdError, MdPayments } from "react-icons/md";
+import { MdFeedback, MdRequestQuote, MdError, MdPayments, MdFoodBank, MdDeliveryDining } from "react-icons/md";
 import { GiPikeman } from "react-icons/gi";
 import { AiFillSchedule } from "react-icons/ai";
 
@@ -18,6 +19,11 @@ const adminNavItems = [
     to: "/dashboard/admin-home",
     icon: <RiDashboardFill className="text-2xl" />,
     label: "Dashboard",
+  },
+  {
+    to: "/dashboard/restaurant-requests",
+    icon: <MdFoodBank className="text-2xl" />,
+    label: "Restaurant Requests",
   },
   {
     to: "/dashboard/special-requests",
@@ -51,6 +57,34 @@ const adminNavItems = [
   },
 ];
 
+const customerNavItems = [
+  {
+    to: "/dashboard/user-home",
+    icon: <RiDashboardFill className="text-2xl" />,
+    label: "Dashboard",
+  },
+  {
+    to: "/dashboard/my-orders",
+    icon: <MdFoodBank className="text-2xl" />,
+    label: "My Orders",
+  },
+  {
+    to: "/dashboard/order-history",
+    icon: <FaHistory className="text-2xl" />,
+    label: "Order History",
+  },
+  {
+    to: "/dashboard/track-delivery",
+    icon: <MdDeliveryDining className="text-2xl" />,
+    label: "Track Delivery",
+  },
+  {
+    to: "/dashboard/my-payments",
+    icon: <MdPayments className="text-2xl" />,
+    label: "Payment History",
+  },
+];
+
 const lastMenuItems = [
   { to: "/", icon: <BiHomeAlt className="text-2xl" />, label: "Main Home" },
   {
@@ -62,6 +96,7 @@ const lastMenuItems = [
 
 const DashboardLayout = () => {
   const [open, setOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { loader, logout } = useAuth();
   const { currentUser } = useUser();
   const navigate = useNavigate();
@@ -95,13 +130,28 @@ const DashboardLayout = () => {
   }
 
   return (
-    <div className="flex">
+    <div className="flex md:flex-row flex-col">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="md:hidden fixed top-4 right-4 z-50 p-2 rounded-md bg-white shadow-lg"
+      >
+        {isMobileMenuOpen ? (
+          <FaTimes className="h-6 w-6 text-primary" />
+        ) : (
+          <FaBars className="h-6 w-6 text-primary" />
+        )}
+      </button>
+
+      {/* Sidebar */}
       <div
         className={`${
-          open ? "w-72 overflow-y-auto" : "w-[90px] overflow-auto"
-        } bg-white h-screen p-5 md:block hidden pt-8 relative duration-300`}
+          open ? "w-72" : "w-[90px]"
+        } bg-white h-screen p-5 pt-8 duration-300 ${
+          isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
+        } fixed md:relative z-40 md:shadow-none`}
       >
-        <div className="flex gap-x-4 items-center">
+        <div className="flex gap-x-4 items-center mt-2">
           <img
             onClick={() => setOpen(!open)}
             src={logo}
@@ -121,41 +171,62 @@ const DashboardLayout = () => {
         </div>
 
         {/* NavLinks */}
-
-        {/* admin role */}
-        {role === "admin" && (
-          <ul className="pt-6">
-            <p
-              className={`uppercase ml-3 text-gray-500 mb-3 ${
-                !open && "hidden"
-              }`}
-            >
-              <small>Menu</small>
-            </p>
-            {role === "admin" &&
-              adminNavItems.map((menuItem, index) => (
-                <li key={index} className="mb-1">
-                  <NavLink
-                    to={menuItem.to}
-                    className={({ isActive }) =>
-                      `flex ${
-                        isActive ? "bg-primary text-white" : "text-[#413F44]"
-                      } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
-                    }
+        {/* Role based navigation */}
+        <ul className="pt-6">
+          <p
+            className={`uppercase ml-3 text-gray-500 mb-3 ${
+              !open && "hidden"
+            }`}
+          >
+            <small>Menu</small>
+          </p>
+          {role === "admin" &&
+            adminNavItems.map((menuItem, index) => (
+              <li key={index} className="mb-1">
+                <NavLink
+                  to={menuItem.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex ${
+                      isActive ? "bg-primary text-white" : "text-[#413F44]"
+                    } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
+                  }
+                >
+                  {menuItem.icon}
+                  <span
+                    className={`${
+                      !open && "hidden"
+                    } origin-left duration-200`}
                   >
-                    {menuItem.icon}
-                    <span
-                      className={`${
-                        !open && "hidden"
-                      } origin-left duration-200`}
-                    >
-                      {menuItem.label}
-                    </span>
-                  </NavLink>
-                </li>
-              ))}
-          </ul>
-        )}
+                    {menuItem.label}
+                  </span>
+                </NavLink>
+              </li>
+            ))}
+          {role === "customer" &&
+            customerNavItems.map((menuItem, index) => (
+              <li key={index} className="mb-1">
+                <NavLink
+                  to={menuItem.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex ${
+                      isActive ? "bg-primary text-white" : "text-[#413F44]"
+                    } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
+                  }
+                >
+                  {menuItem.icon}
+                  <span
+                    className={`${
+                      !open && "hidden"
+                    } origin-left duration-200`}
+                  >
+                    {menuItem.label}
+                  </span>
+                </NavLink>
+              </li>
+            ))}
+        </ul>
 
         <ul className="pt-6">
           <p
@@ -167,6 +238,7 @@ const DashboardLayout = () => {
             <li key={index} className="mb-2">
               <NavLink
                 to={menuItem.to}
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   `flex ${
                     isActive ? "bg-primary text-white" : "text-[#413F44]"
@@ -217,7 +289,8 @@ const DashboardLayout = () => {
         )}
       </div>
 
-      <div className="h-screen overflow-y-auto px-8 flex-1">
+      {/* Main Content */}
+      <div className="h-screen overflow-y-auto w-full md:w-[calc(100%-18rem)] px-4 md:px-8 pt-16 md:pt-0">
         <Scroll />
         <Outlet />
       </div>
