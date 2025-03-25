@@ -80,8 +80,18 @@ export const router = createBrowserRouter([
       {
         path: "update-user/:id",
         element: <UpdateUser />,
-        loader: ({ params }) =>
-          fetch(`http://localhost:3000/api/auth/users/${params.id}`),
+        loader: async ({ params }) => {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`http://localhost:3000/api/auth/users/${params.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+          }
+          return response.json();
+        },
       },
     ],
   },

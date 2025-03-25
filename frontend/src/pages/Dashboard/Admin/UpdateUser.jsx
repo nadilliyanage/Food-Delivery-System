@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaArrowLeft, FaPencilAlt } from "react-icons/fa";
 import useAuth from "../../../hooks/useAuth";
-import { useLoaderData, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import useAxiosFetch from "../../../hooks/useAxiosFetch";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
 import useUser from "../../../hooks/useUser";
@@ -11,7 +11,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 const UpdateUser = () => {
   const { user } = useAuth();
-  const userCredentials = useLoaderData();
+  const { id } = useParams();
   const axiosFetch = useAxiosFetch();
   const axiosSecure = useAxiosSecure();
   const { currentUser } = useUser();
@@ -20,14 +20,42 @@ const UpdateUser = () => {
   const [imgPerc, setImgPerc] = useState(0);
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
-    name: userCredentials?.name || "",
-    email: userCredentials?.email || "",
-    phone: userCredentials?.phone || "",
-    address: userCredentials?.address || "",
-    role: userCredentials?.role || "customer",
-    photoUrl: userCredentials?.photoUrl || "",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    role: "customer",
+    photoUrl: "",
   });
+
+  useEffect(() => {
+    // Fetch user data when component mounts
+    axiosSecure.get(`/api/auth/users/${id}`)
+      .then((res) => {
+        const user = res.data;
+        setUserData(user);
+        // Set form data with the user's current role
+        setFormData({
+          name: user.name || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          address: user.address || "",
+          role: user.role || "customer",
+          photoUrl: user.photoUrl || "",
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching user:", err);
+        Swal.fire({
+          title: "Error!",
+          text: "Failed to fetch user data.",
+          icon: "error",
+        });
+        navigate("/dashboard/manage-users");
+      });
+  }, [id, axiosSecure, navigate]);
 
   useEffect(() => {
     if (img) {
@@ -64,29 +92,60 @@ const UpdateUser = () => {
     );
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    console.log("Changing", name, "to", value);
+    
+    // Update form data directly
+    setFormData(prevData => {
+      const newData = { ...prevData, [name]: value };
+      console.log("Updated form data:", newData);
+      return newData;
+    });
+  };
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
+    // Create update data object
+    const updateData = {
+      name: formData.name,
+      phone: formData.phone,
+      address: formData.address,
+      photoUrl: formData.photoUrl,
+      role: formData.role
+    };
+    // Send update request
     axiosSecure
-      .put(`/update-user/${userCredentials._id}`, formData)
-      .then(() => {
+      .put(`/api/auth/users/${id}`, updateData)
+      .then((res) => {
         Swal.fire({
           title: "Updated!",
           text: "Details have been updated successfully.",
           icon: "success",
         });
-        navigate(`/dashboard/manage-users`);
+        navigate("/dashboard/manage-users");
       })
-      .catch((err) => console.error(err));
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+      .catch((err) => {
+        console.error("Update error:", err);
+        Swal.fire({
+          title: "Error!",
+          text: "Failed to update user details.",
+          icon: "error",
+        });
+      });
   };
 
   const handlePencilClick = () => {
-    fileInputRef.current.click(); // Trigger file input on pencil icon click
+    fileInputRef.current.click();
   };
+
+  if (!userData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -99,15 +158,19 @@ const UpdateUser = () => {
         </button>
       </div>
       <h1 className="mt-5 text-4xl font-bold text-center">
-        Update: <span className="text-primary">{userCredentials?.name}</span>
+        Update: <span className="text-primary">{userData.name}</span>
       </h1>
       <p className="text-center">
         Change details about{" "}
-        <span className="font-bold text-red-400">{userCredentials?.name}</span>
+        <span className="font-bold text-red-400">{userData.name}</span>
       </p>
 
+      <div className="text-center text-sm text-gray-600 mb-4">
+        Note: Email is read-only. All other fields can be updated.
+      </div>
+
       <div>
-        {currentUser?._id === userCredentials?._id && (
+        {currentUser?._id === userData._id && (
           <h1 className="text-center text-lg font-semibold text-red-500 bg-green-100 p-2 rounded-md shadow-md mt-10 mx-4 mb-4">
             This is you
           </h1>
@@ -127,7 +190,6 @@ const UpdateUser = () => {
                     {uploading ? `Uploading: ${imgPerc}%` : "Photo"}
                   </label>
 
-                  {/* Pencil Icon to trigger file input */}
                   <div className="relative w-40 h-40">
                     {formData.photoUrl && !uploading ? (
                       <img
@@ -139,7 +201,6 @@ const UpdateUser = () => {
                       <div className="w-40 h-40 object-cover rounded-md border border-gray-300"></div>
                     )}
 
-                    {/* Pencil Icon */}
                     <button
                       type="button"
                       onClick={handlePencilClick}
@@ -149,7 +210,6 @@ const UpdateUser = () => {
                     </button>
                   </div>
 
-                  {/* Hidden file input */}
                   <input
                     type="file"
                     className="hidden"
@@ -180,14 +240,12 @@ const UpdateUser = () => {
                       Email
                     </label>
                     <input
-                      className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-primary"
-                      placeholder="Email Address"
+                      className="w-full p-3 mt-3 text-sm border rounded-lg outline-none border-gray-300 bg-gray-50"
                       type="email"
-                      required
                       id="email"
-                      name="email"
                       value={formData.email}
-                      onChange={handleChange}
+                      readOnly
+                      disabled
                     />
                   </div>
                 </div>
@@ -224,49 +282,27 @@ const UpdateUser = () => {
               </div>
 
               {/* Role Selection */}
-              <h1>Please select a role</h1>
-              <div className="grid grid-cols-1 gap-4 text-center sm:grid-cols-2">
-                <div>
-                  <input
-                    className="sr-only peer"
-                    id="option1"
-                    type="radio"
-                    value="customer"
-                    name="role"
-                    checked={formData.role === "user"}
-                    onChange={handleChange}
-                  />
-                  <label
-                    htmlFor="option1"
-                    className="block w-full p-3 border rounded-lg peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white"
-                  >
-                    <span className="text-sm font-medium">User</span>
-                  </label>
-                </div>
-                <div>
-                  <input
-                    className="sr-only peer"
-                    id="option2"
-                    type="radio"
-                    value="admin"
-                    name="role"
-                    checked={formData.role === "admin"}
-                    onChange={handleChange}
-                  />
-                  <label
-                    htmlFor="option2"
-                    className="block w-full p-3 border rounded-lg peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white"
-                  >
-                    <span className="text-sm font-medium">Admin</span>
-                  </label>
-                </div>
+              <div className="mt-4">
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Role
+                </label>
+                <select
+                  className="w-full p-3 text-sm border rounded-lg outline-none border-primary"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="restaurant_admin">Restaurant Admin</option>
+                  <option value="delivery_personnel">Delivery Personnel</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-center">
+              <div className="mt-6">
                 <button
-                  className="px-10 py-5 text-white rounded-lg bg-primary hover:bg-red-500"
                   type="submit"
+                  className="w-full px-4 py-3 text-white bg-primary rounded-lg hover:bg-primary/90"
                 >
                   Update User
                 </button>

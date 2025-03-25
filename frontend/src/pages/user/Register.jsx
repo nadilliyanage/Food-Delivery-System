@@ -24,7 +24,6 @@ const Register = () => {
     password: "",
     photoUrl: "",
     role: "customer", // Default role
-    gender: "",
     phone: "",
     addressLine1: "",
     addressLine2: "",
@@ -45,7 +44,6 @@ const Register = () => {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
           });
-          toast.success("Location access granted!");
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -82,7 +80,6 @@ const Register = () => {
         setImgPerc(Math.round(progress));
       },
       (error) => {
-        console.log(error);
         setUploading(false);
         setImageUploaded(false);
       },
@@ -94,16 +91,16 @@ const Register = () => {
           }));
           setUploading(false);
           setImageUploaded(true);
-          console.log("Upload complete. Photo URL:", downloadURL);
         });
       }
     );
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
   };
 
@@ -111,6 +108,16 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setGeneralError('');
+    
+    // Get the password from the form
+    const formPassword = watch("password");
+    
+    // Validate password
+    if (!formPassword || formPassword.length < 6) {
+      setGeneralError("Password must be at least 6 characters long");
+      setLoading(false);
+      return;
+    }
     
     // Check if image is still uploading
     if (img && uploading) {
@@ -126,6 +133,7 @@ const Register = () => {
       // Create the final registration data
       const registrationData = {
         ...formData,
+        password: formPassword, // Use the password from the form
         address: combinedAddress,
         latitude: location.latitude,
         longitude: location.longitude
@@ -136,14 +144,10 @@ const Register = () => {
       delete registrationData.addressLine2;
       delete registrationData.city;
       
-      console.log("Submitting registration with data:", registrationData);
       const result = await signUp(registrationData);
-      console.log("Registration successful:", result);
-      
       navigate('/');
     } catch (err) {
       setGeneralError(err.message);
-      console.error('Registration error:', err);
     } finally {
       setLoading(false);
     }
@@ -189,27 +193,12 @@ const Register = () => {
           Register
         </h2>
 
-        {/* Location Status */}
-        <div className="mb-4 p-3 rounded-lg bg-gray-100">
-          <p className="text-sm text-gray-600">
-            {location.latitude && location.longitude ? (
-              <span className="text-green-600">
-                ✓ Location access granted
-              </span>
-            ) : (
-              <span className="text-yellow-600">
-                ⚠️ Location access pending or denied
-              </span>
-            )}
-          </p>
-        </div>
-
         <form onSubmit={onSubmit}>
-          <div className="flex items-center gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="mb-4">
               <label
                 htmlFor="photoUrl"
-                className="block  text-gray-700 font-semibold mb-1"
+                className="block text-gray-700 font-semibold mb-1"
               >
                 {uploading ? `Uploading: ${imgPerc}%` : "Image"}
               </label>
@@ -220,11 +209,11 @@ const Register = () => {
                 onChange={(e) => setImg(e.target.files[0])}
               />
               {formData.photoUrl && !uploading && (
-                <div className="mt-4">
+                <div className="mt-2">
                   <img
                     src={formData.photoUrl}
                     alt="Uploaded Preview"
-                    className="w-40 h-40 rounded-md border object-cover border-gray-300"
+                    className="w-32 h-32 rounded-md border object-cover border-gray-300"
                   />
                 </div>
               )}
@@ -252,7 +241,7 @@ const Register = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="mb-4">
               <label
                 htmlFor="password"
@@ -264,11 +253,21 @@ const Register = () => {
               <input
                 type="password"
                 placeholder="Enter Password"
-                {...register("password", { required: true })}
+                {...register("password", { 
+                  required: true,
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters long"
+                  }
+                })}
+                onChange={(e) => {
+                  handleChange(e);
+                  register("password").onChange(e);
+                }}
                 className="w-full border-gray-300 border rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
               />
               {errors.password && (
-                <p className="text-red-500 text-sm">Password is required</p>
+                <p className="text-red-500 text-sm">{errors.password.message}</p>
               )}
             </div>
 
@@ -298,7 +297,7 @@ const Register = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="mb-4">
               <label
                 htmlFor="phone"
@@ -352,86 +351,66 @@ const Register = () => {
             </div>
           </div>
 
-          <div className="mb-4">
-            <label
-              htmlFor="gender"
-              className="block text-gray-700 font-bold mb-2"
-            >
-              <AiOutlineUser className="inline-block mr-2 mb-1 text-lg" />
-              Gender
-            </label>
-            <select
-              {...register("gender", { required: true })}
-              className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
-            >
-              <option value="">Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-            {errors.gender && (
-              <p className="text-red-500 text-sm">Gender is required</p>
-            )}
-          </div>
+          <div className="grid grid-cols-1 gap-5">
+            <div className="mb-4">
+              <label
+                htmlFor="addressLine1"
+                className="block text-gray-700 font-bold mb-2"
+              >
+                <HiOutlineLocationMarker className="inline-block mr-2 mb-1 text-lg" />
+                Address Line 1
+              </label>
+              <input
+                placeholder="Enter your address line 1"
+                value={formData.addressLine1}
+                onInput={handleAddressChange}
+                {...register("addressLine1", { required: true })}
+                className="w-full border-gray-300 border rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
+              />
+              {errors.addressLine1 && (
+                <p className="text-red-500 text-sm">Address Line 1 is required</p>
+              )}
+            </div>
 
-          <div className="mb-4">
-            <label
-              htmlFor="addressLine1"
-              className="block text-gray-700 font-bold mb-2"
-            >
-              <HiOutlineLocationMarker className="inline-block mr-2 mb-1 text-lg" />
-              Address Line 1
-            </label>
-            <input
-              placeholder="Enter your address line 1"
-              value={formData.addressLine1}
-              onInput={handleAddressChange}
-              {...register("addressLine1", { required: true })}
-              className="w-full border-gray-300 border rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
-            />
-            {errors.addressLine1 && (
-              <p className="text-red-500 text-sm">Address Line 1 is required</p>
-            )}
-          </div>
+            <div className="mb-4">
+              <label
+                htmlFor="addressLine2"
+                className="block text-gray-700 font-bold mb-2"
+              >
+                <HiOutlineLocationMarker className="inline-block mr-2 mb-1 text-lg" />
+                Address Line 2
+              </label>
+              <input
+                placeholder="Enter your address line 2"
+                value={formData.addressLine2}
+                onInput={handleAddressChange}
+                {...register("addressLine2", { required: true })}
+                className="w-full border-gray-300 border rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
+              />
+              {errors.addressLine2 && (
+                <p className="text-red-500 text-sm">Address Line 2 is required</p>
+              )}
+            </div>
 
-          <div className="mb-4">
-            <label
-              htmlFor="addressLine2"
-              className="block text-gray-700 font-bold mb-2"
-            >
-              <HiOutlineLocationMarker className="inline-block mr-2 mb-1 text-lg" />
-              Address Line 2
-            </label>
-            <input
-              placeholder="Enter your address line 1"
-              value={formData.addressLine2}
-              onInput={handleAddressChange}
-              {...register("addressLine2", { required: true })}
-              className="w-full border-gray-300 border rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
-            />
-            {errors.addressLine2 && (
-              <p className="text-red-500 text-sm">Address Line 2 is required</p>
-            )}
-          </div>
-
-          <div className="mb-4">
-            <label
-              htmlFor="city"
-              className="block text-gray-700 font-bold mb-2"
-            >
-              <HiOutlineLocationMarker className="inline-block mr-2 mb-1 text-lg" />
-              City
-            </label>
-            <input
-              placeholder="Enter your City"
-              value={formData.city}
-              onInput={handleCityChange}
-              {...register("city", { required: true })}
-              className="w-full border-gray-300 border rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
-            />
-            {errors.city && (
-              <p className="text-red-500 text-sm">City is required</p>
-            )}
+            <div className="mb-4">
+              <label
+                htmlFor="city"
+                className="block text-gray-700 font-bold mb-2"
+              >
+                <HiOutlineLocationMarker className="inline-block mr-2 mb-1 text-lg" />
+                City
+              </label>
+              <input
+                placeholder="Enter your City"
+                value={formData.city}
+                onInput={handleCityChange}
+                {...register("city", { required: true })}
+                className="w-full border-gray-300 border rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
+              />
+              {errors.city && (
+                <p className="text-red-500 text-sm">City is required</p>
+              )}
+            </div>
           </div>
 
           <div className="text-center">

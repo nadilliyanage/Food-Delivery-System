@@ -24,18 +24,20 @@ const ManageUsers = () => {
   const [dataList, setDataList] = useState([]);
 
   useEffect(() => {
-    axiosFetch
+    axiosSecure
       .get("/api/auth/users")
       .then((res) => {
-        const user = res.data.filter((user) => user.role === "user");
-        const sortedUsers = user.sort((a, b) =>
+        // Get all users and sort them by name
+        const sortedUsers = res.data.sort((a, b) =>
           a.name.localeCompare(b.name)
         );
         setUsers(sortedUsers);
         setDataList(sortedUsers);
       })
-      .catch((err) => console.log(err));
-  }, []);
+      .catch((err) => {
+        console.error("Error fetching users:", err);
+      });
+  }, [axiosSecure]);
 
   const handleDelete = (id) => {
     Swal.fire({
@@ -49,7 +51,7 @@ const ManageUsers = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axiosSecure
-          .delete(`/delete-user/${id}`)
+          .delete(`/api/auth/users/${id}`)
           .then(() => {
             Swal.fire({
               title: "Deleted!",
@@ -189,11 +191,7 @@ const ManageUsers = () => {
                         <td className="whitespace-nowrap px-4 py-4">
                           <Button
                             className="bg-green-500 text-white flex items-center justify-between gap-2 px-4 py-2"
-                            onClick={() =>
-                              navigate(
-                                navigate(`/dashboard/update-user/${user._id}`)
-                              )
-                            }
+                            onClick={() => navigate(`/dashboard/update-user/${user._id}`)}
                           >
                             <span>Update</span>
                             <GrUpdate className="text-white" />
