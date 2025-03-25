@@ -25,8 +25,8 @@ const Register = () => {
     role: "",
     gender: "",
     phone: "",
+    city: "",
     address: "",
-    userType: ""
   });
   const [uploading, setUploading] = useState(false);
 
@@ -80,7 +80,6 @@ const Register = () => {
           signUp(data.email, data.password)
             .then((result) => {
               const user = result.user;
-              const userType = decideUserType(data.city);
 
               if (user) {
                 return updateUser(data.name, formData.photoUrl).then(() => {
@@ -93,7 +92,6 @@ const Register = () => {
                     gender: data.gender,
                     phone: data.phone,
                     address: `${data.addressLine1}, ${data.addressLine2}, ${data.city}`,
-                    userType: userType,
                     latitude, // Save latitude
                     longitude // Save longitude
                   };
@@ -151,14 +149,11 @@ const Register = () => {
     setFormData({ ...formData, address: inputValue });
   };
 
-  const decideUserType = (city) => {
-    if (city == "Colombo-Greater") {
-      return 'flat';
-    }
-    if (city == "Colombo-Lower" || city == "Gampaha" || city == "Kalutara") {
-      return 'noneFlat';
-    }
+  const handleCityChange = (e) => {
+    const inputValue = e.target.value.replace(/[^a-zA-Z0-9\s,\/.]/g, "");
+    setFormData({ ...formData, city: inputValue });
   };
+
   return (
     <div className="flex justify-center items-center pt-14 bg-white dark:bg-gray-900 -mt-14">
       <Scroll />
@@ -377,24 +372,22 @@ const Register = () => {
             )}
           </div>
 
+
           <div className="mb-4">
             <label
               htmlFor="city"
               className="block text-gray-700 font-bold mb-2"
             >
-              <AiOutlineUser className="inline-block mr-2 mb-1 text-lg" />
+              <HiOutlineLocationMarker className="inline-block mr-2 mb-1 text-lg" />
               City
             </label>
-            <select
+            <input
+              placeholder="Enter your City"
+              value={formData.city}
+              onInput={handleCityChange}
               {...register("city", { required: true })}
-              className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
-            >
-              <option value="">Select City</option>
-              <option value="Colombo-Greater">Colombo 1-15</option>
-              <option value="Colombo-Lower">Colombo Other areas</option>
-              <option value="Gampaha">Gampaha</option>
-              <option value="Kalutara">Kalutara</option>
-            </select>
+              className="w-full border-gray-300 border rounded-md py-2 px-4 focus:outline-none focus:ring focus:border-blue-300"
+            />
             {errors.city && (
               <p className="text-red-500 text-sm">City is required</p>
             )}
