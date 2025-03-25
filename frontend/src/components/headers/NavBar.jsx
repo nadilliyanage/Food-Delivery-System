@@ -144,7 +144,7 @@ const NavBar = () => {
                 EatEase <img src={logo} alt="" className="w-8 h-8" />
               </h1>
               <p className="font-bold text-[13px] tracking-[6px]">
-                Clean Green Efficient
+                Order Eat Relax
               </p>
             </div>
           </div>

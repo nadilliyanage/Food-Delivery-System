@@ -10,9 +10,7 @@ const AboutUs = () => {
           About Us
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          Learn more about our mission, values, and the dedicated team behind
-          our efforts to make waste management smarter, cleaner, and more
-          sustainable for the future.
+          Discover our journey, mission, and the passionate team behind delivering delicious meals to your doorstep, hassle-free.
         </p>
       </header>
 
@@ -21,11 +19,7 @@ const AboutUs = () => {
           Our Mission
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-          At EcoTech, our mission is to revolutionize waste management through
-          innovative technology and sustainable practices. We aim to reduce
-          environmental impact, improve recycling processes, and create
-          cleaner, smarter cities by empowering communities to manage waste
-          efficiently.
+          At EatEase, we aim to connect people with their favorite meals through fast, reliable, and convenient food delivery. Our goal is to support local restaurants while offering customers a seamless dining experience at home.
         </p>
       </section>
 
@@ -34,10 +28,10 @@ const AboutUs = () => {
           Our Values
         </h2>
         <ul className="list-disc list-inside space-y-4 text-gray-700 dark:text-gray-300">
-          <li><strong>Innovation:</strong> We are committed to developing cutting-edge solutions that modernize waste management.</li>
-          <li><strong>Sustainability:</strong> We promote practices that minimize waste and encourage recycling to protect our planet for future generations.</li>
-          <li><strong>Integrity:</strong> We operate with transparency, ensuring trust in all aspects of our business.</li>
-          <li><strong>Collaboration:</strong> We work closely with communities, governments, and businesses to create a cleaner environment together.</li>
+          <li><strong>Speed:</strong> We prioritize quick and efficient deliveries to ensure your food arrives fresh and hot.</li>
+          <li><strong>Quality:</strong> We partner with the best restaurants to offer a diverse and delicious selection of meals.</li>
+          <li><strong>Customer First:</strong> Your satisfaction is our top priority, and we strive to provide an excellent experience every time.</li>
+          <li><strong>Community:</strong> We support local businesses and work to create a sustainable and thriving food ecosystem.</li>
         </ul>
       </section>
 
@@ -49,7 +43,7 @@ const AboutUs = () => {
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 hover:scale-105 duration-300">
             <img src="./team-member-1.jpg" alt="Team Member" className="w-full h-40 object-cover rounded-lg mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              John Doe
+              Alex Johnson
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
               Founder & CEO
@@ -58,19 +52,19 @@ const AboutUs = () => {
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 hover:scale-105 duration-300">
             <img src="./team-member-2.jpg" alt="Team Member" className="w-full h-40 object-cover rounded-lg mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Jane Smith
+              Emily Davis
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
-              Head of Innovation
+              Head of Operations
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 hover:scale-105 duration-300">
-            <img src="./team-member-3.jpg" alt="Team Member" className="w-full h-40 object-cover rounded-lg mb-4" />
+            <img src="./team-member-3.jpeg" alt="Team Member" className="w-full h-40 object-cover rounded-lg mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Michael Johnson
+              David Lee
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
-              Operations Manager
+              Chief Technology Officer
             </p>
           </div>
         </div>
@@ -78,12 +72,10 @@ const AboutUs = () => {
 
       <section className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          Join Us in Making a Difference
+          Join Us in Revolutionizing Food Delivery
         </h2>
         <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-          We invite you to be part of our mission to create cleaner, greener communities.
-          Whether you're a business, government, or an individual, there's a role for you in our effort
-          to improve waste management and recycling. Together, we can shape a more sustainable future.
+          Whether you're a restaurant owner, delivery partner, or a food lover, be part of our growing community. Let’s bring great food closer to home, one order at a time.
         </p>
         <a href="/contact">
           <button className="bg-primary text-white px-6 py-3 rounded-md text-lg font-medium hover:bg-green-700 transition-all duration-300">
