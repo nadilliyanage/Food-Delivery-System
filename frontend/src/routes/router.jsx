@@ -26,6 +26,10 @@ import DeliveryProfile from '../pages/Dashboard/Delivery/DeliveryProfile';
 import Earnings from '../pages/Dashboard/Delivery/Earnings';
 import Availability from '../pages/Dashboard/Delivery/Availability';
 import { Navigate } from "react-router-dom";
+import MyOrders from '../pages/MyOrders';
+import OrderHistory from '../pages/OrderHistory';
+import TrackDelivery from '../pages/TrackDelivery';
+import PaymentHistory from '../pages/PaymentHistory';
 
 export const router = createBrowserRouter([
   {
@@ -88,7 +92,23 @@ export const router = createBrowserRouter([
         path: "user-home",
         element: <UserHome />,
       },
-
+      {
+        path: "my-orders",
+        element: <MyOrders />,
+      },
+      {
+        path: "order-history",
+        element: <OrderHistory />
+      },
+      {
+        path: "track-delivery",
+        element: <TrackDelivery />
+      },
+      {
+        path: "my-payments",
+        element: <PaymentHistory />
+      },
+      
       // admin routes
       {
         path: "admin-home",
