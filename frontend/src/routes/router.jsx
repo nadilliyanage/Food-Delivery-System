@@ -15,6 +15,7 @@ import UpdateUser from "../pages/Dashboard/Admin/UpdateUser";
 import Profile from "../pages/Dashboard/Profile/Profile";
 import RestaurantRegistration from "../pages/RestaurantRegistration/RestaurantRegistration";
 import RestaurantRequests from "../pages/Dashboard/Admin/RestaurantRequests";
+import RestaurantAdminHome from "../pages/dashboard/RestaurantAdminHome";
 
 export const router = createBrowserRouter([
   {
@@ -102,6 +103,12 @@ export const router = createBrowserRouter([
           }
           return response.json();
         },
+      },
+
+      // restaurant admin routes
+      {
+        path: "restaurant-admin-home",
+        element: <RestaurantAdminHome />,
       },
     ],
   },

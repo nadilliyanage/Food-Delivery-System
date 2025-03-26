@@ -6,6 +6,7 @@ import AdminHome from '../pages/Dashboard/Admin/AdminHome';
 import RestaurantRequests from '../pages/Dashboard/Admin/RestaurantRequests';
 import ManageUsers from '../pages/Dashboard/Admin/ManageUsers';
 import UserHome from '../pages/Dashboard/User/UserHome';
+import RestaurantAdminHome from '../pages/dashboard/RestaurantAdminHome';
 
 const DashboardNavigate = () => {
    const {currentUser, isLoading} = useUser()
@@ -31,6 +32,15 @@ const DashboardNavigate = () => {
       <Routes>
         <Route path="user-home" element={<UserHome />} />
         <Route path="*" element={<Navigate to="user-home" replace />} />
+      </Routes>
+    );
+  }
+
+  if (role === 'restaurant_admin') {
+    return (
+      <Routes>
+        <Route path="restaurant-admin-home" element={<RestaurantAdminHome />} />
+        <Route path="*" element={<Navigate to="restaurant-admin-home" replace />} />
       </Routes>
     );
   }

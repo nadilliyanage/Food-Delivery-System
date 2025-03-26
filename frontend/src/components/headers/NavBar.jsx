@@ -251,7 +251,11 @@ const NavBar = () => {
                 {isUserAuthenticated && (
                   <li>
                     <NavLink
-                      to="/dashboard"
+                      to={currentUser?.role === 'admin' 
+                        ? '/dashboard/admin-home' 
+                        : currentUser?.role === 'restaurant_admin'
+                        ? '/dashboard/restaurant-admin-home'
+                        : '/dashboard/user-home'}
                       className={({ isActive }) =>
                         `font-bold ${
                           isActive
@@ -359,7 +363,11 @@ const NavBar = () => {
 
               <li>
                 <NavLink
-                  to="/dashboard"
+                  to={currentUser?.role === 'admin' 
+                    ? '/dashboard/admin-home' 
+                    : currentUser?.role === 'restaurant_admin'
+                    ? '/dashboard/restaurant-admin-home'
+                    : '/dashboard/user-home'}
                   onClick={toggleMobileMenu}
                   className="block font-bold py-1 text-black rounded-xl hover:text-primary"
                 >

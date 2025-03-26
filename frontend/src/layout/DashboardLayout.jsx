@@ -10,7 +10,7 @@ import { FaBars, FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Scroll from "../hooks/useScroll";
 import Loader from "../components/Loader/Loader";
-import { MdFeedback, MdRequestQuote, MdError, MdPayments, MdFoodBank, MdDeliveryDining } from "react-icons/md";
+import { MdFeedback, MdRequestQuote, MdError, MdPayments, MdFoodBank, MdDeliveryDining, MdRestaurantMenu } from "react-icons/md";
 import { GiPikeman } from "react-icons/gi";
 import { AiFillSchedule } from "react-icons/ai";
 
@@ -85,6 +85,24 @@ const customerNavItems = [
   },
 ];
 
+const restaurantAdminNavItems = [
+  {
+    to: "/dashboard/restaurant-admin-home",
+    icon: <RiDashboardFill className="text-2xl" />,
+    label: "Dashboard",
+  },
+  {
+    to: "/dashboard/manage-restaurants",
+    icon: <MdFoodBank className="text-2xl" />,
+    label: "Manage Restaurants",
+  },
+  {
+    to: "/dashboard/manage-menus",
+    icon: <MdRestaurantMenu className="text-2xl" />,
+    label: "Manage Menus",
+  },
+];
+
 const lastMenuItems = [
   { to: "/", icon: <BiHomeAlt className="text-2xl" />, label: "Main Home" },
   {
@@ -100,7 +118,26 @@ const DashboardLayout = () => {
   const { loader, logout } = useAuth();
   const { currentUser } = useUser();
   const navigate = useNavigate();
-  const role = currentUser?.role;
+  const [selectedRole, setSelectedRole] = useState(currentUser?.role || 'customer');
+
+  const handleRoleChange = (e) => {
+    const newRole = e.target.value;
+    setSelectedRole(newRole);
+    // Navigate to the appropriate dashboard based on the new role
+    switch (newRole) {
+      case 'admin':
+        navigate('/dashboard/admin-home');
+        break;
+      case 'customer':
+        navigate('/dashboard/user-home');
+        break;
+      case 'restaurant_admin':
+        navigate('/dashboard/restaurant-admin-home');
+        break;
+      default:
+        navigate('/dashboard/user-home');
+    }
+  };
 
   const handleLogout = () => {
     Swal.fire({
@@ -128,6 +165,19 @@ const DashboardLayout = () => {
   if (loader) {
     return <Loader />;
   }
+
+  const renderNavItems = () => {
+    switch (selectedRole) {
+      case 'admin':
+        return adminNavItems;
+      case 'customer':
+        return customerNavItems;
+      case 'restaurant_admin':
+        return restaurantAdminNavItems;
+      default:
+        return customerNavItems;
+    }
+  };
 
   return (
     <div className="flex md:flex-row flex-col">
@@ -170,8 +220,26 @@ const DashboardLayout = () => {
           </h1>
         </div>
 
+        {/* Role Selector Dropdown */}
+        {currentUser && (
+          <div className={`mt-4 ${!open && "hidden"}`}>
+            <select
+              value={selectedRole}
+              onChange={handleRoleChange}
+              className="w-full p-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="customer">Customer Dashboard</option>
+              {currentUser.role === 'admin' && (
+                <option value="admin">Admin Dashboard</option>
+              )}
+              {currentUser.role === 'restaurant_admin' && (
+                <option value="restaurant_admin">Restaurant Admin Dashboard</option>
+              )}
+            </select>
+          </div>
+        )}
+
         {/* NavLinks */}
-        {/* Role based navigation */}
         <ul className="pt-6">
           <p
             className={`uppercase ml-3 text-gray-500 mb-3 ${
@@ -180,52 +248,28 @@ const DashboardLayout = () => {
           >
             <small>Menu</small>
           </p>
-          {role === "admin" &&
-            adminNavItems.map((menuItem, index) => (
-              <li key={index} className="mb-1">
-                <NavLink
-                  to={menuItem.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex ${
-                      isActive ? "bg-primary text-white" : "text-[#413F44]"
-                    } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
-                  }
+          {renderNavItems().map((menuItem, index) => (
+            <li key={index} className="mb-1">
+              <NavLink
+                to={menuItem.to}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `flex ${
+                    isActive ? "bg-primary text-white" : "text-[#413F44]"
+                  } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
+                }
+              >
+                {menuItem.icon}
+                <span
+                  className={`${
+                    !open && "hidden"
+                  } origin-left duration-200`}
                 >
-                  {menuItem.icon}
-                  <span
-                    className={`${
-                      !open && "hidden"
-                    } origin-left duration-200`}
-                  >
-                    {menuItem.label}
-                  </span>
-                </NavLink>
-              </li>
-            ))}
-          {role === "customer" &&
-            customerNavItems.map((menuItem, index) => (
-              <li key={index} className="mb-1">
-                <NavLink
-                  to={menuItem.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex ${
-                      isActive ? "bg-primary text-white" : "text-[#413F44]"
-                    } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
-                  }
-                >
-                  {menuItem.icon}
-                  <span
-                    className={`${
-                      !open && "hidden"
-                    } origin-left duration-200`}
-                  >
-                    {menuItem.label}
-                  </span>
-                </NavLink>
-              </li>
-            ))}
+                  {menuItem.label}
+                </span>
+              </NavLink>
+            </li>
+          ))}
         </ul>
 
         <ul className="pt-6">

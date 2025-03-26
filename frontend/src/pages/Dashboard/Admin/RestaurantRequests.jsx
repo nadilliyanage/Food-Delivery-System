@@ -13,8 +13,9 @@ const RestaurantRequests = () => {
   const [activeTab, setActiveTab] = useState('pending');
 
   useEffect(() => {
-    fetchRestaurants();
-  }, [activeTab]);
+    // Fetch all tabs' data on initial load
+    fetchRestaurants(true);
+  }, []); // Remove activeTab dependency
 
   const fetchRestaurants = async (fetchAll = false) => {
     try {
@@ -74,6 +75,13 @@ const RestaurantRequests = () => {
       console.error('Error fetching restaurants:', err);
     }
   };
+
+  // Add a separate useEffect for tab changes
+  useEffect(() => {
+    if (!loading) {
+      fetchRestaurants(false);
+    }
+  }, [activeTab]);
 
   const handleStatusUpdate = async (restaurantId, status) => {
     try {
