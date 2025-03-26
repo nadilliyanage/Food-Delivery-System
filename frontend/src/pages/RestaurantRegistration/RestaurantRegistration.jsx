@@ -8,7 +8,6 @@ const RestaurantRegistration = () => {
   const navigate = useNavigate();
   const user = getCurrentUser();
   const [isLoading, setIsLoading] = useState(false);
-  const [existingRegistration, setExistingRegistration] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -51,7 +50,6 @@ const RestaurantRegistration = () => {
       
       if (data && data.length > 0) {
         const latestRegistration = data[0];
-        setExistingRegistration(latestRegistration);
         
         if (latestRegistration.registrationStatus === 'pending') {
           Swal.fire({
