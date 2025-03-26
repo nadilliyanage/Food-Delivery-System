@@ -108,113 +108,139 @@ const ManageUsers = () => {
       </h1>
 
       {/* Search and Filter Inputs */}
-      <div className="mb-4 flex gap-4">
+      <div className="mb-4 flex flex-col sm:flex-row gap-4">
         <InputField
           placeholder="Search users by name"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <div className="flex space-x-4">
-          {/* <BlobProvider
-            document={<UserReport dataList={filteredUsers} />}
-            fileName="UserReport.pdf"
-          >
-            {({ url }) => (
-              <Button onClick={() => window.open(url)}>
-                <FaFilePdf className="text-3xl text-red-600" />
-              </Button>
-            )}
-          </BlobProvider> */}
           <Button onClick={handleButtonClick}>
             <FaFileExcel className="text-3xl text-green-600" />
           </Button>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="flex flex-col">
-          <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
-            <div className="overflow-hidden">
-              {filteredUsers.length === 0 ? (
-                <p className="text-center text-gray-500">No users found</p>
-              ) : (
-                <table className="min-w-full text-left text-sm font-light">
-                  <thead className="border-b font-medium hidden md:table-header-group">
-                    <tr>
-                      <th scope="col" className="px-4 py-4">
-                        #
-                      </th>
-                      <th scope="col" className="px-4 py-4">
-                        PHOTO
-                      </th>
-                      <th scope="col" className="px-4 py-4">
-                        NAME
-                      </th>
-                      <th scope="col" className="px-4 py-4">
-                        ROLE
-                      </th>
-                      <th scope="col" className="px-4 py-4">
-                        UPDATE
-                      </th>
-                      <th scope="col" className="px-4 py-4">
-                        DELETE
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user, idx) => (
-                      <tr
-                        key={user._id}
-                        className="border-b transition duration-300 ease-in-out hover:bg-neutral-100"
-                      >
-                        <td className="whitespace-nowrap px-4 py-4 font-medium">
-                          {idx + 1}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4">
-                          <img
-                            src={user?.photoUrl}
-                            alt=""
-                            className="h-[35px] w-[35px] object-cover rounded-full"
-                          />
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4">
-                          {user?.name}{" "}
-                          {currentUser?._id === user._id && (
-                            <span className="ml-2 px-2 py-1 text-xs font-semibold text-white bg-blue-500 rounded-md">
-                              You
-                            </span>
-                          )}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4">
-                          {user?.role}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4">
-                          <Button
-                            className="bg-green-500 text-white flex items-center justify-between gap-2 px-4 py-2"
-                            onClick={() => navigate(`/dashboard/update-user/${user._id}`)}
-                          >
-                            <span>Update</span>
-                            <GrUpdate className="text-white" />
-                          </Button>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4">
-                          <Button
-                            className="bg-red-600 text-white flex items-center justify-between gap-2 px-4 py-2"
-                            onClick={() => handleDelete(user._id)}
-                          >
-                            <span>Delete</span>
-                            <MdDelete className="text-white" />
-                          </Button>
-                        </td>
+      {filteredUsers.length === 0 ? (
+        <p className="text-center text-gray-500">No users found</p>
+      ) : (
+        <>
+          {/* Mobile View */}
+          <div className="md:hidden">
+            {filteredUsers.map((user, idx) => (
+              <div
+                key={user._id}
+                className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200"
+              >
+                <div className="flex items-center space-x-4 mb-3">
+                  <img
+                    src={user?.photoUrl}
+                    alt=""
+                    className="h-12 w-12 object-cover rounded-full"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-lg">
+                      {user?.name}
+                      {currentUser?._id === user._id && (
+                        <span className="ml-2 px-2 py-1 text-xs font-semibold text-white bg-blue-500 rounded-md">
+                          You
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-gray-600">Role: {user?.role}</p>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    className="bg-green-500 text-white flex items-center justify-between gap-2 px-4 py-2"
+                    onClick={() => navigate(`/dashboard/update-user/${user._id}`)}
+                  >
+                    <span>Update</span>
+                    <GrUpdate className="text-white" />
+                  </Button>
+                  <Button
+                    className="bg-red-600 text-white flex items-center justify-between gap-2 px-4 py-2"
+                    onClick={() => handleDelete(user._id)}
+                  >
+                    <span>Delete</span>
+                    <MdDelete className="text-white" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View */}
+          <div className="hidden md:block overflow-x-auto">
+            <div className="flex flex-col">
+              <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+                <div className="overflow-hidden">
+                  <table className="min-w-full text-left text-sm font-light">
+                    <thead className="border-b font-medium">
+                      <tr>
+                        <th scope="col" className="px-4 py-4">#</th>
+                        <th scope="col" className="px-4 py-4">PHOTO</th>
+                        <th scope="col" className="px-4 py-4">NAME</th>
+                        <th scope="col" className="px-4 py-4">ROLE</th>
+                        <th scope="col" className="px-4 py-4">UPDATE</th>
+                        <th scope="col" className="px-4 py-4">DELETE</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((user, idx) => (
+                        <tr
+                          key={user._id}
+                          className="border-b transition duration-300 ease-in-out hover:bg-neutral-100"
+                        >
+                          <td className="whitespace-nowrap px-4 py-4 font-medium">
+                            {idx + 1}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4">
+                            <img
+                              src={user?.photoUrl}
+                              alt=""
+                              className="h-[35px] w-[35px] object-cover rounded-full"
+                            />
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4">
+                            {user?.name}{" "}
+                            {currentUser?._id === user._id && (
+                              <span className="ml-2 px-2 py-1 text-xs font-semibold text-white bg-blue-500 rounded-md">
+                                You
+                              </span>
+                            )}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4">
+                            {user?.role}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4">
+                            <Button
+                              className="bg-green-500 text-white flex items-center justify-between gap-2 px-4 py-2"
+                              onClick={() => navigate(`/dashboard/update-user/${user._id}`)}
+                            >
+                              <span>Update</span>
+                              <GrUpdate className="text-white" />
+                            </Button>
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-4">
+                            <Button
+                              className="bg-red-600 text-white flex items-center justify-between gap-2 px-4 py-2"
+                              onClick={() => handleDelete(user._id)}
+                            >
+                              <span>Delete</span>
+                              <MdDelete className="text-white" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 };

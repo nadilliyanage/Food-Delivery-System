@@ -149,7 +149,7 @@ const UpdateUser = () => {
 
   return (
     <div>
-      <div className="flex items-center my-4">
+      <div className="flex items-center">
         <button
           onClick={() => navigate("/dashboard/manage-users")}
           className="inline-flex items-center gap-2 px-4 py-2 text-white bg-blue-500 rounded-md"

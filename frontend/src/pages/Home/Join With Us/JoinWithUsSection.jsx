@@ -33,15 +33,17 @@ const JoinWithUs = () => {
           {user ? 'Register Your Restaurant' : 'Login to Register Restaurant'}
         </button>
       </div>
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-800">For Delivery Personnel</h3>
-        <button
-          onClick={handleDeliveryClick}
-          className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 mx-2"
-        >
-          {user ? 'Join as Delivery Partner' : 'Login to Join as Delivery Partner'}
-        </button>
-      </div>
+      {user?.role !== 'delivery_personnel' && (
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-gray-800">For Delivery Personnel</h3>
+          <button
+            onClick={handleDeliveryClick}
+            className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 mx-2"
+          >
+            {user ? 'Join as Delivery Partner' : 'Login to Join as Delivery Partner'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
