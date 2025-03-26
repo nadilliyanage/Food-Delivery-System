@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaHome, FaCreditCard, FaInfoCircle, FaUtensils, FaEnvelope, FaUser, FaSignOutAlt, FaShoppingCart, FaListAlt, FaStore, FaMotorcycle, FaBox } from "react-icons/fa";
 import userImg from "../../assets/farmer.jpg";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../utilities/providers/AuthProvider";
@@ -11,23 +11,34 @@ import logo from "../../assets/logo.png";
 import { isAuthenticated } from "../../utils/auth";
 
 const navLinks = [
-  { name: "Home", route: "/" },
-  { name: "Payments", route: "/payments" },
-  { name: "About Us", route: "/aboutUs" },
-  { name: "Services", route: "/services" },
-  { name: "Contact Us", route: "/contact" },
+  { name: "Home", route: "/", icon: FaHome },
+  { name: "Payments", route: "/payments", icon: FaCreditCard },
+  { name: "About Us", route: "/aboutUs", icon: FaInfoCircle },
+  { name: "Services", route: "/services", icon: FaUtensils },
+  { name: "Contact Us", route: "/contact", icon: FaEnvelope },
 ];
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#ff0000",
-    },
-    secondary: {
-      main: "#00ff00",
-    },
-  },
-});
+const customerMobileNav = [
+  { name: "Home", route: "/", icon: FaHome },
+  { name: "Restaurants", route: "/restaurants", icon: FaStore },
+  { name: "Cart", route: "/cart", icon: FaShoppingCart },
+  { name: "Orders", route: "/dashboard/my-orders", icon: FaListAlt },
+];
+
+const deliveryMobileNav = [
+  { name: "Home", route: "/", icon: FaHome },
+  { name: "Pick Orders", route: "/pick-orders", icon: FaBox },
+  { name: "Deliveries", route: "/deliveries", icon: FaMotorcycle },
+];
+
+const restaurantAdminMobileNav = [
+  { name: "Home", route: "/", icon: FaHome },
+  { name: "Restaurant", route: "/manage-restaurant", icon: FaStore },
+];
+
+const adminMobileNav = [
+  { name: "Home", route: "/", icon: FaHome },
+];
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -114,284 +125,344 @@ const NavBar = () => {
   };
 
   return (
-    <motion.nav
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className={`${
-        isHome
-          ? navBg
-          : "bg-white dark:bg-gray-900 backdrop-blur-2xl text-black dark:text-white"
-      } ${
-        isFixed ? "static" : "fixed"
-      } top-0 transition-colors duration-500 ease-in-out w-full z-10`}
-    >
-      <div className="lg:w-[95%] mx-auto sm:px-6 lg:px-6">
-        <div className="px-4 py-4 flex items-center justify-between">
-          <div className="flex-shrink-0 cursor-pointer md:p-0 flex items-center">
-            {/* mobile menu icons */}
-            <div className="md:hidden flex items-center">
-              <button
-                type="button"
-                onClick={toggleMobileMenu}
-                className="text-primary hover:text-white focus:outline-none"
-              >
-                {isMobileMenuOpen ? (
-                  <FaTimes className="h-6 w-6 hover:text-white" /> // Show close icon when menu is open
-                ) : (
-                  <FaBars className="h-6 w-6 hover:text-white" /> // Show menu icon when menu is closed
-                )}
-              </button>
+    <>
+      {/* Desktop Navigation */}
+      <motion.nav
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`${
+          isHome
+            ? navBg
+            : "bg-white dark:bg-gray-900 backdrop-blur-2xl text-black dark:text-white"
+        } ${
+          isFixed ? "static" : "fixed"
+        } top-0 transition-colors duration-500 ease-in-out w-full z-10 hidden md:block`}
+      >
+        <div className="lg:w-[95%] mx-auto sm:px-6 lg:px-6">
+          <div className="px-4 py-4 flex items-center justify-between">
+            <div className="flex-shrink-0 cursor-pointer md:p-0 flex items-center">
+              {/* mobile menu icons */}
+              <div className="md:hidden flex items-center">
+                <button
+                  type="button"
+                  onClick={toggleMobileMenu}
+                  className="text-primary hover:text-white focus:outline-none"
+                >
+                  {isMobileMenuOpen ? (
+                    <FaTimes className="h-6 w-6 hover:text-white" /> // Show close icon when menu is open
+                  ) : (
+                    <FaBars className="h-6 w-6 hover:text-white" /> // Show menu icon when menu is closed
+                  )}
+                </button>
+              </div>
+              <div onClick={() => navigate("/")} className="pl-5">
+                <h1 className="text-2xl font-bold inline-flex gap-3 items-center">
+                  EatEase <img src={logo} alt="" className="w-8 h-8" />
+                </h1>
+                <p className="font-bold text-[13px] tracking-[6px]">
+                  Order Eat Relax
+                </p>
+              </div>
             </div>
-            <div onClick={() => navigate("/")} className="pl-5">
-              <h1 className="text-2xl font-bold inline-flex gap-3 items-center">
-                EatEase <img src={logo} alt="" className="w-8 h-8" />
-              </h1>
-              <p className="font-bold text-[13px] tracking-[6px]">
-                Order Eat Relax
-              </p>
-            </div>
-          </div>
 
-          {isUserAuthenticated && (
-            <div className="md:hidden">
-              <Link to={`/dashboard/user-profile`}>
-                <img
-                  src={currentUser?.photoUrl || userImg}
-                  alt="User Avatar"
-                  className="w-10 h-10 rounded-full object-cover border-4 border-primary"
-                />
-              </Link>
-            </div>
-          )}
-          {/* Navigational links */}
-          <div className="hidden md:block">
-            <div className="flex">
-              <ul className="ml-10 flex items-center space-x-5 pr-4">
-                {navLinks.map((link) => (
-                  <li key={link.route}>
-                    <NavLink
-                      to={link.route}
-                      style={{ whiteSpace: "nowrap" }}
-                      className={({ isActive }) =>
-                        `font-bold ${
-                          isActive
-                            ? "text-primary"
-                            : navBg.includes("bg-transparent") && isHome
-                            ? "text-white"
-                            : "text-black dark:text-white"
-                        } hover:text-primary duration-300`
-                      }
-                    >
-                      {link.name}
-                    </NavLink>
-                  </li>
-                ))}
+            {isUserAuthenticated && (
+              <div className="md:hidden">
+                <Link to={`/dashboard/user-profile`}>
+                  <img
+                    src={currentUser?.photoUrl || userImg}
+                    alt="User Avatar"
+                    className="w-10 h-10 rounded-full object-cover border-4 border-primary"
+                  />
+                </Link>
+              </div>
+            )}
+            {/* Navigational links */}
+            <div className="hidden md:block">
+              <div className="flex">
+                <ul className="ml-10 flex items-center space-x-5 pr-4">
+                  {navLinks.map((link) => (
+                    <li key={link.route}>
+                      <NavLink
+                        to={link.route}
+                        style={{ whiteSpace: "nowrap" }}
+                        className={({ isActive }) =>
+                          `font-bold ${
+                            isActive
+                              ? "text-primary"
+                              : navBg.includes("bg-transparent") && isHome
+                              ? "text-white"
+                              : "text-black dark:text-white"
+                          } hover:text-primary duration-300`
+                        }
+                      >
+                        {link.name}
+                      </NavLink>
+                    </li>
+                  ))}
 
-                {currentUser?.role === "admin" && (
-                  <li>
-                    <NavLink
-                      to="/manage-locations"
-                      className={({ isActive }) =>
-                        `font-bold ${
-                          isActive
-                            ? "text-primary"
-                            : navBg.includes("bg-transparent") && isHome
-                            ? "text-white"
-                            : "text-black dark:text-white"
-                        } hover:text-primary duration-300`
-                      }
-                    >
-                      Map
-                    </NavLink>
-                  </li>
-                )}
+                  {currentUser?.role === "admin" && (
+                    <li>
+                      <NavLink
+                        to="/manage-locations"
+                        className={({ isActive }) =>
+                          `font-bold ${
+                            isActive
+                              ? "text-primary"
+                              : navBg.includes("bg-transparent") && isHome
+                              ? "text-white"
+                              : "text-black dark:text-white"
+                          } hover:text-primary duration-300`
+                        }
+                      >
+                        Map
+                      </NavLink>
+                    </li>
+                  )}
 
-                {/* based on users */}
-                {isUserAuthenticated ? null : isLogin ? (
-                  <li>
-                    <NavLink
-                      to="/register"
-                      className={({ isActive }) =>
-                        `font-bold ${
-                          isActive
-                            ? "text-primary"
-                            : `${
-                                navBg.includes("bg-transparent")
-                                  ? "text-white"
-                                  : "text-black dark:text-white"
-                              }`
-                        } hover:text-primary duration-300`
-                      }
-                    >
-                      Register
-                    </NavLink>
-                  </li>
-                ) : (
-                  <li>
-                    <NavLink
-                      to="/login"
-                      className={({ isActive }) =>
-                        `font-bold ${
-                          isActive
-                            ? "text-primary"
-                            : `${
-                                navBg.includes("bg-transparent")
-                                  ? "text-white"
-                                  : "text-black dark:text-white"
-                              }`
-                        } hover:text-primary duration-300`
-                      }
-                    >
-                      Login
-                    </NavLink>
-                  </li>
-                )}
+                  {/* based on users */}
+                  {isUserAuthenticated ? null : isLogin ? (
+                    <li>
+                      <NavLink
+                        to="/register"
+                        className={({ isActive }) =>
+                          `font-bold ${
+                            isActive
+                              ? "text-primary"
+                              : `${
+                                  navBg.includes("bg-transparent")
+                                    ? "text-white"
+                                    : "text-black dark:text-white"
+                                }`
+                          } hover:text-primary duration-300`
+                        }
+                      >
+                        Register
+                      </NavLink>
+                    </li>
+                  ) : (
+                    <li>
+                      <NavLink
+                        to="/login"
+                        className={({ isActive }) =>
+                          `font-bold ${
+                            isActive
+                              ? "text-primary"
+                              : `${
+                                  navBg.includes("bg-transparent")
+                                    ? "text-white"
+                                    : "text-black dark:text-white"
+                                }`
+                          } hover:text-primary duration-300`
+                        }
+                      >
+                        Login
+                      </NavLink>
+                    </li>
+                  )}
 
-                {isUserAuthenticated && (
-                  <li>
-                    <NavLink
-                      to={currentUser?.role === 'admin' 
-                        ? '/dashboard/admin-home' 
-                        : currentUser?.role === 'restaurant_admin'
-                        ? '/dashboard/restaurant-admin-home'
-                        : currentUser?.role === 'delivery_personnel'
-                        ? '/dashboard/delivery-home'
-                        : '/dashboard/user-home'}
-                      className={({ isActive }) =>
-                        `font-bold ${
-                          isActive
-                            ? "text-primary"
-                            : `${
-                                navBg.includes("bg-transparent")
-                                  ? "text-white"
-                                  : "text-black dark:text-white"
-                              }`
-                        } hover:text-primary duration-300`
-                      }
-                    >
-                      Dashboard
-                    </NavLink>
-                  </li>
-                )}
+                  {isUserAuthenticated && (
+                    <li>
+                      <NavLink
+                        to={currentUser?.role === 'admin' 
+                          ? '/dashboard/admin-home' 
+                          : currentUser?.role === 'restaurant_admin'
+                          ? '/dashboard/restaurant-admin-home'
+                          : currentUser?.role === 'delivery_personnel'
+                          ? '/dashboard/delivery-home'
+                          : '/dashboard/user-home'}
+                        className={({ isActive }) =>
+                          `font-bold ${
+                            isActive
+                              ? "text-primary"
+                              : `${
+                                  navBg.includes("bg-transparent")
+                                    ? "text-white"
+                                    : "text-black dark:text-white"
+                                }`
+                          } hover:text-primary duration-300`
+                        }
+                      >
+                        Dashboard
+                      </NavLink>
+                    </li>
+                  )}
 
-                {isUserAuthenticated && (
-                  <li>
-                    <Link to={`/dashboard/user-profile`}>
-                      <img
-                        src={currentUser?.photoUrl || userImg}
-                        alt="User Avatar"
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    </Link>
-                  </li>
-                )}
+                  {isUserAuthenticated && (
+                    <li>
+                      <Link to={`/dashboard/user-profile`}>
+                        <img
+                          src={currentUser?.photoUrl || userImg}
+                          alt="User Avatar"
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      </Link>
+                    </li>
+                  )}
 
-                {isUserAuthenticated && (
-                  <li>
-                    <NavLink
-                      onClick={handleLogout}
-                      className={
-                        "font-bold px-3 py-2 bg-primary text-white rounded-xl"
-                      }
-                    >
-                      Logout
-                    </NavLink>
-                  </li>
-                )}
-              </ul>
+                  {isUserAuthenticated && (
+                    <li>
+                      <NavLink
+                        onClick={handleLogout}
+                        className={
+                          "font-bold px-3 py-2 bg-primary text-white rounded-xl"
+                        }
+                      >
+                        Logout
+                      </NavLink>
+                    </li>
+                  )}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
+      </motion.nav>
+
+      {/* Mobile Top Bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-50">
+        <div className="flex items-center justify-between px-4 h-14">
+          <div onClick={() => navigate("/")} className="flex items-center">
+            <h1 className="text-xl font-bold inline-flex gap-2 items-center">
+              EatEase <img src={logo} alt="" className="w-6 h-6" />
+            </h1>
+          </div>
+          {isUserAuthenticated && (
+            <Link to={`/dashboard/user-profile`}>
+              <img
+                src={currentUser?.photoUrl || userImg}
+                alt="User Avatar"
+                className="w-8 h-8 rounded-full object-cover border-2 border-primary"
+              />
+            </Link>
+          )}
+        </div>
       </div>
 
-      {/* mobile nav */}
-      <div
-        className={`${
-          isMobileMenuOpen ? "block" : "hidden"
-        } px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white/90 border-2 shadow-2xl rounded-b-xl text-center`}
-      >
-        <ul className="space-y-4">
-          {navLinks.map((link) => (
-            <li key={link.route}>
-              <NavLink
-                to={link.route}
-                onClick={toggleMobileMenu}
-                className="block font-bold text-black dark:text-white hover:text-primary"
-              >
-                {link.name}
-              </NavLink>
-            </li>
-          ))}
-
-          {/* based on user status */}
-          {!isUserAuthenticated ? (
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 z-50">
+        <div className="flex justify-around items-center h-14">
+          {isUserAuthenticated ? (
             <>
-              {isLogin ? (
-                <li>
+              {currentUser?.role === 'customer' && customerMobileNav.map((link) => {
+                const Icon = link.icon;
+                return (
                   <NavLink
-                    to="/register"
-                    onClick={toggleMobileMenu}
-                    className="block font-bold text-black dark:text-white hover:text-primary"
+                    key={link.route}
+                    to={link.route}
+                    className={({ isActive }) =>
+                      `flex flex-col items-center justify-center w-full h-full ${
+                        isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                      }`
+                    }
                   >
-                    Register
+                    <Icon className="w-5 h-5" />
+                    <span className="text-xs mt-0.5">{link.name}</span>
                   </NavLink>
-                </li>
-              ) : (
-                <li>
+                );
+              })}
+              
+              {currentUser?.role === 'delivery_personnel' && deliveryMobileNav.map((link) => {
+                const Icon = link.icon;
+                return (
                   <NavLink
-                    to="/login"
-                    onClick={toggleMobileMenu}
-                    className="block font-bold text-black dark:text-white hover:text-primary"
+                    key={link.route}
+                    to={link.route}
+                    className={({ isActive }) =>
+                      `flex flex-col items-center justify-center w-full h-full ${
+                        isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                      }`
+                    }
                   >
-                    Login
+                    <Icon className="w-5 h-5" />
+                    <span className="text-xs mt-0.5">{link.name}</span>
                   </NavLink>
-                </li>
-              )}
+                );
+              })}
+              
+              {currentUser?.role === 'restaurant_admin' && restaurantAdminMobileNav.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <NavLink
+                    key={link.route}
+                    to={link.route}
+                    className={({ isActive }) =>
+                      `flex flex-col items-center justify-center w-full h-full ${
+                        isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                      }`
+                    }
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-xs mt-0.5">{link.name}</span>
+                  </NavLink>
+                );
+              })}
+
+              {currentUser?.role === 'admin' && adminMobileNav.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <NavLink
+                    key={link.route}
+                    to={link.route}
+                    className={({ isActive }) =>
+                      `flex flex-col items-center justify-center w-full h-full ${
+                        isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                      }`
+                    }
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-xs mt-0.5">{link.name}</span>
+                  </NavLink>
+                );
+              })}
+              
+              <NavLink
+                to={currentUser?.role === 'admin' 
+                  ? '/dashboard/admin-home' 
+                  : currentUser?.role === 'restaurant_admin'
+                  ? '/dashboard/restaurant-admin-home'
+                  : currentUser?.role === 'delivery_personnel'
+                  ? '/dashboard/delivery-home'
+                  : '/dashboard/user-home'}
+                className={({ isActive }) =>
+                  `flex flex-col items-center justify-center w-full h-full ${
+                    isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                  }`
+                }
+              >
+                <FaUser className="w-5 h-5" />
+                <span className="text-xs mt-0.5">Profile</span>
+              </NavLink>
             </>
           ) : (
             <>
-              {currentUser?.role === "admin" && (
-                <li>
-                  <NavLink
-                    to="/manage-locations"
-                    onClick={toggleMobileMenu}
-                    className="block font-bold py-1 text-black rounded-xl hover:text-primary"
-                  >
-                    Map
-                  </NavLink>
-                </li>
-              )}
-
-              <li>
-                <NavLink
-                  to={currentUser?.role === 'admin' 
-                    ? '/dashboard/admin-home' 
-                    : currentUser?.role === 'restaurant_admin'
-                    ? '/dashboard/restaurant-admin-home'
-                    : currentUser?.role === 'delivery_personnel'
-                    ? '/dashboard/delivery-home'
-                    : '/dashboard/user-home'}
-                  onClick={toggleMobileMenu}
-                  className="block font-bold py-1 text-black rounded-xl hover:text-primary"
-                >
-                  Dashboard
-                </NavLink>
-              </li>
-
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="font-bold px-3 py-2 bg-primary text-white rounded-xl"
-                >
-                  Logout
-                </button>
-              </li>
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  `flex flex-col items-center justify-center w-full h-full ${
+                    isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                  }`
+                }
+              >
+                <FaHome className="w-5 h-5" />
+                <span className="text-xs mt-0.5">Home</span>
+              </NavLink>
+              <NavLink
+                to={isLogin ? "/register" : "/login"}
+                className={({ isActive }) =>
+                  `flex flex-col items-center justify-center w-full h-full ${
+                    isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                  }`
+                }
+              >
+                <FaUser className="w-5 h-5" />
+                <span className="text-xs mt-0.5">{isLogin ? "Register" : "Login"}</span>
+              </NavLink>
             </>
           )}
-        </ul>
+        </div>
       </div>
-    </motion.nav>
+    </>
   );
 };
 

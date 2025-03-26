@@ -13,6 +13,7 @@ import Loader from "../components/Loader/Loader";
 import { MdFeedback, MdRequestQuote, MdError, MdPayments, MdFoodBank, MdDeliveryDining, MdRestaurantMenu } from "react-icons/md";
 import { GiPikeman } from "react-icons/gi";
 import { AiFillSchedule } from "react-icons/ai";
+import NavBar from "../components/headers/NavBar";
 
 const adminNavItems = [
   {
@@ -174,28 +175,6 @@ const DashboardLayout = () => {
     }
   }, [currentUser]);
 
-  const handleRoleChange = (e) => {
-    const newRole = e.target.value;
-    setSelectedRole(newRole);
-    // Navigate to the appropriate dashboard based on the new role
-    switch (newRole) {
-      case 'admin':
-        navigate('/dashboard/admin-home');
-        break;
-      case 'customer':
-        navigate('/dashboard/user-home');
-        break;
-      case 'restaurant_admin':
-        navigate('/dashboard/restaurant-admin-home');
-        break;
-      case 'delivery_personnel':
-        navigate('/dashboard/delivery-home');
-        break;
-      default:
-        navigate('/dashboard/user-home');
-    }
-  };
-
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure want to logout?",
@@ -240,163 +219,135 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="flex md:flex-row flex-col">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden fixed top-4 right-4 z-50 p-2 rounded-md bg-white shadow-lg"
-      >
-        {isMobileMenuOpen ? (
-          <FaTimes className="h-6 w-6 text-primary" />
-        ) : (
-          <FaBars className="h-6 w-6 text-primary" />
-        )}
-      </button>
+    <div className="flex flex-col min-h-screen">
+      <div className="flex md:flex-row flex-col flex-1 relative">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden fixed top-2 right-4 z-[60] p-2 rounded-md bg-white shadow-lg"
+        >
+          {isMobileMenuOpen ? (
+            <FaTimes className="h-6 w-6 text-primary" />
+          ) : (
+            <FaBars className="h-6 w-6 text-primary" />
+          )}
+        </button>
 
-      {/* Sidebar */}
-      <div
-        className={`${
-          open ? "w-72" : "w-[90px]"
-        } bg-white h-screen p-5 pt-8 duration-300 ${
-          isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
-        } fixed md:relative z-40 md:shadow-none`}
-      >
-        <div className="flex gap-x-4 items-center mt-2">
-          <img
-            onClick={() => setOpen(!open)}
-            src={logo}
-            alt="logo"
-            className={`cursor-pointer h-[40px] duration-500 ${
-              open && "rotate-[360deg]"
-            }`}
-          />
-          <h1
-            onClick={() => setOpen(!open)}
-            className={`text-primary cursor-pointer font-bold origin-left text-xl duration-200 ${
-              !open && "scale-0"
-            }`}
-          >
-            EatEase
-          </h1>
+        {/* Sidebar */}
+        <div
+          className={`${
+            open ? "w-72" : "w-[90px]"
+          } bg-white h-screen p-5 pt-8 duration-300 ${
+            isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
+          } fixed md:relative z-[55] md:shadow-none`}
+        >
+          <div className="flex gap-x-4 items-center mt-2">
+            <img
+              onClick={() => setOpen(!open)}
+              src={logo}
+              alt="logo"
+              className={`cursor-pointer h-[40px] duration-500 ${
+                open && "rotate-[360deg]"
+              }`}
+            />
+            <h1
+              onClick={() => setOpen(!open)}
+              className={`text-primary cursor-pointer font-bold origin-left text-xl duration-200 ${
+                !open && "scale-0"
+              }`}
+            >
+              EatEase
+            </h1>
+          </div>
+
+          {/* Rest of the sidebar content */}
+          <ul className="pt-6">
+            <p className={`uppercase ml-3 text-gray-500 mb-3 ${!open && "hidden"}`}>
+              <small>Menu</small>
+            </p>
+            {renderNavItems().map((menuItem, index) => (
+              <li key={index} className="mb-1">
+                <NavLink
+                  to={menuItem.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex ${
+                      isActive ? "bg-primary text-white" : "text-[#413F44]"
+                    } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
+                  }
+                >
+                  {menuItem.icon}
+                  <span className={`${!open && "hidden"} origin-left duration-200`}>
+                    {menuItem.label}
+                  </span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+
+          <ul className="pt-6">
+            <p className={`uppercase ml-3 text-gray-500 mb-3 ${!open && "hidden"}`}>
+              <small>Useful links</small>
+            </p>
+            {lastMenuItems.map((menuItem, index) => (
+              <li key={index} className="mb-2">
+                <NavLink
+                  to={menuItem.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex ${
+                      isActive ? "bg-primary text-white" : "text-[#413F44]"
+                    } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
+                  }
+                >
+                  {menuItem.icon}
+                  <span className={`${!open && "hidden"} origin-left duration-200`}>
+                    {menuItem.label}
+                  </span>
+                </NavLink>
+              </li>
+            ))}
+
+            <li>
+              <button
+                onClick={handleLogout}
+                className={`flex w-full text-[#413F44] duration-150 rounded-md p-2 cursor-pointer hover:shadow-md hover:text-red-500 font-bold text-sm items-center gap-x-4`}
+              >
+                <BiLogInCircle className="text-2xl" />
+                <span className={`${!open && "hidden"} origin-left duration-200`}>
+                  Logout
+                </span>
+              </button>
+            </li>
+          </ul>
+
+          {/* User Info Section */}
+          {currentUser && (
+            <div className="absolute bottom-5 px-4 flex items-center gap-x-4">
+              <Link to={`/dashboard/user-profile`}>
+                <img
+                  src={currentUser?.photoUrl}
+                  alt={currentUser?.name}
+                  className="w-12 h-12 rounded-full object-cover border-2"
+                />
+              </Link>
+              <span className={`${!open && "hidden"} text-gray-700 font-semibold text-sm`}>
+                {currentUser?.name || "User"}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Role Selector Dropdown */}
-        {currentUser && currentUser.role !== 'admin' && (
-          <div className={`mt-4 ${!open && "hidden"}`}>
-            <select
-              value={selectedRole}
-              onChange={handleRoleChange}
-              className="w-full p-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="customer">Customer Dashboard</option>
-              {currentUser.role === 'restaurant_admin' && (
-                <option value="restaurant_admin">Restaurant Admin Dashboard</option>
-              )}
-              {currentUser.role === 'delivery_personnel' && (
-                <option value="delivery_personnel">Delivery Partner Dashboard</option>
-              )}
-            </select>
+        {/* Main Content */}
+        <div className="flex-1">
+          <div className="md:hidden">
+            <NavBar />
           </div>
-        )}
-
-        {/* NavLinks */}
-        <ul className="pt-6">
-          <p
-            className={`uppercase ml-3 text-gray-500 mb-3 ${
-              !open && "hidden"
-            }`}
-          >
-            <small>Menu</small>
-          </p>
-          {renderNavItems().map((menuItem, index) => (
-            <li key={index} className="mb-1">
-              <NavLink
-                to={menuItem.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  `flex ${
-                    isActive ? "bg-primary text-white" : "text-[#413F44]"
-                  } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
-                }
-              >
-                {menuItem.icon}
-                <span
-                  className={`${
-                    !open && "hidden"
-                  } origin-left duration-200`}
-                >
-                  {menuItem.label}
-                </span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-
-        <ul className="pt-6">
-          <p
-            className={`uppercase ml-3 text-gray-500 mb-3 ${!open && "hidden"}`}
-          >
-            <small>Useful links</small>
-          </p>
-          {lastMenuItems.map((menuItem, index) => (
-            <li key={index} className="mb-2">
-              <NavLink
-                to={menuItem.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  `flex ${
-                    isActive ? "bg-primary text-white" : "text-[#413F44]"
-                  } duration-150 rounded-md p-2 cursor-pointer hover:scale-105 hover:shadow-md font-bold text-sm items-center gap-x-4`
-                }
-              >
-                {menuItem.icon}
-                <span
-                  className={`${!open && "hidden"} origin-left duration-200`}
-                >
-                  {menuItem.label}
-                </span>
-              </NavLink>
-            </li>
-          ))}
-
-          <li>
-            <button
-              onClick={handleLogout}
-              className={`flex w-full text-[#413F44] duration-150 rounded-md p-2 cursor-pointer hover:shadow-md hover:text-red-500 font-bold text-sm items-center gap-x-4`}
-            >
-              <BiLogInCircle className="text-2xl" />
-              <span className={`${!open && "hidden"} origin-left duration-200`}>
-                Logout
-              </span>
-            </button>
-          </li>
-        </ul>
-
-        {/* User Info Section */}
-        {currentUser && (
-          <div className="absolute bottom-5 px-4 flex items-center gap-x-4">
-            <Link to={`/dashboard/user-profile`}>
-              <img
-                src={currentUser?.photoUrl}
-                alt={currentUser?.name}
-                className="w-12 h-12 rounded-full object-cover border-2"
-              />
-            </Link>
-            <span
-              className={`${
-                !open && "hidden"
-              } text-gray-700 font-semibold text-sm`}
-            >
-              {currentUser?.name || "User"}
-            </span>
+          <div className="h-screen overflow-y-auto w-full md:w-[calc(100%-18rem)] px-4 md:px-8 pt-16 md:pt-0 pb-14 md:pb-0">
+            <Scroll />
+            <Outlet />
           </div>
-        )}
-      </div>
-
-      {/* Main Content */}
-      <div className="h-screen overflow-y-auto w-full md:w-[calc(100%-18rem)] px-4 md:px-8 pt-16 md:pt-0">
-        <Scroll />
-        <Outlet />
+        </div>
       </div>
     </div>
   );
