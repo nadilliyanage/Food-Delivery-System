@@ -281,7 +281,7 @@ const DashboardLayout = () => {
         </div>
 
         {/* Role Selector Dropdown */}
-        {currentUser && (
+        {currentUser && currentUser.role !== 'admin' && (
           <div className={`mt-4 ${!open && "hidden"}`}>
             <select
               value={selectedRole}
@@ -289,9 +289,6 @@ const DashboardLayout = () => {
               className="w-full p-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="customer">Customer Dashboard</option>
-              {currentUser.role === 'admin' && (
-                <option value="admin">Admin Dashboard</option>
-              )}
               {currentUser.role === 'restaurant_admin' && (
                 <option value="restaurant_admin">Restaurant Admin Dashboard</option>
               )}
