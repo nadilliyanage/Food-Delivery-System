@@ -52,8 +52,7 @@ const register = async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { id: result._id, role: result.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      process.env.JWT_SECRET
     );
 
     // Send response with token
@@ -109,8 +108,7 @@ const login = async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      process.env.JWT_SECRET
     );
 
     res.json({ 
@@ -216,21 +214,12 @@ const deleteUser = async (req, res) => {
   }
 };
 
-const setToken = async (req, res) => {
-  const user = req.body;
-  const token = jwt.sign(user, process.env.JWT_SECRET, {
-    expiresIn: "24h",
-  });
-  res.send({ token });
-}
-
 module.exports = {
   register,
-  login, setToken,
+  login,
   getUserById,
   getUserByEmail,
   getAllUsers,
   updateUser,
   deleteUser,
-  setToken,
 };

@@ -103,6 +103,39 @@ const restaurantAdminNavItems = [
   },
 ];
 
+const deliveryPersonnelNavItems = [
+  {
+    to: "/dashboard/delivery-home",
+    icon: <RiDashboardFill className="text-2xl" />,
+    label: "Dashboard",
+  },
+  {
+    to: "/dashboard/current-deliveries",
+    icon: <MdDeliveryDining className="text-2xl" />,
+    label: "Current Deliveries",
+  },
+  {
+    to: "/dashboard/delivery-history",
+    icon: <FaHistory className="text-2xl" />,
+    label: "Delivery History",
+  },
+  {
+    to: "/dashboard/delivery-profile",
+    icon: <FaUserAlt className="text-2xl" />,
+    label: "Profile & Settings",
+  },
+  {
+    to: "/dashboard/earnings",
+    icon: <MdPayments className="text-2xl" />,
+    label: "My Earnings",
+  },
+  {
+    to: "/dashboard/availability",
+    icon: <AiFillSchedule className="text-2xl" />,
+    label: "Availability",
+  },
+];
+
 const lastMenuItems = [
   { to: "/", icon: <BiHomeAlt className="text-2xl" />, label: "Main Home" },
   {
@@ -133,6 +166,9 @@ const DashboardLayout = () => {
         break;
       case 'restaurant_admin':
         navigate('/dashboard/restaurant-admin-home');
+        break;
+      case 'delivery_personnel':
+        navigate('/dashboard/delivery-home');
         break;
       default:
         navigate('/dashboard/user-home');
@@ -174,6 +210,8 @@ const DashboardLayout = () => {
         return customerNavItems;
       case 'restaurant_admin':
         return restaurantAdminNavItems;
+      case 'delivery_personnel':
+        return deliveryPersonnelNavItems;
       default:
         return customerNavItems;
     }
@@ -234,6 +272,9 @@ const DashboardLayout = () => {
               )}
               {currentUser.role === 'restaurant_admin' && (
                 <option value="restaurant_admin">Restaurant Admin Dashboard</option>
+              )}
+              {currentUser.role === 'delivery_personnel' && (
+                <option value="delivery_personnel">Delivery Partner Dashboard</option>
               )}
             </select>
           </div>

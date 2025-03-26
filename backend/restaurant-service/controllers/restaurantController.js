@@ -211,8 +211,8 @@ const updateRegistrationStatus = async (req, res) => {
       }
     }
 
-    // If moving back to pending, check for other approved restaurants before changing role
-    if (status === 'pending') {
+    // If rejected or moving back to pending, check for other approved restaurants before changing role
+    if (status === 'rejected' || status === 'pending') {
       try {
         // Check if user has any other approved restaurants
         const otherApprovedRestaurants = await Restaurant.find({

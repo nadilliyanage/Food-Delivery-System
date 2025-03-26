@@ -7,7 +7,6 @@ const {
   getAllUsers,
   updateUser,
   deleteUser,
-  setToken
 } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 
@@ -23,6 +22,5 @@ router.get("/user/:email", getUserByEmail);
 router.get("/users", authMiddleware, getAllUsers);
 router.put("/users/:id", authMiddleware, updateUser);
 router.delete("/users/:id", authMiddleware, deleteUser);
-router.post("/set-token", setToken);
 
 module.exports = router;
