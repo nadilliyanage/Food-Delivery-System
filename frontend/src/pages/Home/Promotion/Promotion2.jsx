@@ -1,37 +1,27 @@
 import React from "react";
-import bgImg from "../../../assets/food-banner-2.jpg"; // Replace with the sample image below
+import bgImg from "../../../assets/food-banner-2.jpg";
 import { Link } from "react-router-dom";
 
 const Promotion2 = () => {
   return (
-    <div
-      className="bg-cover bg-center"
-      style={{ backgroundImage: `url(${bgImg})` }}
-    >
-      <div className="h-[80vh] flex justify-start pl-11 items-center text-white bg-black bg-opacity-50">
-        <div>
-          <div className="space-y-4">
-            <p className="md:text-4xl text-2xl">Delicious Meals, Delivered Fast!</p>
-            <h1 className="md:text-7xl text-4xl font-bold">
-              Your Favorite Restaurants, <br /> Just a Tap Away
-            </h1>
-
-            <div className="md:w-1/2">
-              <p>
-                Craving something tasty? Get mouthwatering dishes from top restaurants delivered straight to your doorstep. 
-                Easy ordering, fast delivery, and amazing deals—just for you!
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-5">
-              <Link to={"/order"}>
-                <button className="px-7 py-3 rounded-lg bg-primary font-bold uppercase hover:scale-105 duration-300">
-                  Order Now
-                </button>
-              </Link>
-              <button className="px-7 py-3 rounded-lg border hover:bg-primary font-bold uppercase">
-                Explore Menu
+    <div className="relative overflow-hidden">
+      <div
+        className="h-[180px] md:h-[500px] lg:h-[600px] bg-cover bg-center w-full"
+        style={{ backgroundImage: `url(${bgImg})` }}
+      >
+        <div className="h-full flex flex-col justify-center px-4 md:px-20 text-white bg-gradient-to-r from-black/70 to-transparent">
+          <div className="md:max-w-xl">
+            <h3 className="text-xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4">
+              Free Delivery Today
+            </h3>
+            <p className="text-sm md:text-lg lg:text-xl mb-4 md:mb-6">
+              Order above $20 and get free delivery on all your favorite restaurants
+            </p>
+            <Link to="/restaurants">
+              <button className="px-4 md:px-8 py-2 md:py-3 bg-primary text-white text-sm md:text-base lg:text-lg font-semibold rounded-lg hover:scale-105 transition-transform">
+                Browse Restaurants
               </button>
-            </div>
+            </Link>
           </div>
         </div>
       </div>

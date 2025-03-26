@@ -1,39 +1,27 @@
 import React from "react";
-import bgImg from "../../../assets/food-banner.jpg"; // Replace with a relevant food image
-import { Link, NavLink } from "react-router-dom";
+import bgImg from "../../../assets/food-banner.jpg";
+import { Link } from "react-router-dom";
 
 const Promotion = () => {
   return (
-    <div
-      className="bg-cover bg-center"
-      style={{ backgroundImage: `url(${bgImg})` }}
-    >
-      <div className="h-[80vh] flex justify-start pl-11 items-center text-white bg-black bg-opacity-50">
-        <div>
-          <div className="space-y-4">
-            <p className="md:text-4xl text-2xl">Fast, Fresh, and Delivered to You</p>
-            <h1 className="md:text-7xl text-4xl font-bold">
-              Satisfy Your Cravings <br /> with Just a Tap!
-            </h1>
-
-            <div className="md:w-1/2">
-              <p>
-                Order from your favorite restaurants and enjoy hot, delicious meals at your doorstep. 
-                Experience hassle-free delivery, amazing deals, and the best flavors in town!
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-5">
-              <Link to={"/order"}>
-                <button className="px-7 py-3 rounded-lg bg-primary font-bold uppercase hover:scale-105 duration-300">
-                  Order Now
-                </button>
-              </Link>
-              <NavLink to={"/restaurants"}>
-                <button className="px-7 py-3 rounded-lg border hover:bg-primary font-bold uppercase">
-                  Browse Restaurants
-                </button>
-              </NavLink>
-            </div>
+    <div className="relative overflow-hidden">
+      <div
+        className="h-[180px] md:h-[500px] lg:h-[600px] bg-cover bg-center w-full"
+        style={{ backgroundImage: `url(${bgImg})` }}
+      >
+        <div className="h-full flex flex-col justify-center px-4 md:px-20 text-white bg-gradient-to-r from-black/70 to-transparent">
+          <div className="md:max-w-xl">
+            <h3 className="text-xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4">
+              50% OFF Your First Order
+            </h3>
+            <p className="text-sm md:text-lg lg:text-xl mb-4 md:mb-6">
+              Experience the best local restaurants with an exclusive welcome offer
+            </p>
+            <Link to="/order">
+              <button className="px-4 md:px-8 py-2 md:py-3 bg-primary text-white text-sm md:text-base lg:text-lg font-semibold rounded-lg hover:scale-105 transition-transform">
+                Order Now
+              </button>
+            </Link>
           </div>
         </div>
       </div>
