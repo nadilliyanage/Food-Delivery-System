@@ -88,128 +88,140 @@ const DeliveryProfile = () => {
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
 
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold mb-8">Profile & Settings</h1>
+    <div className="container mx-auto px-4 mt-0 md:mt-20 lg:mt-20">
+      <h1 className="text-3xl font-bold text-center">Profile & Settings</h1>
 
-      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-          {/* Personal Information */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <FaUserAlt className="text-gray-500" />
-                <input
-                  type="text"
-                  name="name"
-                  value={profile.name}
-                  onChange={handleChange}
-                  placeholder="Full Name"
-                  className="flex-1 p-2 border rounded"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <FaPhone className="text-gray-500" />
-                <input
-                  type="tel"
-                  name="phone"
-                  value={profile.phone}
-                  onChange={handleChange}
-                  placeholder="Phone Number"
-                  className="flex-1 p-2 border rounded"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <FaMapMarkerAlt className="text-gray-500" />
-                <input
-                  type="text"
-                  name="address"
-                  value={profile.address}
-                  onChange={handleChange}
-                  placeholder="Address"
-                  className="flex-1 p-2 border rounded"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Vehicle Information */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Vehicle Information</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <FaCar className="text-gray-500" />
-                <input
-                  type="text"
-                  name="vehicleType"
-                  value={profile.vehicleType}
-                  onChange={handleChange}
-                  placeholder="Vehicle Type"
-                  className="flex-1 p-2 border rounded"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <FaCar className="text-gray-500" />
-                <input
-                  type="text"
-                  name="vehicleNumber"
-                  value={profile.vehicleNumber}
-                  onChange={handleChange}
-                  placeholder="Vehicle Number"
-                  className="flex-1 p-2 border rounded"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <FaCar className="text-gray-500" />
-                <input
-                  type="text"
-                  name="licenseNumber"
-                  value={profile.licenseNumber}
-                  onChange={handleChange}
-                  placeholder="License Number"
-                  className="flex-1 p-2 border rounded"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Working Hours */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Working Hours</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-600 mb-1">Start Time</label>
-                  <input
-                    type="time"
-                    name="start"
-                    value={profile.workingHours.start}
-                    onChange={handleWorkingHoursChange}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-600 mb-1">End Time</label>
-                  <input
-                    type="time"
-                    name="end"
-                    value={profile.workingHours.end}
-                    onChange={handleWorkingHoursChange}
-                    className="w-full p-2 border rounded"
-                  />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Personal Information */}
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <FaUserAlt className="text-gray-500" />
+                    <input
+                      type="text"
+                      name="name"
+                      value={profile.name}
+                      onChange={handleChange}
+                      placeholder="Full Name"
+                      className="flex-1 p-2 border rounded"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaPhone className="text-gray-500" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={profile.phone}
+                      onChange={handleChange}
+                      placeholder="Phone Number"
+                      className="flex-1 p-2 border rounded"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaMapMarkerAlt className="text-gray-500" />
+                    <input
+                      type="text"
+                      name="address"
+                      value={profile.address}
+                      onChange={handleChange}
+                      placeholder="Address"
+                      className="flex-1 p-2 border rounded"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isAvailable"
-                  checked={profile.isAvailable}
-                  onChange={(e) => setProfile(prev => ({ ...prev, isAvailable: e.target.checked }))}
-                  className="h-4 w-4 text-primary"
-                />
-                <label htmlFor="isAvailable" className="text-sm text-gray-600">
-                  Available for deliveries
-                </label>
+
+              {/* Working Hours */}
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Working Hours</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm text-gray-600 mb-1">Start Time</label>
+                      <input
+                        type="time"
+                        name="start"
+                        value={profile.workingHours.start}
+                        onChange={handleWorkingHoursChange}
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm text-gray-600 mb-1">End Time</label>
+                      <input
+                        type="time"
+                        name="end"
+                        value={profile.workingHours.end}
+                        onChange={handleWorkingHoursChange}
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isAvailable"
+                      checked={profile.isAvailable}
+                      onChange={(e) => setProfile(prev => ({ ...prev, isAvailable: e.target.checked }))}
+                      className="h-4 w-4 text-primary"
+                    />
+                    <label htmlFor="isAvailable" className="text-sm text-gray-600">
+                      Available for deliveries
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Vehicle Information */}
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Vehicle Information</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <FaCar className="text-gray-500" />
+                    <select
+                      name="vehicleType"
+                      value={profile.vehicleType}
+                      onChange={handleChange}
+                      className="flex-1 p-2 border rounded bg-white"
+                    >
+                      <option value="">Select Vehicle Type</option>
+                      <option value="motorcycle">Motorcycle</option>
+                      <option value="bicycle">Bicycle</option>
+                      <option value="car">Car</option>
+                      <option value="scooter">Scooter</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaCar className="text-gray-500" />
+                    <input
+                      type="text"
+                      name="vehicleNumber"
+                      value={profile.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder="Vehicle Number"
+                      className="flex-1 p-2 border rounded"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaCar className="text-gray-500" />
+                    <input
+                      type="text"
+                      name="licenseNumber"
+                      value={profile.licenseNumber}
+                      onChange={handleChange}
+                      placeholder="License Number"
+                      className="flex-1 p-2 border rounded"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
