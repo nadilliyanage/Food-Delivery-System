@@ -197,7 +197,7 @@ const updateRegistrationStatus = async (req, res) => {
     // If approved, update user role to restaurant_admin
     if (status === 'approved') {
       try {
-        await axios.put(`http://localhost:3001/api/auth/users/${restaurant.owner}/role`, 
+        await axios.put(`http://localhost:3000/api/auth/users/${restaurant.owner}`, 
           { role: 'restaurant_admin' },
           {
             headers: {
@@ -211,17 +211,27 @@ const updateRegistrationStatus = async (req, res) => {
       }
     }
 
-    // If moving back to pending, update user role back to customer
+    // If moving back to pending, check for other approved restaurants before changing role
     if (status === 'pending') {
       try {
-        await axios.put(`http://localhost:3001/api/auth/users/${restaurant.owner}/role`, 
-          { role: 'customer' },
-          {
-            headers: {
-              'Authorization': req.headers.authorization
+        // Check if user has any other approved restaurants
+        const otherApprovedRestaurants = await Restaurant.find({
+          owner: restaurant.owner,
+          _id: { $ne: restaurant._id },
+          registrationStatus: 'approved'
+        });
+
+        // Only change role to customer if there are no other approved restaurants
+        if (otherApprovedRestaurants.length === 0) {
+          await axios.put(`http://localhost:3000/api/auth/users/${restaurant.owner}`, 
+            { role: 'customer' },
+            {
+              headers: {
+                'Authorization': req.headers.authorization
+              }
             }
-          }
-        );
+          );
+        }
       } catch (error) {
         console.error('Error updating user role:', error);
         // Continue even if role update fails
