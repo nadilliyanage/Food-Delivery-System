@@ -6,7 +6,7 @@ const JoinWithUs = () => {
   const navigate = useNavigate();
   const user = getCurrentUser();
 
-  const handleClick = () => {
+  const handleRestaurantClick = () => {
     if (!user) {
       navigate('/login');
     } else {
@@ -14,14 +14,34 @@ const JoinWithUs = () => {
     }
   };
 
+  const handleDeliveryClick = () => {
+    if (!user) {
+      navigate('/login');
+    } else {
+      navigate('/delivery-registration');
+    }
+  };
+
   return (
-    <div className="text-center py-12">
-      <button
-        onClick={handleClick}
-        className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-      >
-        {user ? 'Register Your Restaurant' : 'Login to Register'}
-      </button>
+    <div className="text-center py-12 space-y-4">
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-gray-800">For Restaurant Owners</h3>
+        <button
+          onClick={handleRestaurantClick}
+          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 mx-2"
+        >
+          {user ? 'Register Your Restaurant' : 'Login to Register Restaurant'}
+        </button>
+      </div>
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-gray-800">For Delivery Personnel</h3>
+        <button
+          onClick={handleDeliveryClick}
+          className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 mx-2"
+        >
+          {user ? 'Join as Delivery Partner' : 'Login to Join as Delivery Partner'}
+        </button>
+      </div>
     </div>
   );
 };
@@ -35,7 +55,7 @@ const JoinWithUsSection = () => {
             Want to Join Our Platform?
           </h2>
           <p className="mt-4 text-lg text-gray-500">
-            Register your restaurant and start reaching more customers today!
+            Register your restaurant or join as a delivery partner to start earning today!
           </p>
         </div>
         <JoinWithUs />

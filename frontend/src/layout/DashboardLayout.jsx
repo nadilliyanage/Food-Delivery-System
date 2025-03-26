@@ -134,6 +134,9 @@ const DashboardLayout = () => {
       case 'restaurant_admin':
         navigate('/dashboard/restaurant-admin-home');
         break;
+      case 'delivery_personnel':
+        navigate('/dashboard/delivery-home');
+        break;
       default:
         navigate('/dashboard/user-home');
     }
@@ -234,6 +237,9 @@ const DashboardLayout = () => {
               )}
               {currentUser.role === 'restaurant_admin' && (
                 <option value="restaurant_admin">Restaurant Admin Dashboard</option>
+              )}
+              {currentUser.role === 'delivery_personnel' && (
+                <option value="delivery_personnel">Delivery Partner Dashboard</option>
               )}
             </select>
           </div>

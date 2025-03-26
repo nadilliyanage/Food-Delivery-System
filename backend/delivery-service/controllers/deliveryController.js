@@ -1,5 +1,6 @@
 const axios = require("axios");
 const Delivery = require("../models/Delivery");
+const DeliveryPersonnel = require("../models/DeliveryPersonnel");
 require("dotenv").config();
 
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL;
@@ -86,7 +87,6 @@ const getUserDeliveries = async (req, res) => {
   try {
     const userId = req.user.id;
     const userRole = req.user.role;
-    console.log(`🔍 Fetching deliveries for user: ${userId}`);
 
     // ✅ If the user is a customer, fetch their orders
     let deliveries;
@@ -98,9 +98,15 @@ const getUserDeliveries = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    res.json(deliveries);
+    // Get delivery personnel registrations for the user
+    const registrations = await DeliveryPersonnel.find({ user: userId });
+
+    res.json({
+      deliveries,
+      registrations
+    });
   } catch (error) {
-    console.error("❌ Error fetching user deliveries:", error);
+    console.error("❌ Error fetching deliveries:", error);
     res.status(500).json({ message: "Error fetching deliveries" });
   }
 };

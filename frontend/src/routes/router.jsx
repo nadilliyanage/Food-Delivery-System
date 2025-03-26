@@ -16,6 +16,7 @@ import Profile from "../pages/Dashboard/Profile/Profile";
 import RestaurantRegistration from "../pages/RestaurantRegistration/RestaurantRegistration";
 import RestaurantRequests from "../pages/Dashboard/Admin/RestaurantRequests";
 import RestaurantAdminHome from "../pages/dashboard/RestaurantAdminHome";
+import DeliveryRegistration from "../pages/Registration/DeliveryRegistration";
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
       {
         path: "restaurant-registration",
         element: <RestaurantRegistration />,
+      },
+      {
+        path: "delivery-registration",
+        element: <DeliveryRegistration />,
       }
     ],
   },

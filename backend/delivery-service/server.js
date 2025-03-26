@@ -14,7 +14,7 @@ app.use(cors());
 
 app.use("/api/deliveries", deliveryRoutes);
 
-const PORT = process.env.PORT || 5004;
+const PORT = process.env.PORT || 3004;
 app.listen(PORT, () =>
   console.log(`🚀 Delivery Service running on port ${PORT}`)
 );
