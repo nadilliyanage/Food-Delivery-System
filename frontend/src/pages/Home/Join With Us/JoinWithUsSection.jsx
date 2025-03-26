@@ -24,15 +24,17 @@ const JoinWithUs = () => {
 
   return (
     <div className="text-center py-12 space-y-4">
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-800">For Restaurant Owners</h3>
-        <button
-          onClick={handleRestaurantClick}
-          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 mx-2"
-        >
-          {user ? 'Register Your Restaurant' : 'Login to Register Restaurant'}
-        </button>
-      </div>
+      {user?.role !== 'delivery_personnel' && (
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-gray-800">For Restaurant Owners</h3>
+          <button
+            onClick={handleRestaurantClick}
+            className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 mx-2"
+          >
+            {user ? 'Register Your Restaurant' : 'Login to Register Restaurant'}
+          </button>
+        </div>
+      )}
       {user?.role !== 'delivery_personnel' && (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-800">For Delivery Personnel</h3>
@@ -49,6 +51,13 @@ const JoinWithUs = () => {
 };
 
 const JoinWithUsSection = () => {
+  const user = getCurrentUser();
+  
+  // Don't show the section at all for delivery personnel
+  if (user?.role === 'delivery_personnel') {
+    return null;
+  }
+
   return (
     <div className="py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
