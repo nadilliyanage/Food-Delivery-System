@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useUser from "../hooks/useUser";
@@ -24,6 +24,11 @@ const adminNavItems = [
     to: "/dashboard/restaurant-requests",
     icon: <MdFoodBank className="text-2xl" />,
     label: "Restaurant Requests",
+  },
+  {
+    to: "/dashboard/delivery-requests",
+    icon: <MdDeliveryDining className="text-2xl" />,
+    label: "Delivery Requests",
   },
   {
     to: "/dashboard/special-requests",
@@ -151,7 +156,23 @@ const DashboardLayout = () => {
   const { loader, logout } = useAuth();
   const { currentUser } = useUser();
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState(currentUser?.role || 'customer');
+  const [selectedRole, setSelectedRole] = useState(() => {
+    // Get the stored role from localStorage, or use the current user's role
+    const storedRole = localStorage.getItem('selectedDashboardRole');
+    return storedRole || currentUser?.role || 'customer';
+  });
+
+  useEffect(() => {
+    // Update localStorage when selectedRole changes
+    localStorage.setItem('selectedDashboardRole', selectedRole);
+  }, [selectedRole]);
+
+  // Update selectedRole when currentUser changes
+  useEffect(() => {
+    if (currentUser?.role && !localStorage.getItem('selectedDashboardRole')) {
+      setSelectedRole(currentUser.role);
+    }
+  }, [currentUser]);
 
   const handleRoleChange = (e) => {
     const newRole = e.target.value;
@@ -193,6 +214,7 @@ const DashboardLayout = () => {
             icon: "success",
           })
         );
+        localStorage.removeItem('selectedDashboardRole'); // Clear the stored role on logout
         navigate("/").catch((error) => console.log(error));
       }
     });
