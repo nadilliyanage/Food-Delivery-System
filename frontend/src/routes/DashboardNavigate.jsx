@@ -11,6 +11,10 @@ import DeliveryPersonnelHome from '../pages/Dashboard/DeliveryPersonnel/Delivery
 import DeliveryPersonnelManagement from '../pages/Admin/DeliveryPersonnelManagement';
 import { getCurrentUser } from '../utils/auth';
 import { MdLocalShipping, MdHistory, MdPerson, MdPayments, MdAccessTime } from 'react-icons/md';
+import MyOrders from '../pages/MyOrders';
+import OrderHistory from '../pages/OrderHistory';
+import TrackDelivery from '../pages/TrackDelivery';
+import PaymentHistory from '../pages/PaymentHistory';
 
 const DashboardNavigate = () => {
    const {currentUser, isLoading} = useUser()
@@ -75,6 +79,10 @@ const DashboardNavigate = () => {
     return (
       <Routes>
         <Route path="user-home" element={<UserHome />} />
+        <Route path="my-orders" element={<MyOrders />} />
+        <Route path="order-history" element={<OrderHistory />} />
+        <Route path="track-delivery" element={<TrackDelivery />} />
+        <Route path="my-payments" element={<PaymentHistory />} />
         <Route path="*" element={<Navigate to="user-home" replace />} />
       </Routes>
     );

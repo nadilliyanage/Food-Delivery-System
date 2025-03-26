@@ -1,5 +1,7 @@
 // Authentication utilities for JWT
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Function to handle user registration
 export const registerUser = async (userData) => {
   // Make sure we include a role to avoid "Invalid role specified" error
@@ -8,7 +10,7 @@ export const registerUser = async (userData) => {
     role: userData.role || "customer" // Default to "customer" if role not provided
   };
 
-  const response = await fetch('http://localhost:3000/api/auth/register', {
+  const response = await fetch(`${API_URL}/api/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -40,7 +42,7 @@ export const registerUser = async (userData) => {
 // Function to handle user login
 export const loginUser = async (credentials) => {
   try {
-    const response = await fetch('http://localhost:3000/api/auth/login', {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

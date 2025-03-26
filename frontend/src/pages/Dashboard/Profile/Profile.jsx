@@ -117,9 +117,9 @@ const Profile = () => {
   };
 
   return (
-    <div className="mt-20">
+    <div className=" mt-0 md:mt-20 lg:mt-20">
       <Scroll />
-      <h1 className="mt-5 text-4xl font-bold text-center dark:text-white">
+      <h1 className="text-4xl font-bold text-center dark:text-white">
         Update <span className="text-primary">Profile</span>
       </h1>
       <p className="text-center">Change your details</p>
