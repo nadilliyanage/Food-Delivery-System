@@ -24,9 +24,23 @@ const deliveryPersonnelSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  availability: {
+  address: {
+    type: String,
+    required: true
+  },
+  isAvailable: {
     type: Boolean,
     default: true
+  },
+  workingHours: {
+    start: {
+      type: String,
+      default: '09:00'
+    },
+    end: {
+      type: String,
+      default: '17:00'
+    }
   },
   currentLocation: {
     type: {
@@ -39,6 +53,9 @@ const deliveryPersonnelSchema = new mongoose.Schema({
       default: [0, 0]
     }
   },
+  preferredZones: [{
+    type: String
+  }],
   rating: {
     type: Number,
     default: 0
@@ -47,8 +64,14 @@ const deliveryPersonnelSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  totalEarnings: {
+    type: Number,
+    default: 0
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true
 });
 
 // Index for geospatial queries

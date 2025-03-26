@@ -1,3 +1,4 @@
+import React from 'react';
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import Home from "../pages/Home/Home";
@@ -17,6 +18,14 @@ import RestaurantRegistration from "../pages/RestaurantRegistration/RestaurantRe
 import RestaurantRequests from "../pages/Dashboard/Admin/RestaurantRequests";
 import RestaurantAdminHome from "../pages/dashboard/RestaurantAdminHome";
 import DeliveryRegistration from "../pages/Registration/DeliveryRegistration";
+import DeliveryPersonnelManagement from "../pages/Admin/DeliveryPersonnelManagement";
+import DeliveryHome from '../pages/Dashboard/DeliveryHome';
+import CurrentDeliveries from '../pages/Dashboard/Delivery/CurrentDeliveries';
+import DeliveryHistory from '../pages/Dashboard/Delivery/DeliveryHistory';
+import DeliveryProfile from '../pages/Dashboard/Delivery/DeliveryProfile';
+import Earnings from '../pages/Dashboard/Delivery/Earnings';
+import Availability from '../pages/Dashboard/Delivery/Availability';
+import { Navigate } from "react-router-dom";
 
 export const router = createBrowserRouter([
   {
@@ -94,6 +103,10 @@ export const router = createBrowserRouter([
         element: <RestaurantRequests />,
       },
       {
+        path: "delivery-requests",
+        element: <DeliveryPersonnelManagement />,
+      },
+      {
         path: "update-user/:id",
         element: <UpdateUser />,
         loader: async ({ params }) => {
@@ -114,6 +127,32 @@ export const router = createBrowserRouter([
       {
         path: "restaurant-admin-home",
         element: <RestaurantAdminHome />,
+      },
+
+      // delivery personnel routes
+      {
+        path: "delivery-home",
+        element: <DeliveryHome />,
+      },
+      {
+        path: "current-deliveries",
+        element: <CurrentDeliveries />,
+      },
+      {
+        path: "delivery-history",
+        element: <DeliveryHistory />,
+      },
+      {
+        path: "earnings",
+        element: <Earnings />,
+      },
+      {
+        path: "availability",
+        element: <Availability />,
+      },
+      {
+        path: "delivery-profile",
+        element: <DeliveryProfile />,
       },
     ],
   },

@@ -255,6 +255,8 @@ const NavBar = () => {
                         ? '/dashboard/admin-home' 
                         : currentUser?.role === 'restaurant_admin'
                         ? '/dashboard/restaurant-admin-home'
+                        : currentUser?.role === 'delivery_personnel'
+                        ? '/dashboard/delivery-home'
                         : '/dashboard/user-home'}
                       className={({ isActive }) =>
                         `font-bold ${
@@ -367,6 +369,8 @@ const NavBar = () => {
                     ? '/dashboard/admin-home' 
                     : currentUser?.role === 'restaurant_admin'
                     ? '/dashboard/restaurant-admin-home'
+                    : currentUser?.role === 'delivery_personnel'
+                    ? '/dashboard/delivery-home'
                     : '/dashboard/user-home'}
                   onClick={toggleMobileMenu}
                   className="block font-bold py-1 text-black rounded-xl hover:text-primary"

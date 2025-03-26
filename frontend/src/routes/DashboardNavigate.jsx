@@ -1,17 +1,59 @@
 import React from 'react'
 import useUser from '../hooks/useUser'
 import Loader from '../components/Loader/Loader';
-import { Navigate, Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route, Link, useLocation } from 'react-router-dom';
 import AdminHome from '../pages/Dashboard/Admin/AdminHome';
 import RestaurantRequests from '../pages/Dashboard/Admin/RestaurantRequests';
 import ManageUsers from '../pages/Dashboard/Admin/ManageUsers';
 import UserHome from '../pages/Dashboard/User/UserHome';
 import RestaurantAdminHome from '../pages/dashboard/RestaurantAdminHome';
 import DeliveryPersonnelHome from '../pages/Dashboard/DeliveryPersonnel/DeliveryPersonnelHome';
+import DeliveryPersonnelManagement from '../pages/Admin/DeliveryPersonnelManagement';
+import { getCurrentUser } from '../utils/auth';
+import { MdLocalShipping, MdHistory, MdPerson, MdPayments, MdAccessTime } from 'react-icons/md';
 
 const DashboardNavigate = () => {
    const {currentUser, isLoading} = useUser()
    const role = currentUser?.role;
+   const location = useLocation();
+
+   const isActive = (path) => {
+     return location.pathname === path;
+   };
+
+   const getNavigationLinks = () => {
+     if (!currentUser) return [];
+
+     switch (currentUser.role) {
+       case 'admin':
+         return [
+           { path: '/dashboard/admin-home', label: 'Admin Home' },
+           { path: '/dashboard/manage-users', label: 'Manage Users' },
+           { path: '/dashboard/restaurant-requests', label: 'Restaurant Requests' },
+           { path: '/dashboard/delivery-requests', label: 'Delivery Requests' },
+         ];
+       case 'restaurant_admin':
+         return [
+           { path: '/dashboard/restaurant-admin-home', label: 'Restaurant Admin Home' },
+           { path: '/dashboard/manage-restaurants', label: 'Manage Restaurants' },
+           { path: '/dashboard/manage-menus', label: 'Manage Menus' },
+         ];
+       case 'delivery_personnel':
+         return [
+           { path: '/dashboard/delivery-home', label: 'Dashboard' },
+           { path: '/dashboard/current-deliveries', label: 'Current Deliveries' },
+           { path: '/dashboard/delivery-history', label: 'Delivery History' },
+           { path: '/dashboard/delivery-earnings', label: 'My Earnings' },
+           { path: '/dashboard/delivery-availability', label: 'Availability' },
+           { path: '/dashboard/delivery-profile', label: 'Profile & Settings' },
+         ];
+       default:
+         return [
+           { path: '/dashboard/user-home', label: 'User Home' },
+           { path: '/dashboard/profile', label: 'Profile' },
+         ];
+     }
+   };
 
    if (isLoading) {
      return <Loader/>
@@ -22,6 +64,7 @@ const DashboardNavigate = () => {
       <Routes>
         <Route path="admin-home" element={<AdminHome />} />
         <Route path="restaurant-requests" element={<RestaurantRequests />} />
+        <Route path="delivery-requests" element={<DeliveryPersonnelManagement />} />
         <Route path="manage-users" element={<ManageUsers />} />
         <Route path="*" element={<Navigate to="admin-home" replace />} />
       </Routes>
@@ -49,7 +92,12 @@ const DashboardNavigate = () => {
   if (role === 'delivery_personnel') {
     return (
       <Routes>
-        <Route path="delivery-home" element={<DeliveryPersonnelHome />} />
+        <Route path="delivery-home" element={<DeliveryHome />} />
+        <Route path="current-deliveries" element={<CurrentDeliveries />} />
+        <Route path="delivery-history" element={<DeliveryHistory />} />
+        <Route path="delivery-earnings" element={<Earnings />} />
+        <Route path="delivery-availability" element={<Availability />} />
+        <Route path="delivery-profile" element={<DeliveryProfile />} />
         <Route path="*" element={<Navigate to="delivery-home" replace />} />
       </Routes>
     );

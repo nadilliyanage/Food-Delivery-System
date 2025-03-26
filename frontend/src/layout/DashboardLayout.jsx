@@ -103,6 +103,39 @@ const restaurantAdminNavItems = [
   },
 ];
 
+const deliveryPersonnelNavItems = [
+  {
+    to: "/dashboard/delivery-home",
+    icon: <RiDashboardFill className="text-2xl" />,
+    label: "Dashboard",
+  },
+  {
+    to: "/dashboard/current-deliveries",
+    icon: <MdDeliveryDining className="text-2xl" />,
+    label: "Current Deliveries",
+  },
+  {
+    to: "/dashboard/delivery-history",
+    icon: <FaHistory className="text-2xl" />,
+    label: "Delivery History",
+  },
+  {
+    to: "/dashboard/delivery-profile",
+    icon: <FaUserAlt className="text-2xl" />,
+    label: "Profile & Settings",
+  },
+  {
+    to: "/dashboard/earnings",
+    icon: <MdPayments className="text-2xl" />,
+    label: "My Earnings",
+  },
+  {
+    to: "/dashboard/availability",
+    icon: <AiFillSchedule className="text-2xl" />,
+    label: "Availability",
+  },
+];
+
 const lastMenuItems = [
   { to: "/", icon: <BiHomeAlt className="text-2xl" />, label: "Main Home" },
   {
@@ -177,6 +210,8 @@ const DashboardLayout = () => {
         return customerNavItems;
       case 'restaurant_admin':
         return restaurantAdminNavItems;
+      case 'delivery_personnel':
+        return deliveryPersonnelNavItems;
       default:
         return customerNavItems;
     }

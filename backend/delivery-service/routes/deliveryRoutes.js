@@ -11,25 +11,38 @@ const {
   getPendingRegistrations,
   getApprovedRegistrations,
   getRejectedRegistrations,
-  updateRegistrationStatus
+  updateRegistrationStatus,
+  getProfile,
+  updateProfile,
 } = require("../controllers/deliveryPersonnelController");
 const authMiddleware = require("../middleware/authMiddleware");
 const { isAdmin } = require('../middleware/isAdmin');
 
 const router = express.Router();
 
-// ✅ Delivery Personnel Registration Routes
-router.post("/register", authMiddleware, registerDeliveryPersonnel);
-router.get("/admin/pending-registrations", authMiddleware, isAdmin, getPendingRegistrations);
-router.get("/admin/approved-registrations", authMiddleware, isAdmin, getApprovedRegistrations);
-router.get("/admin/rejected-registrations", authMiddleware, isAdmin, getRejectedRegistrations);
-router.put("/admin/registration-status", authMiddleware, isAdmin, updateRegistrationStatus);
+// Protected routes (require authentication)
+router.use(authMiddleware);
 
-// ✅ Delivery Routes
-router.post("/", authMiddleware, assignDriver);
-router.get("/", authMiddleware, getUserDeliveries);
-router.get("/:id", authMiddleware, getDeliveryById);
-router.put("/:id", authMiddleware, updateDeliveryStatus);
-router.delete("/:id", authMiddleware, deleteDelivery);
+// Delivery Personnel Registration
+router.post("/register", registerDeliveryPersonnel);
+
+// Delivery Personnel routes
+router.get("/user/deliveries", getUserDeliveries);
+router.post("/", assignDriver);
+
+// Profile routes (must come before /:id route)
+router.get('/profile', getProfile);
+router.put('/profile', updateProfile);
+
+// Admin routes
+router.get("/admin/pending-registrations", isAdmin, getPendingRegistrations);
+router.get("/admin/approved-registrations", isAdmin, getApprovedRegistrations);
+router.get("/admin/rejected-registrations", isAdmin, getRejectedRegistrations);
+router.put("/admin/registration-status", isAdmin, updateRegistrationStatus);
+
+// Delivery routes (must come after specific routes)
+router.get("/:id", getDeliveryById);
+router.put("/:id", updateDeliveryStatus);
+router.delete("/:id", deleteDelivery);
 
 module.exports = router;
