@@ -23,7 +23,7 @@ const DeliveryRegistration = () => {
   const checkExistingRegistration = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/deliveries', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deliveries/user/delivery-personnel-registrations`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -121,7 +121,7 @@ const DeliveryRegistration = () => {
         licenseNumber: formData.licenseNumber
       };
 
-      const response = await fetch('http://localhost:3000/api/deliveries/register', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deliveries/register`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

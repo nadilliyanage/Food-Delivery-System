@@ -337,10 +337,10 @@ const updateProfile = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!vehicleType || !vehicleNumber || !licenseNumber || !address) {
+    if (!vehicleType || !vehicleNumber || !licenseNumber) {
       return res.status(400).json({
         message: 'Missing required fields',
-        required: ['vehicleType', 'vehicleNumber', 'licenseNumber', 'address']
+        required: ['vehicleType', 'vehicleNumber', 'licenseNumber']
       });
     }
 
@@ -366,7 +366,7 @@ const updateProfile = async (req, res) => {
     deliveryPersonnel.vehicleType = vehicleType;
     deliveryPersonnel.vehicleNumber = vehicleNumber;
     deliveryPersonnel.licenseNumber = licenseNumber;
-    deliveryPersonnel.address = address;
+    if (address) deliveryPersonnel.address = address;
     if (isAvailable !== undefined) deliveryPersonnel.isAvailable = isAvailable;
     if (workingHours) {
       if (workingHours.start) deliveryPersonnel.workingHours.start = workingHours.start;
@@ -417,6 +417,35 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// Get user's delivery personnel registrations
+const getUserRegistrations = async (req, res) => {
+  try {
+    const userId = req.user.id; // From auth middleware
+
+    // Find all registrations for the user
+    const registrations = await DeliveryPersonnel.find({ user: userId })
+      .sort({ createdAt: -1 }); // Sort by newest first
+
+    if (!registrations || registrations.length === 0) {
+      return res.json({ 
+        message: 'No registration requests found',
+        registrations: []
+      });
+    }
+
+    res.json({ 
+      message: 'Registration requests retrieved successfully',
+      registrations 
+    });
+  } catch (error) {
+    console.error('Error fetching user registrations:', error);
+    res.status(500).json({ 
+      message: 'Error fetching registration requests', 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   registerDeliveryPersonnel,
   getPendingRegistrations,
@@ -424,5 +453,6 @@ module.exports = {
   getRejectedRegistrations,
   updateRegistrationStatus,
   getProfile,
-  updateProfile
+  updateProfile,
+  getUserRegistrations
 }; 

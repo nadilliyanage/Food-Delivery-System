@@ -16,7 +16,7 @@ const Categories = () => {
   return (
     <div className="py-6 px-4">
       <h2 className="text-2xl font-bold mb-4">Categories</h2>
-      <div className="overflow-x-auto no-scrollbar">
+      <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex space-x-4">
           {categories.map((category, index) => {
             const Icon = category.icon;
@@ -42,15 +42,6 @@ const Categories = () => {
           })}
         </div>
       </div>
-      <style jsx>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 };

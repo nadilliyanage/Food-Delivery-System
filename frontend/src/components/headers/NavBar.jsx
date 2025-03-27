@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { FaBars, FaTimes, FaHome, FaCreditCard, FaInfoCircle, FaUtensils, FaEnvelope, FaUser, FaSignOutAlt, FaShoppingCart, FaListAlt, FaStore, FaMotorcycle, FaBox } from "react-icons/fa";
+import { FaBars, FaTimes, FaHome, FaCreditCard, FaInfoCircle, FaUtensils, FaEnvelope, FaUser, FaSignOutAlt, FaShoppingCart, FaListAlt, FaStore, FaMotorcycle, FaBox, FaChartBar } from "react-icons/fa";
+import { MdDashboard } from "react-icons/md";
 import userImg from "../../assets/farmer.jpg";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../utilities/providers/AuthProvider";
@@ -430,8 +431,8 @@ const NavBar = () => {
                   }`
                 }
               >
-                <FaUser className="w-5 h-5" />
-                <span className="text-xs mt-0.5">Profile</span>
+                <MdDashboard className="w-5 h-5" />
+                <span className="text-xs mt-0.5">Dashboard</span>
               </NavLink>
             </>
           ) : (

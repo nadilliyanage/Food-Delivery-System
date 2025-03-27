@@ -14,6 +14,7 @@ const {
   updateRegistrationStatus,
   getProfile,
   updateProfile,
+  getUserRegistrations,
 } = require("../controllers/deliveryPersonnelController");
 const authMiddleware = require("../middleware/authMiddleware");
 const { isAdmin } = require('../middleware/isAdmin');
@@ -25,6 +26,9 @@ router.use(authMiddleware);
 
 // Delivery Personnel Registration
 router.post("/register", registerDeliveryPersonnel);
+
+// Get user's delivery personnel registrations
+router.get("/user/delivery-personnel-registrations", getUserRegistrations);
 
 // Delivery Personnel routes
 router.get("/user/deliveries", getUserDeliveries);
