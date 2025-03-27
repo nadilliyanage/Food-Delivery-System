@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { getCurrentUser } from '../../utils/auth';
 
-const DeliveryPersonnelManagement = () => {
+const DeliveryPersonnelRequests = () => {
   const [registrations, setRegistrations] = useState({
     pending: [],
     approved: [],
@@ -12,7 +11,6 @@ const DeliveryPersonnelManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
-  const user = getCurrentUser();
 
   useEffect(() => {
     // Fetch all tabs' data on initial load
@@ -27,13 +25,13 @@ const DeliveryPersonnelManagement = () => {
       if (fetchAll) {
         // Fetch data for all tabs simultaneously
         const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-          axios.get('http://localhost:3000/api/deliveries/admin/pending-registrations', {
+          axios.get(`${import.meta.env.VITE_API_URL}/api/deliveries/admin/pending-registrations`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          axios.get('http://localhost:3000/api/deliveries/admin/approved-registrations', {
+          axios.get(`${import.meta.env.VITE_API_URL}/api/deliveries/admin/approved-registrations`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          axios.get('http://localhost:3000/api/deliveries/admin/rejected-registrations', {
+          axios.get(`${import.meta.env.VITE_API_URL}/api/deliveries/admin/rejected-registrations`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
@@ -48,16 +46,16 @@ const DeliveryPersonnelManagement = () => {
         let endpoint = '';
         switch (activeTab) {
           case 'pending':
-            endpoint = 'http://localhost:3000/api/deliveries/admin/pending-registrations';
+            endpoint = `${import.meta.env.VITE_API_URL}/api/deliveries/admin/pending-registrations`;
             break;
           case 'approved':
-            endpoint = 'http://localhost:3000/api/deliveries/admin/approved-registrations';
+            endpoint = `${import.meta.env.VITE_API_URL}/api/deliveries/admin/approved-registrations`;
             break;
           case 'rejected':
-            endpoint = 'http://localhost:3000/api/deliveries/admin/rejected-registrations';
+            endpoint = `${import.meta.env.VITE_API_URL}/api/deliveries/admin/rejected-registrations`;
             break;
           default:
-            endpoint = 'http://localhost:3000/api/deliveries/admin/pending-registrations';
+            endpoint = `${import.meta.env.VITE_API_URL}/api/deliveries/admin/pending-registrations`;
         }
 
         const response = await axios.get(endpoint, {
@@ -111,7 +109,7 @@ const DeliveryPersonnelManagement = () => {
       }
 
       await axios.put(
-        'http://localhost:3000/api/deliveries/admin/registration-status',
+        `${import.meta.env.VITE_API_URL}/api/delivery-personnel/admin/registration-status`,
         { 
           registrationId,
           status 
@@ -147,23 +145,6 @@ const DeliveryPersonnelManagement = () => {
     { id: 'rejected', label: 'Rejected Requests', count: registrations.rejected.length }
   ];
 
-  if (!user || user.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Access Denied
-            </h2>
-            <p className="mt-4 text-lg text-gray-500">
-              You do not have permission to access this page.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
 
@@ -197,14 +178,18 @@ const DeliveryPersonnelManagement = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {registrations[activeTab].map((registration) => (
             <div key={registration._id} className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-2">{registration.user.name}</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                {registration.user?.name || 'Unknown User'}
+              </h2>
               <div className="space-y-2 text-gray-600">
-                <p><span className="font-medium">Email:</span> {registration.user.email}</p>
+                <p><span className="font-medium">Email:</span> {registration.user?.email}</p>
                 <p><span className="font-medium">Vehicle Type:</span> {registration.vehicleType}</p>
                 <p><span className="font-medium">Vehicle Number:</span> {registration.vehicleNumber}</p>
                 <p><span className="font-medium">License Number:</span> {registration.licenseNumber}</p>
+                <p><span className="font-medium">Phone:</span> {registration.user?.phone}</p>
                 <p className="mt-4">
-                  <span className="font-medium">Submitted on:</span> {new Date(registration.createdAt).toLocaleDateString()}
+                  <span className="font-medium">Registration Date:</span>{' '}
+                  {new Date(registration.createdAt).toLocaleDateString()}
                 </p>
               </div>
               
@@ -267,4 +252,4 @@ const DeliveryPersonnelManagement = () => {
   );
 };
 
-export default DeliveryPersonnelManagement;
+export default DeliveryPersonnelRequests; 
