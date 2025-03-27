@@ -109,7 +109,7 @@ const DeliveryPersonnelRequests = () => {
       }
 
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/delivery-personnel/admin/registration-status`,
+        `${import.meta.env.VITE_API_URL}/api/deliveries/admin/registration-status`,
         { 
           registrationId,
           status 
