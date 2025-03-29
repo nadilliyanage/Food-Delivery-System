@@ -20,7 +20,6 @@ const Home = () => {
 
   const renderCustomerContent = () => (
     <>
-      <PromotionContainer />
       <Categories />
       <Restaurants />
       <JoinWithUsSection />
@@ -29,7 +28,6 @@ const Home = () => {
 
   const renderDeliveryPersonnelContent = () => (
     <div>
-      <PromotionContainer />
       <DeliveryMap />
       <RecentDeliveries />
     </div>
@@ -37,7 +35,6 @@ const Home = () => {
 
   const renderRestaurantAdminContent = () => (
     <div>
-      <PromotionContainer />
       <RestaurantManagement />
       <MenuManagement />
     </div>
@@ -45,15 +42,16 @@ const Home = () => {
 
   const renderAdminContent = () => (
     <div>
-      <PromotionContainer />
       <RestaurantRequests />
       <DeliveryPersonnelRequests />
-    </ div>
+    </div>
   );
 
   return (
     <section>
       <Scroll />
+      <PromotionContainer />
+      {!userRole && renderCustomerContent()}
       {userRole === "customer" && renderCustomerContent()}
       {userRole === "delivery_personnel" && renderDeliveryPersonnelContent()}
       {userRole === "restaurant_admin" && renderRestaurantAdminContent()}
