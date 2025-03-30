@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaUtensils, FaHamburger, FaPizzaSlice, FaIceCream, FaCoffee, FaDrumstickBite, FaFish, FaCookie } from 'react-icons/fa';
+import Menu from './Menu';
 
 const categories = [
   { name: 'All', icon: FaUtensils, color: '#FF6B6B' },
@@ -13,20 +14,25 @@ const categories = [
 ];
 
 const Categories = () => {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
   return (
     <div className="py-6 px-4">
       <h2 className="text-2xl font-bold mb-4">Categories</h2>
-      <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <div className="flex space-x-4">
+      <div className="overflow-x-auto md:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex md:grid md:grid-cols-8 gap-4 my-4">
           {categories.map((category, index) => {
             const Icon = category.icon;
             return (
               <div
                 key={index}
-                className="flex flex-col items-center min-w-[80px] cursor-pointer group"
+                className="flex flex-col items-center min-w-[80px] md:min-w-0 cursor-pointer group"
+                onClick={() => setSelectedCategory(category.name)}
               >
                 <div 
-                  className="w-16 h-16 rounded-full flex items-center justify-center mb-2 transition-transform duration-300 group-hover:scale-110"
+                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 transition-transform duration-300 group-hover:scale-110 ${
+                    selectedCategory === category.name ? 'ring-2 ring-primary' : ''
+                  }`}
                   style={{ backgroundColor: `${category.color}20` }}
                 >
                   <Icon 
@@ -34,13 +40,20 @@ const Categories = () => {
                     style={{ color: category.color }}
                   />
                 </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">
+                <span className={`text-sm font-medium transition-colors text-center ${
+                  selectedCategory === category.name 
+                    ? 'text-primary' 
+                    : 'text-gray-700 dark:text-gray-300 group-hover:text-primary'
+                }`}>
                   {category.name}
                 </span>
               </div>
             );
           })}
         </div>
+      </div>
+      <div className="mt-8">
+        <Menu selectedCategory={selectedCategory} />
       </div>
     </div>
   );
