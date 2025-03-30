@@ -24,7 +24,8 @@ const JoinWithUs = () => {
 
   return (
     <div className="text-center py-12 space-y-4">
-      {user?.role !== 'delivery_personnel' && (
+      {/* Show restaurant button for non-delivery personnel and non-restaurant admins */}
+      {user?.role !== 'delivery_personnel' && user?.role !== 'restaurant_admin' && (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-800">For Restaurant Owners</h3>
           <button
@@ -35,7 +36,8 @@ const JoinWithUs = () => {
           </button>
         </div>
       )}
-      {user?.role !== 'delivery_personnel' && (
+      {/* Show delivery button for non-delivery personnel and non-restaurant admins */}
+      {user?.role !== 'delivery_personnel' && user?.role !== 'restaurant_admin' && (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-800">For Delivery Personnel</h3>
           <button
@@ -43,6 +45,18 @@ const JoinWithUs = () => {
             className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 mx-2"
           >
             {user ? 'Join as Delivery Partner' : 'Login to Join as Delivery Partner'}
+          </button>
+        </div>
+      )}
+      {/* Show only restaurant button for restaurant admins */}
+      {user?.role === 'restaurant_admin' && (
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-gray-800">For Restaurant Owners</h3>
+          <button
+            onClick={handleRestaurantClick}
+            className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 mx-2"
+          >
+            Register Your Restaurant
           </button>
         </div>
       )}

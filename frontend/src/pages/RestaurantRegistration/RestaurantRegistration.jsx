@@ -13,6 +13,7 @@ const RestaurantRegistration = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imageFile, setImageFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [hasCheckedRegistration, setHasCheckedRegistration] = useState(false);
   const [formData, setFormData] = useState({
     imageUrl: "",
     name: "",
@@ -38,11 +39,12 @@ const RestaurantRegistration = () => {
     },
   });
 
-  // useEffect(() => {
-  //   if (user) {
-  //     checkExistingRegistration();
-  //   }
-  // }, [user]);
+  useEffect(() => {
+    if (user && !hasCheckedRegistration) {
+      checkExistingRegistration();
+      setHasCheckedRegistration(true);
+    }
+  }, [user, hasCheckedRegistration]);
 
   useEffect(() => {
     if (imageFile) {
