@@ -30,6 +30,8 @@ import MyOrders from '../pages/MyOrders';
 import OrderHistory from '../pages/OrderHistory';
 import TrackDelivery from '../pages/TrackDelivery';
 import PaymentHistory from '../pages/PaymentHistory';
+import ManageRestaurants from '../pages/Dashboard/RestaurantAdmin/ManageRestaurants';
+import RestaurantDetails from '../pages/Dashboard/RestaurantAdmin/RestaurantDetails';
 
 export const router = createBrowserRouter([
   {
@@ -147,6 +149,14 @@ export const router = createBrowserRouter([
       {
         path: "restaurant-admin-home",
         element: <RestaurantAdminHome />,
+      },
+      {
+        path: "manage-restaurants",
+        element: <ManageRestaurants />,
+      },
+      {
+        path: "restaurant/:restaurantId",
+        element: <RestaurantDetails />,
       },
 
       // delivery personnel routes

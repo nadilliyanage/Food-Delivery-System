@@ -7,6 +7,8 @@ const {
   deleteRestaurant,
   getUserRestaurants,
   getMenuItems,
+  addMenuItem,
+  deleteMenuItem,
   registerRestaurant,
   getPendingRegistrations,
   updateRegistrationStatus,
@@ -33,7 +35,11 @@ router.get("/user/restaurants", getUserRestaurants);
 router.post("/", createRestaurant);
 router.put("/:id", updateRestaurant);
 router.delete("/:id", deleteRestaurant);
+
+// Menu routes
 router.get("/:id/menu", getMenuItems);
+router.post("/:id/menu", addMenuItem);
+router.delete("/:id/menu/:menuItemId", deleteMenuItem);
 
 // Admin routes
 router.get("/admin/pending-registrations", isAdmin, getPendingRegistrations);
