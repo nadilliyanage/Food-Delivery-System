@@ -185,6 +185,45 @@ const RestaurantDetails = () => {
     }
   };
 
+  const handleAvailabilityChange = async (menuItemId, currentAvailability) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/menu/${menuItemId}`,
+        { isAvailable: !currentAvailability },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data) {
+        // Update the menu items list with the updated item
+        setMenuItems(menuItems.map(item => 
+          item._id === menuItemId 
+            ? { ...item, isAvailable: !currentAvailability }
+            : item
+        ));
+
+        Swal.fire({
+          title: 'Success!',
+          text: `Menu item ${!currentAvailability ? 'available' : 'unavailable'} now`,
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    } catch (error) {
+      console.error('Error updating menu item availability:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to update menu item availability. Please try again.',
+        icon: 'error'
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -355,7 +394,21 @@ const RestaurantDetails = () => {
                   <span className="text-primary font-semibold">${item.price}</span>
                   <span className="text-sm text-gray-500">Category: {item.category}</span>
                 </div>
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={item.isAvailable}
+                        onChange={() => handleAvailabilityChange(item._id, item.isAvailable)}
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      <span className="ml-3 text-sm font-medium text-gray-700">
+                        {item.isAvailable ? 'Available' : 'Unavailable'}
+                      </span>
+                    </label>
+                  </div>
                   <button
                     onClick={() => handleDeleteMenuItem(item._id)}
                     className="text-red-500 hover:text-red-700"
