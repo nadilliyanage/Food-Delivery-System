@@ -343,7 +343,7 @@ const DashboardLayout = () => {
           <div className="md:hidden">
             <NavBar />
           </div>
-          <div className="h-screen overflow-y-auto w-full md:w-[calc(100%-18rem)] px-4 md:px-8 pt-16 md:pt-0 pb-14 md:pb-0">
+          <div className="h-screen overflow-y-auto w-full px-4 md:px-8 pt-16 md:pt-0 pb-14 md:pb-0">
             <Scroll />
             <Outlet />
           </div>
