@@ -36,6 +36,7 @@ const Home = () => {
   const renderRestaurantAdminContent = () => (
     <div>
       <RestaurantManagement />
+      <JoinWithUsSection />
       <MenuManagement />
     </div>
   );
