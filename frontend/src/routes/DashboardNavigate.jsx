@@ -15,6 +15,8 @@ import MyOrders from '../pages/MyOrders';
 import OrderHistory from '../pages/OrderHistory';
 import TrackDelivery from '../pages/TrackDelivery';
 import PaymentHistory from '../pages/PaymentHistory';
+import ManageRestaurants from '../pages/Dashboard/RestaurantAdmin/ManageRestaurants';
+import RestaurantDetails from '../pages/Dashboard/RestaurantAdmin/RestaurantDetails';
 
 const DashboardNavigate = () => {
    const {currentUser, isLoading} = useUser()
@@ -92,6 +94,8 @@ const DashboardNavigate = () => {
     return (
       <Routes>
         <Route path="restaurant-admin-home" element={<RestaurantAdminHome />} />
+        <Route path="manage-restaurants" element={<ManageRestaurants />} />
+        <Route path="restaurant/:restaurantId" element={<RestaurantDetails />} />
         <Route path="*" element={<Navigate to="restaurant-admin-home" replace />} />
       </Routes>
     );
