@@ -5,6 +5,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import storage from '../../../config/firebase.init';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { FaEdit } from 'react-icons/fa';
 
 const RestaurantDetails = () => {
   const { restaurantId } = useParams();
@@ -333,8 +334,14 @@ const RestaurantDetails = () => {
             {menuItems.map((item) => (
               <div
                 key={item._id}
-                className="bg-white p-4 rounded-lg shadow-md"
+                className="bg-white p-4 rounded-lg shadow-md relative"
               >
+                <button
+                  onClick={() => navigate(`/dashboard/manage-restaurants/${restaurantId}/menu/${item._id}/edit`)}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-primary"
+                >
+                  <FaEdit size={20} />
+                </button>
                 {item.imageUrl && (
                   <img
                     src={item.imageUrl}
