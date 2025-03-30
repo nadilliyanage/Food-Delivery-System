@@ -18,10 +18,10 @@ const getUserRestaurants = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Get user's restaurants, sorted by most recent first
+    // Get user's restaurants with all details, sorted by most recent first
     const restaurants = await Restaurant.find({ owner: userId })
       .sort({ createdAt: -1 })
-      .select("name registrationStatus createdAt");
+      .populate('menu'); // Populate the menu items
 
     res.status(200).json(restaurants);
   } catch (error) {
