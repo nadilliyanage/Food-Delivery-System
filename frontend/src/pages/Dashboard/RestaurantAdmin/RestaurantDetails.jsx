@@ -5,7 +5,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import storage from '../../../config/firebase.init';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaPencilAlt } from 'react-icons/fa';
 
 const RestaurantDetails = () => {
   const { restaurantId } = useParams();
@@ -373,21 +373,22 @@ const RestaurantDetails = () => {
             {menuItems.map((item) => (
               <div
                 key={item._id}
-                className="bg-white p-4 rounded-lg shadow-md relative"
+                className="bg-white rounded-lg shadow-md relative"
               >
                 <button
                   onClick={() => navigate(`/dashboard/manage-restaurants/${restaurantId}/menu/${item._id}/edit`)}
-                  className="absolute top-2 right-2 text-gray-500 hover:text-primary"
+                  className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-shadow duration-200"
                 >
-                  <FaEdit size={20} />
+                  <FaPencilAlt size={16} className="text-gray-500 hover:text-primary" />
                 </button>
                 {item.imageUrl && (
                   <img
                     src={item.imageUrl}
                     alt={item.name}
-                    className="w-full h-48 object-cover rounded-lg mb-4"
+                    className="w-full h-48 object-cover rounded-t-lg mb-2"
                   />
                 )}
+                <div className="px-4 pb-4">
                 <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
                 <p className="text-gray-600 mt-1">{item.description}</p>
                 <div className="mt-2 flex items-center justify-between">
@@ -415,6 +416,8 @@ const RestaurantDetails = () => {
                   >
                     Delete
                   </button>
+
+                </div>
                 </div>
               </div>
             ))}

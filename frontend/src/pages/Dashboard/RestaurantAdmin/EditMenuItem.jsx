@@ -162,7 +162,7 @@ const EditMenuItem = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <button
-          onClick={() => navigate(`/dashboard/manage-restaurants/${restaurantId}`)}
+          onClick={() => navigate(`/dashboard/restaurant/${restaurantId}`)}
           className="text-primary hover:text-primary-dark mb-4 flex items-center"
         >
           ← Back to Menu Items
