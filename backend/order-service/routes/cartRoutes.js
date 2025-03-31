@@ -6,7 +6,7 @@ const auth = require('../middleware/middleware');
 // All routes require authentication
 router.use(auth);
 
-// Get cart
+// Get all carts for user
 router.get('/', cartController.getCart);
 
 // Add item to cart
@@ -16,9 +16,9 @@ router.post('/add', cartController.addToCart);
 router.put('/update', cartController.updateCartItem);
 
 // Remove item from cart
-router.delete('/remove/:menuItemId', cartController.removeFromCart);
+router.delete('/remove/:restaurantId/:menuItemId', cartController.removeFromCart);
 
-// Clear cart
-router.delete('/clear', cartController.clearCart);
+// Clear specific restaurant cart
+router.delete('/clear/:restaurantId', cartController.clearCart);
 
 module.exports = router; 

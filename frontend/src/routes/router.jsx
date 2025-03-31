@@ -34,6 +34,9 @@ import ManageRestaurants from '../pages/Dashboard/RestaurantAdmin/ManageRestaura
 import RestaurantDetails from '../pages/Dashboard/RestaurantAdmin/RestaurantDetails';
 import EditMenuItem from '../pages/Dashboard/RestaurantAdmin/EditMenuItem';
 import Cart from '../pages/Cart/Cart';
+import RestaurantDetailsInHome from '../pages/Restaurant/RestaurantDetails';
+import CartDetails from '../pages/Cart/CartDetails';
+import Checkout from '../pages/Checkout/Checkout';
 
 export const router = createBrowserRouter([
   {
@@ -79,6 +82,18 @@ export const router = createBrowserRouter([
       {
         path: "cart",
         element: <Cart />,
+      },
+      {
+        path: "restaurant/:id",
+        element: <RestaurantDetailsInHome />,
+      },
+      {
+        path: "cart/:restaurantId",
+        element: <CartDetails />,
+      },
+      {
+        path: "checkout/:restaurantId",
+        element: <Checkout />,
       }
     ],
   },

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaUtensils, FaHamburger, FaPizzaSlice, FaIceCream, FaCoffee, FaDrumstickBite, FaFish, FaCookie } from 'react-icons/fa';
 import axios from 'axios';
 
@@ -14,6 +15,7 @@ const categories = [
 ];
 
 const Categories = ({ searchQuery }) => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,6 @@ const Categories = ({ searchQuery }) => {
         setLoading(true);
         setError(null);
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/category/${selectedCategory}`)
-        console.log('Received restaurants:', response.data);
         setRestaurants(response.data);
       } catch (error) {
         console.error('Error fetching restaurants:', error);
@@ -106,7 +107,8 @@ const Categories = ({ searchQuery }) => {
                 {restaurants.map((restaurant) => (
                   <div
                     key={restaurant._id}
-                    className="flex-none w-[300px] bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                    onClick={() => navigate(`/restaurant/${restaurant._id}`)}
+                    className="flex-none w-[300px] bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
                   >
                     <img
                       src={restaurant.imageUrl}
