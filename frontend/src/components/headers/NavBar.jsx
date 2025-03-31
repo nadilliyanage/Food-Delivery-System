@@ -202,6 +202,25 @@ const NavBar = () => {
                     </li>
                   ))}
 
+                  {currentUser?.role === "customer" && (
+                    <li>
+                      <NavLink
+                        to="/cart"
+                        className={({ isActive }) =>
+                          `font-bold ${
+                            isActive
+                              ? "text-primary"
+                              : navBg.includes("bg-transparent") && isHome
+                              ? "text-white"
+                              : "text-black dark:text-white"
+                          } hover:text-primary duration-300`
+                        }
+                      >
+                        Cart
+                      </NavLink>
+                    </li>
+                  )}
+
                   {currentUser?.role === "admin" && (
                     <li>
                       <NavLink

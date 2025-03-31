@@ -33,6 +33,7 @@ import PaymentHistory from '../pages/PaymentHistory';
 import ManageRestaurants from '../pages/Dashboard/RestaurantAdmin/ManageRestaurants';
 import RestaurantDetails from '../pages/Dashboard/RestaurantAdmin/RestaurantDetails';
 import EditMenuItem from '../pages/Dashboard/RestaurantAdmin/EditMenuItem';
+import Cart from '../pages/Cart/Cart';
 
 export const router = createBrowserRouter([
   {
@@ -74,6 +75,10 @@ export const router = createBrowserRouter([
       {
         path: "delivery-registration",
         element: <DeliveryRegistration />,
+      },
+      {
+        path: "cart",
+        element: <Cart />,
       }
     ],
   },
