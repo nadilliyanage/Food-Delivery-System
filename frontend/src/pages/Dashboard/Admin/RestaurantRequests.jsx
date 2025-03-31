@@ -126,6 +126,12 @@ const RestaurantRequests = () => {
         return;
       }
 
+      // Get the restaurant details to access owner's phone number
+      const restaurant = restaurants[activeTab].find(
+        (r) => r._id === restaurantId
+      );
+
+      // Update restaurant status
       await axios.put(
         "http://localhost:3000/api/restaurants/admin/registration-status",
         {
@@ -136,6 +142,52 @@ const RestaurantRequests = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      // Send WhatsApp notification
+      if (restaurant && restaurant.phone) {
+        const message = `Dear ${
+          restaurant.name
+        } owner,\n\nYour restaurant registration has been ${confirmText}ed. ${
+          status === "approved"
+            ? "You can now log in and start managing your restaurant."
+            : status === "rejected"
+            ? "Please contact our support team for more information."
+            : "Your application is being reviewed."
+        }\n\nBest regards,\nFood Delivery System`;
+
+        await axios.post(
+          "http://localhost:3006/api/notifications",
+          {
+            userId: restaurant.owner,
+            type: "whatsapp",
+            message: message,
+            phone: restaurant.phone,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+
+      // Test notification with provided data
+      try {
+        await axios.post(
+          "http://localhost:3006/api/notifications",
+          {
+            userId: "67dce76eac0b8ce37ec1f9c2",
+            type: "whatsapp",
+            message:
+              "Hello! This is a test message from the Food Delivery System. Your restaurant registration status has been updated. Please check your dashboard for more details.",
+            phone: "+94723141125",
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("Test notification sent successfully");
+      } catch (testError) {
+        console.error("Error sending test notification:", testError);
+      }
 
       Swal.fire({
         title: "Success!",
