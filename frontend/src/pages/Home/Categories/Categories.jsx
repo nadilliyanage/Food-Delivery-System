@@ -13,7 +13,7 @@ const categories = [
   { name: 'Desserts', icon: FaCookie, color: '#DDA0DD' },
 ];
 
-const Categories = () => {
+const Categories = ({ searchQuery }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   return (
@@ -53,7 +53,7 @@ const Categories = () => {
         </div>
       </div>
       <div className="mt-8">
-        <Menu selectedCategory={selectedCategory} />
+        <Menu selectedCategory={selectedCategory} searchQuery={searchQuery} />
       </div>
     </div>
   );
