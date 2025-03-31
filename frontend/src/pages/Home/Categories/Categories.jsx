@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUtensils, FaHamburger, FaPizzaSlice, FaIceCream, FaCoffee, FaDrumstickBite, FaFish, FaCookie } from 'react-icons/fa';
-import Menu from './Menu';
+import axios from 'axios';
 
 const categories = [
   { name: 'All', icon: FaUtensils, color: '#FF6B6B' },
@@ -15,6 +15,40 @@ const categories = [
 
 const Categories = ({ searchQuery }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Ensure searchQuery is always a string
+  const searchQueryString = String(searchQuery || '').toLowerCase();
+
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/category/${selectedCategory}`)
+        console.log('Received restaurants:', response.data);
+        setRestaurants(response.data);
+      } catch (error) {
+        console.error('Error fetching restaurants:', error);
+        setError('Failed to fetch restaurants. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRestaurants();
+  }, [selectedCategory]);
+
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    if (!searchQueryString) return true;
+    
+    const name = String(restaurant?.name || '').toLowerCase();
+    const description = String(restaurant?.description || '').toLowerCase();
+    
+    return name.includes(searchQueryString) || description.includes(searchQueryString);
+  });
 
   return (
     <div className="py-6 px-4">
@@ -53,7 +87,47 @@ const Categories = ({ searchQuery }) => {
         </div>
       </div>
       <div className="mt-8">
-        <Menu selectedCategory={selectedCategory} searchQuery={searchQuery} />
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-4">
+            {error}
+          </div>
+        ) : restaurants.length === 0 ? (
+          <div className="text-center text-gray-500 py-4">
+            No restaurants found in this category.
+          </div>
+        ) : (
+          <div className="relative">
+            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <div className="flex gap-6 pb-4">
+                {restaurants.map((restaurant) => (
+                  <div
+                    key={restaurant._id}
+                    className="flex-none w-[300px] bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                  >
+                    <img
+                      src={restaurant.imageUrl}
+                      alt={restaurant.name}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-4">
+                      <h3 className="text-xl font-semibold mb-2">{restaurant.name}</h3>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{restaurant.description}</p>
+                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                        <span>
+                          {restaurant.address?.city || 'Location not available'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
