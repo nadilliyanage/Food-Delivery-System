@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const RestaurantRequestTable = () => {
   const [restaurants, setRestaurants] = useState({
@@ -12,6 +23,9 @@ const RestaurantRequestTable = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     fetchRestaurants(true);
@@ -172,6 +186,42 @@ const RestaurantRequestTable = () => {
     document.body.style.overflow = "hidden";
   };
 
+  // Function to search for locations in Sri Lanka
+  const searchLocation = async (query) => {
+    if (!query) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      // Add Sri Lanka to the search query and use Nominatim API
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Sri Lanka')}&countrycodes=lk&limit=5`,
+        {
+          headers: {
+            'Accept-Language': 'en'
+          }
+        }
+      );
+
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error('Error searching location:', error);
+      setSearchResults([]);
+    }
+  };
+
+  // Debounce the search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery) {
+        searchLocation(searchQuery);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
   const tabs = [
     {
       id: "pending",
@@ -261,10 +311,6 @@ const RestaurantRequestTable = () => {
                   {restaurant.cuisine}
                 </p>
                 <p>
-                  <span className="font-medium">Location:</span>{" "}
-                  {restaurant.location}
-                </p>
-                <p>
                   <span className="font-medium">Phone:</span> {restaurant.phone}
                 </p>
                 <p>
@@ -331,6 +377,12 @@ const RestaurantRequestTable = () => {
                     </button>
                   </>
                 )}
+                <button
+                  onClick={() => setSelectedLocation(restaurant.location)}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                >
+                  View Location
+                </button>
               </div>
             </div>
           ))}
@@ -378,6 +430,94 @@ const RestaurantRequestTable = () => {
                 className="max-w-full max-h-full object-contain"
                 onClick={(e) => e.stopPropagation()}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Location Map Modal */}
+      {selectedLocation && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[1000] p-4"
+          onClick={() => {
+            setSelectedLocation(null);
+            document.body.style.overflow = "auto";
+          }}
+        >
+          <div className="relative w-full h-full max-w-6xl max-h-screen flex items-center justify-center">
+            <button
+              className="absolute top-4 right-4 text-white hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full p-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedLocation(null);
+                document.body.style.overflow = "auto";
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <div className="w-full h-full flex items-center justify-center p-4">
+              <div className="w-full h-full bg-white rounded-lg overflow-hidden">
+                {/* Location Search */}
+                <div className="absolute top-4 left-4 z-[1000] w-96">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search for a location in Sri Lanka..."
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {searchResults.length > 0 && (
+                    <div className="mt-2 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {searchResults.map((result) => (
+                        <div
+                          key={result.place_id}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            setSelectedLocation({
+                              type: "Point",
+                              coordinates: [parseFloat(result.lon), parseFloat(result.lat)]
+                            });
+                            setSearchQuery("");
+                            setSearchResults([]);
+                          }}
+                        >
+                          {result.display_name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <MapContainer
+                  center={[selectedLocation.coordinates[1], selectedLocation.coordinates[0]]}
+                  zoom={15}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  <Marker position={[selectedLocation.coordinates[1], selectedLocation.coordinates[0]]}>
+                    <Popup>
+                      Restaurant Location
+                    </Popup>
+                  </Marker>
+                </MapContainer>
+              </div>
             </div>
           </div>
         </div>
