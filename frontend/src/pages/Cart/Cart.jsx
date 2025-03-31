@@ -149,14 +149,16 @@ const Cart = () => {
             {cart.items.map((item) => (
               <div
                 key={item.menuItemId}
-                className="flex items-center bg-white dark:bg-gray-800 rounded-lg shadow-md p-4"
+                className="flex h-32 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
               >
-                <img
-                  src={item.imageUrl || 'https://via.placeholder.com/100'}
-                  alt={item.name}
-                  className="w-20 h-20 object-cover rounded-md"
-                />
-                <div className="ml-4 flex-grow min-w-0">
+                <div className="w-24 md:w-40 flex-shrink-0">
+                  <img
+                    src={item.imageUrl || 'https://via.placeholder.com/100'}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4 flex-grow min-w-0">
                   <h3 className="text-lg font-semibold truncate">{item.name}</h3>
                   <p className="text-gray-600 dark:text-gray-400">${item.price}</p>
                   <div className="flex items-center mt-2">
@@ -182,7 +184,7 @@ const Cart = () => {
                     </button>
                   </div>
                 </div>
-                <div className="ml-4 text-right whitespace-nowrap">
+                <div className="p-4 text-right whitespace-nowrap">
                   <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               </div>
