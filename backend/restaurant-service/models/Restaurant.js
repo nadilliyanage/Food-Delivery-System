@@ -3,7 +3,10 @@ const mongoose = require("mongoose");
 const restaurantSchema = new mongoose.Schema({
   imageUrl: { type: String, required: true },
   name: { type: String, required: true },
-  location: { type: String, required: true },
+  location: { 
+    type: { type: String, default: 'Point' },
+    coordinates: { type: [Number], required: true } // [longitude, latitude]
+  },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   menu: [{ type: mongoose.Schema.Types.ObjectId, ref: "Menu" }],
   registrationStatus: {
@@ -12,14 +15,11 @@ const restaurantSchema = new mongoose.Schema({
     default: "pending",
   },
   description: { type: String, required: true },
-  cuisine: { type: String, required: true },
   phone: { type: String, required: true },
   email: { type: String, required: true },
   address: {
     street: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    zipCode: { type: String, required: true },
+    city: { type: String, required: true }
   },
   businessHours: {
     monday: {
@@ -54,5 +54,8 @@ const restaurantSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
+
+// Add geospatial index for location-based queries
+restaurantSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model("Restaurant", restaurantSchema);

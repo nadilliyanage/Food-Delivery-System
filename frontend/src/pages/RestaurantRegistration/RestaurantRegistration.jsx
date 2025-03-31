@@ -5,6 +5,54 @@ import Scroll from "../../hooks/useScroll";
 import Swal from "sweetalert2";
 import storage from "../../config/firebase.init";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Fix for default marker icon in React-Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+// Component to handle map clicks and city changes
+const LocationMarker = ({ onLocationSelect, city }) => {
+  const [position, setPosition] = useState(null);
+  const map = useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      setPosition([lat, lng]);
+      onLocationSelect({ lat, lng });
+    },
+  });
+
+  // Effect to handle city changes
+  useEffect(() => {
+    if (city) {
+      // Use Nominatim API for geocoding
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data[0]) {
+            const { lat, lon } = data[0];
+            map.setView([lat, lon], 13);
+          }
+        })
+        .catch(error => {
+          console.error('Error geocoding city:', error);
+        });
+    }
+  }, [city, map]);
+
+  return position === null ? null : (
+    <Marker position={position} />
+  );
+};
 
 const RestaurantRegistration = () => {
   const navigate = useNavigate();
@@ -14,19 +62,16 @@ const RestaurantRegistration = () => {
   const [imageFile, setImageFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [hasCheckedRegistration, setHasCheckedRegistration] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [formData, setFormData] = useState({
     imageUrl: "",
     name: "",
     description: "",
-    cuisine: "",
     phone: "",
     email: "",
-    location: "",
     address: {
       street: "",
       city: "",
-      state: "",
-      zipCode: "",
     },
     businessHours: {
       monday: { open: "", close: "" },
@@ -185,17 +230,18 @@ const RestaurantRegistration = () => {
     }
   };
 
+  const handleMapClick = (location) => {
+    setSelectedLocation(location);
+  };
+
   const validateForm = () => {
     const requiredFields = [
       "name",
       "description",
-      "cuisine",
       "phone",
       "email",
       "address.street",
       "address.city",
-      "address.state",
-      "address.zipCode",
     ];
 
     const missingFields = requiredFields.filter((field) => {
@@ -214,6 +260,16 @@ const RestaurantRegistration = () => {
       });
       return false;
     }
+
+    if (!selectedLocation) {
+      Swal.fire({
+        title: "Location Required",
+        text: "Please select your restaurant location on the map",
+        icon: "warning",
+      });
+      return false;
+    }
+
     return true;
   };
 
@@ -242,7 +298,10 @@ const RestaurantRegistration = () => {
 
       const restaurantData = {
         ...formData,
-        location: `${formData.address.city}, ${formData.address.state}`,
+        location: {
+          type: 'Point',
+          coordinates: [selectedLocation.lng, selectedLocation.lat]
+        },
         businessHours: formattedBusinessHours,
       };
 
@@ -388,21 +447,6 @@ const RestaurantRegistration = () => {
                     )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Cuisine Type <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="cuisine"
-                      value={formData.cuisine}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                      placeholder="e.g., Italian, Chinese, Indian"
-                    />
-                  </div>
-
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Description <span className="text-red-500">*</span>
@@ -493,37 +537,33 @@ const RestaurantRegistration = () => {
                       placeholder="Enter city"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      State <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="address.state"
-                      value={formData.address.state}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                      placeholder="Enter state"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      ZIP Code <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="address.zipCode"
-                      value={formData.address.zipCode}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                      placeholder="Enter ZIP code"
-                    />
-                  </div>
                 </div>
+              </div>
+
+              {/* Location Map Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">
+                  Restaurant Location <span className="text-red-500">*</span>
+                </h3>
+                <div className="h-[400px] w-full rounded-lg overflow-hidden">
+                  <MapContainer
+                    center={[0, 0]}
+                    zoom={13}
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    <LocationMarker 
+                      onLocationSelect={handleMapClick} 
+                      city={formData.address.city}
+                    />
+                  </MapContainer>
+                </div>
+                <p className="mt-2 text-sm text-gray-500">
+                  Enter your city above and click on the map to select your restaurant location
+                </p>
               </div>
 
               {/* Business Hours Section */}

@@ -377,6 +377,50 @@ const getRejectedRegistrations = async (req, res) => {
   }
 };
 
+const getRestaurantsByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    console.log('Fetching restaurants for category:', category);
+    
+    // If category is 'All', return all restaurants
+    if (category === 'All') {
+      const restaurants = await Restaurant.find({});
+      console.log('Found restaurants for All category:', restaurants.length);
+      return res.status(200).json(restaurants);
+    }
+
+    // Find all menu items in the specified category
+    const menuItems = await Menu.find({ 
+      category: category,
+      isAvailable: true 
+    }).populate('restaurant');
+    
+    console.log('Found menu items for category:', category, menuItems.length);
+
+    // Get unique restaurants from the menu items
+    const restaurants = menuItems.reduce((acc, menuItem) => {
+      if (menuItem.restaurant && !acc.some(r => r._id.toString() === menuItem.restaurant._id.toString())) {
+        acc.push(menuItem.restaurant);
+      }
+      return acc;
+    }, []);
+
+    console.log('Found unique restaurants:', restaurants.length);
+    
+    if (restaurants.length === 0) {
+      return res.status(200).json([]); // Return empty array instead of 404
+    }
+
+    res.status(200).json(restaurants);
+  } catch (error) {
+    console.error('Error in getRestaurantsByCategory:', error);
+    res.status(500).json({ 
+      message: "Error fetching restaurants by category", 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   getRestaurants,
   getUserRestaurants,
@@ -392,4 +436,5 @@ module.exports = {
   updateRegistrationStatus,
   getApprovedRegistrations,
   getRejectedRegistrations,
+  getRestaurantsByCategory,
 };

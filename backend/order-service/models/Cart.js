@@ -28,6 +28,22 @@ const cartSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  restaurantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Restaurant',
+    required: true
+  },
+  restaurantName: {
+    type: String,
+    required: true
+  },
+  restaurantImage: {
+    type: String
+  },
+  deliveryLocation: {
+    type: String,
+    default: 'Padukka'
+  },
   items: [cartItemSchema],
   totalAmount: {
     type: Number,

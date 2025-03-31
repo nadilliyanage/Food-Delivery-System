@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../../utils/auth';
+import { ChevronLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Scroll from '../../hooks/useScroll';
-import { TrashIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
 
 const Cart = () => {
-  const [cart, setCart] = useState({ items: [], totalAmount: 0 });
+  const [carts, setCarts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -18,97 +18,70 @@ const Cart = () => {
       navigate('/login');
       return;
     }
-    fetchCart();
+    fetchCarts();
   }, [currentUser, navigate]);
 
-  const fetchCart = async () => {
+  const fetchCarts = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/cart', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cart`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      setCart(response.data);
+
+      // API now returns an array of carts
+      setCarts(response.data);
       setLoading(false);
     } catch (err) {
-      setError('Failed to fetch cart');
+      console.error('Error fetching carts:', err);
+      setError('Failed to fetch carts. Please try again.');
       setLoading(false);
     }
   };
 
-  const updateQuantity = async (menuItemId, newQuantity) => {
+  const handleDeleteCart = async (restaurantId) => {
     try {
-      const response = await axios.put(
-        'http://localhost:3000/api/cart/update',
-        { menuItemId, quantity: newQuantity },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-      setCart(response.data);
-    } catch (err) {
-      setError('Failed to update quantity');
-    }
-  };
+      const result = await Swal.fire({
+        title: 'Delete Cart',
+        text: 'Are you sure you want to delete this cart?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#000',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      });
 
-  const removeItem = async (menuItemId) => {
-    try {
-      const response = await axios.delete(
-        `http://localhost:3000/api/cart/remove/${menuItemId}`,
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-      setCart(response.data);
-    } catch (err) {
-      setError('Failed to remove item');
-    }
-  };
+      if (result.isConfirmed) {
+        const token = localStorage.getItem('token');
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/cart/clear/${restaurantId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-  const clearCart = async () => {
-    const result = await Swal.fire({
-      title: 'Clear Cart?',
-      text: "Are you sure you want to remove all items from your cart?",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, clear cart',
-      cancelButtonText: 'Cancel',
-      background: '#ffffff',
-      color: '#1f2937',
-      customClass: {
-        confirmButton: 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md',
-        cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md'
-      }
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const response = await axios.delete(
-          'http://localhost:3000/api/cart/clear',
-          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-        );
-        setCart(response.data);
-        Swal.fire({
-          title: 'Cleared!',
-          text: 'Your cart has been cleared.',
+        // Show success message
+        await Swal.fire({
           icon: 'success',
-          confirmButtonColor: '#ef4444',
-          background: '#ffffff',
-          color: '#1f2937',
-          customClass: {
-            confirmButton: 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md'
-          }
+          title: 'Cart Deleted',
+          text: 'Your cart has been deleted successfully.',
+          confirmButtonColor: '#000',
+          timer: 1500,
+          showConfirmButton: false
         });
-      } catch (err) {
-        setError('Failed to clear cart');
-        Swal.fire({
-          title: 'Error!',
-          text: 'Failed to clear your cart. Please try again.',
-          icon: 'error',
-          confirmButtonColor: '#ef4444',
-          background: '#ffffff',
-          color: '#1f2937',
-          customClass: {
-            confirmButton: 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md'
-          }
-        });
+
+        // Refresh carts
+        fetchCarts();
       }
+    } catch (error) {
+      console.error('Error deleting cart:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to delete cart. Please try again.',
+        confirmButtonColor: '#000'
+      });
     }
   };
 
@@ -123,99 +96,94 @@ const Cart = () => {
   if (error) {
     return (
       <div className="text-center py-8 text-red-500">
-        {error}
+        <p>{error}</p>
+        <button 
+          onClick={fetchCarts}
+          className="mt-4 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-14">
+    <div className="container mx-auto px-4 py-4 mt-14 lg:mt-20">
       <Scroll />
-      <h1 className="text-3xl font-bold mb-8 text-center">Shopping Cart</h1>
-      
-      {cart.items.length === 0 ? (
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <button onClick={() => navigate(-1)} className="mr-4">
+            <ChevronLeftIcon className="h-6 w-6" />
+          </button>
+          <h1 className="text-2xl font-bold">Carts</h1>
+        </div>
+        <button 
+          onClick={() => navigate('/orders')}
+          className="bg-gray-100 rounded-full px-4 py-2 text-sm font-medium"
+        >
+          Orders
+        </button>
+      </div>
+
+      {/* Cart List */}
+      {carts.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500 mb-4">Your cart is empty</p>
+          <p className="text-gray-500 mb-4">No items in your cart</p>
           <button
             onClick={() => navigate('/')}
             className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors"
           >
-            Continue Shopping
+            Browse Restaurants
           </button>
         </div>
       ) : (
-        <>
-          <div className="space-y-4">
-            {cart.items.map((item) => (
-              <div
-                key={item.menuItemId}
-                className="flex h-32 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
-              >
-                <div className="w-24 md:w-40 flex-shrink-0">
+        <div className="space-y-4">
+          {carts.map((cart) => (
+            <div key={cart._id} className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-4">
                   <img
-                    src={item.imageUrl || 'https://via.placeholder.com/100'}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
+                    src={cart.restaurantImage}
+                    alt={cart.restaurantName}
+                    className="w-12 h-12 rounded-full object-cover"
                   />
-                </div>
-                <div className="p-4 flex-grow min-w-0">
-                  <h3 className="text-lg font-semibold truncate">{item.name}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">${item.price}</p>
-                  <div className="flex items-center mt-2">
-                    <button
-                      onClick={() => updateQuantity(item.menuItemId, item.quantity - 1)}
-                      className="px-2 py-1 bg-gray-200 rounded-l hover:bg-gray-300"
-                    >
-                      -
-                    </button>
-                    <span className="px-4 py-1 bg-gray-100">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.menuItemId, item.quantity + 1)}
-                      className="px-2 py-1 bg-gray-200 rounded-r hover:bg-gray-300"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => removeItem(item.menuItemId)}
-                      className="ml-4 text-red-500 hover:text-red-700 flex items-center gap-1"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                      <span>Remove</span>
-                    </button>
+                  <div>
+                    <h2 className="text-lg font-semibold">{cart.restaurantName}</h2>
+                    <p className="text-gray-600">
+                      {cart.items.length} {cart.items.length === 1 ? 'item' : 'items'} • LKR {cart.totalAmount.toFixed(2)}
+                    </p>
+                    <p className="text-gray-600">Deliver to {cart.deliveryLocation}</p>
                   </div>
                 </div>
-                <div className="p-4 text-right whitespace-nowrap">
-                  <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
-                </div>
+                <button 
+                  onClick={() => handleDeleteCart(cart.restaurantId)}
+                  className="p-2 hover:bg-red-50 rounded-full transition-colors text-red-500"
+                >
+                  <TrashIcon className="h-6 w-6" />
+                </button>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Total</h2>
-              <p className="text-2xl font-bold">${cart.totalAmount.toFixed(2)}</p>
+              
+              <div className="space-y-2 mt-4">
+                <button 
+                  onClick={() => navigate(`/cart/${cart.restaurantId}`)}
+                  className="w-full bg-black text-white py-3 rounded-lg font-medium"
+                >
+                  View cart
+                </button>
+                <button 
+                  onClick={() => navigate(`/restaurant/${cart.restaurantId}`)}
+                  className="w-full bg-gray-100 text-black py-3 rounded-lg font-medium"
+                >
+                  View store
+                </button>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <button
-                onClick={clearCart}
-                className="px-4 py-2 text-red-500 hover:text-red-700 flex items-center gap-2 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
-              >
-                <TrashIcon className="h-5 w-5" />
-                <span>Clear Cart</span>
-              </button>
-              <button
-                onClick={() => navigate('/checkout')}
-                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors"
-              >
-                Proceed to Checkout
-              </button>
-            </div>
-          </div>
-        </>
+          ))}
+        </div>
       )}
     </div>
   );
 };
 
-export default Cart; 
+export default Cart;

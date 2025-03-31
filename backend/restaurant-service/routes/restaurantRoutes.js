@@ -13,7 +13,8 @@ const {
   getPendingRegistrations,
   updateRegistrationStatus,
   getApprovedRegistrations,
-  getRejectedRegistrations
+  getRejectedRegistrations,
+  getRestaurantsByCategory
 } = require("../controllers/restaurantController");
 const authMiddleware = require("../middleware/authMiddleware");
 const { isAdmin } = require('../middleware/isAdmin');
@@ -23,6 +24,7 @@ const router = express.Router();
 // Public routes
 router.get("/", getRestaurants);
 router.get("/:id", getRestaurantById);
+router.get("/category/:category", getRestaurantsByCategory);
 
 // Protected routes (require authentication)
 router.use(authMiddleware);
