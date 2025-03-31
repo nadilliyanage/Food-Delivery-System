@@ -30,7 +30,7 @@ const RestaurantCard = ({ restaurant }) => {
   );
 };
 
-const Restaurants = () => {
+const Restaurants = ({ searchQuery = { term: '', type: 'restaurant' } }) => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,6 +49,12 @@ const Restaurants = () => {
 
     fetchRestaurants();
   }, []);
+
+  const filteredRestaurants = searchQuery?.type === 'restaurant' && searchQuery?.term
+    ? restaurants.filter(restaurant =>
+        restaurant.name.toLowerCase().includes(searchQuery.term.toLowerCase())
+      )
+    : restaurants;
 
   if (loading) {
     return (
@@ -75,10 +81,14 @@ const Restaurants = () => {
   return (
     <div className="py-6 px-4">
       <h2 className="text-2xl font-bold mb-4">Available Restaurants</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {restaurants.map((restaurant) => (
-          <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-        ))}
+      <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex gap-4 pb-4">
+          {filteredRestaurants.map((restaurant) => (
+            <div key={restaurant.id} className="flex-none w-[300px]">
+              <RestaurantCard restaurant={restaurant} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
