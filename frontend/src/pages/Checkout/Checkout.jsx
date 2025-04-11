@@ -14,7 +14,6 @@ const Checkout = () => {
   const [deliveryAddress, setDeliveryAddress] = useState({
     street: '',
     city: '',
-    postalCode: '',
     instructions: ''
   });
   const [cardDetails, setCardDetails] = useState({
@@ -87,17 +86,26 @@ const Checkout = () => {
         }
       }
       
-      if (!deliveryAddress.street || !deliveryAddress.city || !deliveryAddress.postalCode) {
+      // Validate address
+      if (!deliveryAddress.street || !deliveryAddress.city) {
         throw new Error('Please fill in all address details');
       }
 
-      // Create order
+      // Create order with the correct format expected by backend
       const orderData = {
-        cartId: cart._id,
-        deliveryAddress,
+        restaurant: restaurantId,
+        items: cart.items.map(item => ({
+          menuItem: item.menuItemId,
+          quantity: item.quantity
+        })),
+        totalPrice: cart.totalAmount,
+        deliveryAddress: {
+          street: deliveryAddress.street,
+          city: deliveryAddress.city,
+          instructions: deliveryAddress.instructions
+        },
         paymentMethod: selectedPaymentMethod,
-        ...(selectedPaymentMethod === 'card' && { cardDetails }),
-        amount: cart.totalAmount
+        ...(selectedPaymentMethod === 'card' && { cardDetails })
       };
 
       const token = localStorage.getItem('token');
@@ -110,6 +118,14 @@ const Checkout = () => {
       );
 
       if (response.data) {
+        // Clear the cart after successful order placement
+        await axios.delete(
+          `${import.meta.env.VITE_API_URL}/api/cart/clear/${restaurantId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
         // Show success message
         await Swal.fire({
           icon: 'success',
@@ -119,7 +135,7 @@ const Checkout = () => {
         });
         
         // Navigate to orders page
-        navigate('/orders');
+        navigate('/my-orders');
       }
     } catch (error) {
       console.error('Payment error:', error);
@@ -184,25 +200,17 @@ const Checkout = () => {
               value={deliveryAddress.street}
               onChange={handleAddressChange}
               className="w-full p-2 border rounded-lg"
+              required
             />
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="city"
-                placeholder="City"
-                value={deliveryAddress.city}
-                onChange={handleAddressChange}
-                className="p-2 border rounded-lg"
-              />
-              <input
-                type="text"
-                name="postalCode"
-                placeholder="Postal Code"
-                value={deliveryAddress.postalCode}
-                onChange={handleAddressChange}
-                className="p-2 border rounded-lg"
-              />
-            </div>
+            <input
+              type="text"
+              name="city"
+              placeholder="City"
+              value={deliveryAddress.city}
+              onChange={handleAddressChange}
+              className="w-full p-2 border rounded-lg"
+              required
+            />
             <textarea
               name="instructions"
               placeholder="Delivery Instructions (Optional)"
@@ -302,7 +310,7 @@ const Checkout = () => {
         <button
           onClick={handlePayment}
           disabled={loading}
-          className="w-full bg-black text-white py-4 rounded-lg font-medium disabled:bg-gray-400"
+          className="w-full bg-primary text-white py-4 rounded-lg font-medium disabled:bg-gray-400"
         >
           {loading ? 'Processing...' : `Pay LKR ${(cart.totalAmount + 150).toFixed(2)}`}
         </button>

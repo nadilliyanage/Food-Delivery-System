@@ -36,7 +36,6 @@ const getOrders = async (req, res) => {
 const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log(`🔍 Fetching orders for user: ${userId}`);
 
     const orders = await Order.find({ customer: userId });
 
@@ -86,8 +85,6 @@ const getOrderById = async (req, res) => {
   try {
     const userId = req.user.id;
     const userRole = req.user.role;
-
-    console.log(`🔍 Fetching order ${req.params.id} for user ${userId}`);
 
     // ✅ Allow Admins and Delivery Personnel to Fetch Any Order
     const order = await Order.findOne({
@@ -144,7 +141,22 @@ const getOrderById = async (req, res) => {
 // ✅ Place a New Order (Fetch Restaurant First)
 const placeOrder = async (req, res) => {
   try {
-    const { restaurant, items, totalPrice } = req.body;
+    const { restaurant, items, totalPrice, deliveryAddress, paymentMethod, cardDetails } = req.body;
+
+    // Validate required fields
+    if (!restaurant || !items || !totalPrice || !deliveryAddress || !paymentMethod) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Validate delivery address
+    if (!deliveryAddress.street || !deliveryAddress.city) {
+      return res.status(400).json({ message: "Incomplete delivery address" });
+    }
+
+    // Validate payment method
+    if (paymentMethod === "card" && !cardDetails) {
+      return res.status(400).json({ message: "Card details required for card payment" });
+    }
 
     // ✅ Ensure restaurant exists before placing an order
     const restaurantResponse = await axios.get(
@@ -158,6 +170,13 @@ const placeOrder = async (req, res) => {
       restaurant,
       items,
       totalPrice,
+      deliveryAddress: {
+        street: deliveryAddress.street,
+        city: deliveryAddress.city,
+        instructions: deliveryAddress.instructions
+      },
+      paymentMethod,
+      ...(paymentMethod === "card" && { cardDetails })
     });
 
     await newOrder.save();

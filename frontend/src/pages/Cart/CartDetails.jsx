@@ -196,7 +196,7 @@ const CartDetails = () => {
       <div className="fixed bottom-14 left-0 right-0 p-4 bg-white border-t">
         <button
           onClick={() => navigate(`/checkout/${restaurantId}`)}
-          className="w-full bg-black text-white py-4 rounded-lg font-medium"
+          className="w-full bg-primary text-white py-4 rounded-lg font-medium"
         >
           Checkout • LKR {calculateTotal().toFixed(2)}
         </button>

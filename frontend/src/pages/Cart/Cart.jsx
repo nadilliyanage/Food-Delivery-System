@@ -119,7 +119,7 @@ const Cart = () => {
           <h1 className="text-2xl font-bold">Carts</h1>
         </div>
         <button 
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate('/my-orders')}
           className="bg-gray-100 rounded-full px-4 py-2 text-sm font-medium"
         >
           Orders
@@ -167,7 +167,7 @@ const Cart = () => {
               <div className="space-y-2 mt-4">
                 <button 
                   onClick={() => navigate(`/cart/${cart.restaurantId}`)}
-                  className="w-full bg-black text-white py-3 rounded-lg font-medium"
+                  className="w-full bg-primary text-white py-3 rounded-lg font-medium"
                 >
                   View cart
                 </button>

@@ -34,6 +34,22 @@ const orderSchema = new mongoose.Schema({
     ],
     default: "Pending",
   },
+  deliveryAddress: {
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    instructions: { type: String }
+  },
+  paymentMethod: {
+    type: String,
+    enum: ["card", "cash"],
+    required: true
+  },
+  cardDetails: {
+    number: String,
+    expiry: String,
+    cvc: String,
+    name: String
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

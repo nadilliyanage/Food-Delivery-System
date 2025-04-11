@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaHeart, FaSearch, FaEllipsisH, FaUsers, FaPlus } from 'react-icons/fa';
 import axios from 'axios';
 import Scroll from '../../hooks/useScroll';
-import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 
 const RestaurantDetails = () => {
   const { id } = useParams();
@@ -63,18 +63,17 @@ const RestaurantDetails = () => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        Swal.fire({
-          title: 'Please Login',
-          text: 'You need to login to add items to cart',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Login',
-          cancelButtonText: 'Cancel'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            navigate('/login');
-          }
+        toast.warning('Please login to add items to cart', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
         });
+        navigate('/login');
         return;
       }
 
@@ -100,20 +99,29 @@ const RestaurantDetails = () => {
         const updatedCart = cartResponse.data.find(cart => cart.restaurantId === id);
         setCartItems(updatedCart);
 
-        Swal.fire({
-          title: 'Success!',
-          text: 'Item added to cart',
-          icon: 'success',
-          timer: 1500,
-          showConfirmButton: false
+        toast.success('Item added to cart!', {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
         });
+        console.log("Item added to cart");
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
-      Swal.fire({
-        title: 'Error',
-        text: 'Failed to add item to cart',
-        icon: 'error'
+      toast.error('Failed to add item to cart', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
       });
     } finally {
       setAddingToCart(false);
@@ -171,60 +179,12 @@ const RestaurantDetails = () => {
       <div className="px-4 py-6 bg-white">
         <h1 className="text-3xl font-bold mb-2">{restaurant?.name}</h1>
         <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-          <span className="flex items-center">
-            ⭐ {restaurant?.rating || '4.4'} ({restaurant?.reviews || '2,000+'})</span>
-          <span>•</span>
-          <span>₹99 Delivery Fee</span>
+          
           <span>•</span>
           <span>{restaurant?.address?.city}</span>
         </div>
-        <div className="bg-green-50 text-green-700 px-4 py-2 rounded-md inline-block">
-          700+ people reordered
-        </div>
       </div>
-
-      {/* Delivery Options */}
-      <div className="px-4 py-4 bg-white mt-2">
-        <div className="flex gap-4 mb-4">
-          <button
-            className={`px-6 py-2 rounded-full ${
-              activeTab === 'Delivery'
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-800'
-            }`}
-            onClick={() => setActiveTab('Delivery')}
-          >
-            Delivery
-          </button>
-          <button
-            className={`px-6 py-2 rounded-full ${
-              activeTab === 'Pickup'
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-800'
-            }`}
-            onClick={() => setActiveTab('Pickup')}
-          >
-            Pickup
-          </button>
-          <button className="ml-auto flex items-center gap-2 px-6 py-2 rounded-full bg-gray-100">
-            <FaUsers />
-            <span>Group order</span>
-          </button>
-        </div>
-
-        <div className="flex justify-between items-center py-4 border-t">
-          <div>
-            <p className="text-lg font-semibold">₹99 Delivery Fee</p>
-            <p className="text-sm text-gray-600">
-              LKR 0 with Uber One on LKR 900+
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-lg font-semibold">25 min</p>
-            <p className="text-sm text-gray-600">Earliest arrival</p>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Menu Items */}
       <div className="px-4 py-6 bg-white mt-2">
@@ -274,7 +234,7 @@ const RestaurantDetails = () => {
         <div className="fixed bottom-14 left-0 right-0 p-4 bg-white border-t">
           <button
             onClick={() => navigate(`/cart/${id}`)}
-            className="w-full bg-black text-white py-4 rounded-lg font-medium flex items-center justify-between px-6"
+            className="w-full bg-primary text-white py-4 rounded-lg font-medium flex items-center justify-between px-6"
           >
             <div className="flex items-center gap-2">
               <span>{cartItems.items.length} {cartItems.items.length === 1 ? 'item' : 'items'}</span>

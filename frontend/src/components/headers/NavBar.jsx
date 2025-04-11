@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { AuthContext } from "../../utilities/providers/AuthProvider";
 import Swal from "sweetalert2";
 import useUser from "../../hooks/useUser";
-import logo from "../../assets/logo.png";
+import logo from "/logo.png";
 import { isAuthenticated } from "../../utils/auth";
 
 const navLinks = [
@@ -23,7 +23,7 @@ const customerMobileNav = [
   { name: "Home", route: "/", icon: FaHome },
   { name: "Restaurants", route: "/restaurants", icon: FaStore },
   { name: "Cart", route: "/cart", icon: FaShoppingCart },
-  { name: "Orders", route: "/dashboard/my-orders", icon: FaListAlt },
+  { name: "Orders", route: "/my-orders", icon: FaListAlt },
 ];
 
 const deliveryMobileNav = [

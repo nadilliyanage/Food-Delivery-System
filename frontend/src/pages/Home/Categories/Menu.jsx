@@ -37,7 +37,7 @@ const Menu = ({ selectedCategory, searchQuery = { term: '', type: 'menu' } }) =>
 
     try {
       await axios.post(
-        'http://localhost:3002/api/cart/add',
+        'http://localhost:3000/api/cart/add',
         { menuItemId: item._id, quantity: 1 },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
