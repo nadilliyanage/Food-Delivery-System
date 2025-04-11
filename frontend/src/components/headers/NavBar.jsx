@@ -23,7 +23,7 @@ const customerMobileNav = [
   { name: "Home", route: "/", icon: FaHome },
   { name: "Restaurants", route: "/restaurants", icon: FaStore },
   { name: "Cart", route: "/cart", icon: FaShoppingCart },
-  { name: "Orders", route: "/dashboard/my-orders", icon: FaListAlt },
+  { name: "Orders", route: "/my-orders", icon: FaListAlt },
 ];
 
 const deliveryMobileNav = [

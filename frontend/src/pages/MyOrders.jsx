@@ -118,7 +118,11 @@ const MyOrders = () => {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
-              <div key={order._id} className="bg-white rounded-lg shadow-sm p-4">
+              <div 
+                key={order._id} 
+                className="bg-white rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => navigate(`/order-details/${order._id}`)}
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h2 className="text-lg font-semibold">{order.restaurant?.name || 'Restaurant'}</h2>

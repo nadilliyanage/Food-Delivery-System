@@ -380,12 +380,10 @@ const getRejectedRegistrations = async (req, res) => {
 const getRestaurantsByCategory = async (req, res) => {
   try {
     const { category } = req.params;
-    console.log('Fetching restaurants for category:', category);
     
     // If category is 'All', return all restaurants
     if (category === 'All') {
       const restaurants = await Restaurant.find({});
-      console.log('Found restaurants for All category:', restaurants.length);
       return res.status(200).json(restaurants);
     }
 

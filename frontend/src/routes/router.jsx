@@ -37,6 +37,7 @@ import Cart from '../pages/Cart/Cart';
 import RestaurantDetailsInHome from '../pages/Restaurant/RestaurantDetails';
 import CartDetails from '../pages/Cart/CartDetails';
 import Checkout from '../pages/Checkout/Checkout';
+import OrderDetails from '../pages/OrderDetails';
 
 export const router = createBrowserRouter([
   {
@@ -98,6 +99,10 @@ export const router = createBrowserRouter([
       {
         path: "my-orders",
         element: <MyOrders />,
+      },
+      {
+        path: "order-details/:orderId",
+        element: <OrderDetails />,
       },
     ],
   },
