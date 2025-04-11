@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { AuthContext } from "../../utilities/providers/AuthProvider";
 import Swal from "sweetalert2";
 import useUser from "../../hooks/useUser";
-import logo from "../../assets/logo.png";
+import logo from "/logo.png";
 import { isAuthenticated } from "../../utils/auth";
 
 const navLinks = [
