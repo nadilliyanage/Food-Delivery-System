@@ -91,13 +91,17 @@ const Checkout = () => {
         throw new Error('Please fill in all address details');
       }
 
-      // Create order
+      // Create order with the correct format expected by backend
       const orderData = {
-        cartId: cart._id,
+        restaurant: restaurantId,
+        items: cart.items.map(item => ({
+          menuItem: item.menuItemId,
+          quantity: item.quantity
+        })),
+        totalPrice: cart.totalAmount,
         deliveryAddress,
         paymentMethod: selectedPaymentMethod,
-        ...(selectedPaymentMethod === 'card' && { cardDetails }),
-        amount: cart.totalAmount
+        ...(selectedPaymentMethod === 'card' && { cardDetails })
       };
 
       const token = localStorage.getItem('token');
@@ -110,6 +114,14 @@ const Checkout = () => {
       );
 
       if (response.data) {
+        // Clear the cart after successful order placement
+        await axios.delete(
+          `${import.meta.env.VITE_API_URL}/api/cart/clear/${restaurantId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
         // Show success message
         await Swal.fire({
           icon: 'success',
@@ -119,7 +131,7 @@ const Checkout = () => {
         });
         
         // Navigate to orders page
-        navigate('/orders');
+        navigate('/my-orders');
       }
     } catch (error) {
       console.error('Payment error:', error);

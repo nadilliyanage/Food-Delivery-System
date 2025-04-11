@@ -94,7 +94,11 @@ export const router = createBrowserRouter([
       {
         path: "checkout/:restaurantId",
         element: <Checkout />,
-      }
+      },
+      {
+        path: "my-orders",
+        element: <MyOrders />,
+      },
     ],
   },
   {
