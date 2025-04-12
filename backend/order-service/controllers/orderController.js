@@ -4,6 +4,7 @@ require("dotenv").config();
 
 // Load API Gateway service URLs from environment variables
 const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
+const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 
 // ✅ Get All Orders (For Admins and Restaurant Owners)
 const getOrders = async (req, res) => {
@@ -88,11 +89,7 @@ const getOrderById = async (req, res) => {
 
     // ✅ Allow Admins and Delivery Personnel to Fetch Any Order
     const order = await Order.findOne({
-      _id: req.params.id,
-      ...(userRole === "customer" && { customer: userId }),
-      ...(userRole === "delivery_personnel" && {
-        status: { $in: ["Assigned", "Out for Delivery"] },
-      }),
+      _id: req.params.id
     });
 
     if (!order) return res.status(404).json({ message: "Order not found" });
@@ -183,7 +180,7 @@ const updateOrder = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const { role } = req.user;
+    const { role, id: userId } = req.user;
 
     // Find the order
     const order = await Order.findById(id);
@@ -193,14 +190,47 @@ const updateOrder = async (req, res) => {
 
     // Authorization checks based on role and status
     if (role === "delivery_personnel") {
-      // Delivery personnel can only update to "Delivered" if current status is "Out for Delivery"
-      if (status === "Delivered" && order.status === "Out for Delivery") {
+      // Delivery personnel can:
+      // 1. Accept delivery (Out for Delivery -> Delivery Accepted)
+      // 2. Reject delivery (Out for Delivery -> Delivery Rejected)
+      // 3. Mark as delivered (Delivery Accepted -> Delivered)
+      if (order.status === "Out for Delivery" && 
+          (status === "Delivery Accepted" || status === "Delivery Rejected")) {
+        order.status = status;
+        await order.save();
+
+        // If order is accepted, create a delivery record
+        if (status === "Delivery Accepted") {
+          try {
+            if (!DELIVERY_SERVICE_URL) {
+              console.error("DELIVERY_SERVICE_URL is not set in environment variables");
+              return res.status(200).json(order); // Continue with order update even if delivery record fails
+            }
+
+            await axios.post(
+              `${DELIVERY_SERVICE_URL}/api/deliveries`,
+              {
+                orderId: order._id,
+                driverId: userId
+              },
+              {
+                headers: { Authorization: req.headers.authorization }
+              }
+            );
+          } catch (error) {
+            console.error("Error creating delivery record:", error.message);
+            // Don't fail the order update if delivery record creation fails
+          }
+        }
+
+        return res.status(200).json(order);
+      } else if (order.status === "Delivery Accepted" && status === "Delivered") {
         order.status = status;
         await order.save();
         return res.status(200).json(order);
       } else {
         return res.status(403).json({ 
-          message: "Delivery personnel can only mark orders as Delivered when they are Out for Delivery" 
+          message: "Invalid status transition for delivery personnel" 
         });
       }
     } else if (role === "restaurant_admin") {

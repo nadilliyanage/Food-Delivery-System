@@ -27,6 +27,13 @@ const assignDriver = async (req, res) => {
       );
       orderData = orderResponse.data;
       console.log("✅ Order details fetched:", orderData);
+
+      // Check if order is in correct status
+      if (orderData.status !== "Delivery Accepted") {
+        return res.status(400).json({ 
+          message: "Order must be in Delivery Accepted status to create delivery record" 
+        });
+      }
     } catch (error) {
       console.error(
         "❌ Error fetching order:",
@@ -58,6 +65,14 @@ const assignDriver = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Invalid driver or driver not found" });
+    }
+
+    // Check if delivery record already exists
+    const existingDelivery = await Delivery.findOne({ order: orderId });
+    if (existingDelivery) {
+      return res.status(400).json({ 
+        message: "Delivery record already exists for this order" 
+      });
     }
 
     // ✅ Create a new Delivery record in the database

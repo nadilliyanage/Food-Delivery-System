@@ -26,7 +26,7 @@ router.get("/:id", authMiddleware, getOrderById);
 router.post("/", authMiddleware, placeOrder);
 
 // Update order status
-router.put("/:id", authMiddleware, updateOrder);
+router.patch("/:id", authMiddleware, updateOrder);
 
 // Cancel order
 router.delete("/:id", authMiddleware, cancelOrder);
