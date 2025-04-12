@@ -19,33 +19,6 @@ const ManageOrders = () => {
   const [expandedRestaurant, setExpandedRestaurant] = useState(null);
   const navigate = useNavigate();
 
-  // Hard-coded order for testing
-  const hardcodedOrder = {
-    _id: "67f9d2260dd4b06637bf7c25",
-    customer: {
-      _id: "67e7926b36b9793d618260a2",
-      name: "John Doe",
-    },
-    restaurant: "67ea36150f49f760976d3200",
-    items: [
-      {
-        menuItem: "67ea5264764535ba6c2975a7",
-        quantity: 1,
-        _id: "67f9d2260dd4b06637bf7c26",
-      },
-    ],
-    totalPrice: 750,
-    status: "Pending",
-    deliveryAddress: {
-      street: "507, Pahala Padukka, Padukka",
-      city: "Padukka, Sri Lanka",
-      instructions: "",
-    },
-    paymentMethod: "cash",
-    createdAt: "2024-03-12T10:15:10.303Z",
-    __v: 0,
-  };
-
   useEffect(() => {
     fetchRestaurants();
   }, []);
@@ -90,22 +63,6 @@ const ManageOrders = () => {
           );
         }
 
-        // Add hardcoded order if it matches any restaurant
-        for (const restaurant of response.data) {
-          if (restaurant._id === hardcodedOrder.restaurant) {
-            if (!ordersData[restaurant._id]) {
-              ordersData[restaurant._id] = [];
-            }
-            // Check if hardcoded order already exists
-            const orderExists = ordersData[restaurant._id].some(
-              (order) => order._id === hardcodedOrder._id
-            );
-            if (!orderExists) {
-              ordersData[restaurant._id].push(hardcodedOrder);
-            }
-          }
-        }
-
         setOrders(ordersData);
       } catch (err) {
         console.error("Error fetching orders:", err);
@@ -115,10 +72,6 @@ const ManageOrders = () => {
         const emptyOrders = {};
         for (const restaurant of response.data) {
           emptyOrders[restaurant._id] = [];
-          // Add hardcoded order if it matches this restaurant
-          if (restaurant._id === hardcodedOrder.restaurant) {
-            emptyOrders[restaurant._id].push(hardcodedOrder);
-          }
         }
         setOrders(emptyOrders);
       }
@@ -128,21 +81,6 @@ const ManageOrders = () => {
       console.error("Error fetching restaurants:", err);
       setError("Failed to fetch restaurants. Please try again later.");
       toast.error("Failed to fetch restaurants");
-
-      // For testing, create a hardcoded restaurant if API fails
-      const hardcodedRestaurant = {
-        _id: "67ea36150f49f760976d3200",
-        name: "Test Restaurant",
-        cuisine: "Test Cuisine",
-        imageUrl:
-          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
-        registrationStatus: "approved",
-      };
-
-      setRestaurants([hardcodedRestaurant]);
-      setOrders({
-        [hardcodedRestaurant._id]: [hardcodedOrder],
-      });
     } finally {
       setLoading(false);
     }
@@ -178,19 +116,6 @@ const ManageOrders = () => {
     } catch (err) {
       console.error("Error updating order status:", err);
       toast.error("Failed to update order status");
-
-      // For testing, update the hardcoded order status locally
-      if (orderId === hardcodedOrder._id) {
-        const updatedOrders = { ...orders };
-        for (const restaurantId in updatedOrders) {
-          updatedOrders[restaurantId] = updatedOrders[restaurantId].map(
-            (order) =>
-              order._id === orderId ? { ...order, status: newStatus } : order
-          );
-        }
-        setOrders(updatedOrders);
-        toast.success(`Order status updated to ${newStatus} (local update)`);
-      }
     }
   };
 
