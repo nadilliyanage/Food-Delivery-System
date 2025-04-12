@@ -10,7 +10,15 @@ import { FaBars, FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Scroll from "../hooks/useScroll";
 import Loader from "../components/Loader/Loader";
-import { MdFeedback, MdRequestQuote, MdError, MdPayments, MdFoodBank, MdDeliveryDining, MdRestaurantMenu } from "react-icons/md";
+import {
+  MdFeedback,
+  MdRequestQuote,
+  MdError,
+  MdPayments,
+  MdFoodBank,
+  MdDeliveryDining,
+  MdRestaurantMenu,
+} from "react-icons/md";
 import { GiPikeman } from "react-icons/gi";
 import { AiFillSchedule } from "react-icons/ai";
 import NavBar from "../components/headers/NavBar";
@@ -107,6 +115,11 @@ const restaurantAdminNavItems = [
     icon: <MdRestaurantMenu className="text-2xl" />,
     label: "Manage Menus",
   },
+  {
+    to: "/dashboard/manage-orders",
+    icon: <MdDeliveryDining className="text-2xl" />,
+    label: "Manage Orders",
+  },
 ];
 
 const deliveryPersonnelNavItems = [
@@ -159,18 +172,18 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState(() => {
     // Get the stored role from localStorage, or use the current user's role
-    const storedRole = localStorage.getItem('selectedDashboardRole');
-    return storedRole || currentUser?.role || 'customer';
+    const storedRole = localStorage.getItem("selectedDashboardRole");
+    return storedRole || currentUser?.role || "customer";
   });
 
   useEffect(() => {
     // Update localStorage when selectedRole changes
-    localStorage.setItem('selectedDashboardRole', selectedRole);
+    localStorage.setItem("selectedDashboardRole", selectedRole);
   }, [selectedRole]);
 
   // Update selectedRole when currentUser changes
   useEffect(() => {
-    if (currentUser?.role && !localStorage.getItem('selectedDashboardRole')) {
+    if (currentUser?.role && !localStorage.getItem("selectedDashboardRole")) {
       setSelectedRole(currentUser.role);
     }
   }, [currentUser]);
@@ -193,7 +206,7 @@ const DashboardLayout = () => {
             icon: "success",
           })
         );
-        localStorage.removeItem('selectedDashboardRole'); // Clear the stored role on logout
+        localStorage.removeItem("selectedDashboardRole"); // Clear the stored role on logout
         navigate("/").catch((error) => console.log(error));
       }
     });
@@ -205,13 +218,13 @@ const DashboardLayout = () => {
 
   const renderNavItems = () => {
     switch (selectedRole) {
-      case 'admin':
+      case "admin":
         return adminNavItems;
-      case 'customer':
+      case "customer":
         return customerNavItems;
-      case 'restaurant_admin':
+      case "restaurant_admin":
         return restaurantAdminNavItems;
-      case 'delivery_personnel':
+      case "delivery_personnel":
         return deliveryPersonnelNavItems;
       default:
         return customerNavItems;
@@ -238,7 +251,9 @@ const DashboardLayout = () => {
           className={`${
             open ? "w-72" : "w-[90px]"
           } bg-white h-screen p-5 pt-8 duration-300 ${
-            isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
+            isMobileMenuOpen
+              ? "translate-x-0 shadow-2xl"
+              : "-translate-x-full md:translate-x-0"
           } fixed md:relative z-[55] md:shadow-none`}
         >
           <div className="flex gap-x-4 items-center mt-2">
@@ -262,7 +277,11 @@ const DashboardLayout = () => {
 
           {/* Rest of the sidebar content */}
           <ul className="pt-6">
-            <p className={`uppercase ml-3 text-gray-500 mb-3 ${!open && "hidden"}`}>
+            <p
+              className={`uppercase ml-3 text-gray-500 mb-3 ${
+                !open && "hidden"
+              }`}
+            >
               <small>Menu</small>
             </p>
             {renderNavItems().map((menuItem, index) => (
@@ -277,7 +296,9 @@ const DashboardLayout = () => {
                   }
                 >
                   {menuItem.icon}
-                  <span className={`${!open && "hidden"} origin-left duration-200`}>
+                  <span
+                    className={`${!open && "hidden"} origin-left duration-200`}
+                  >
                     {menuItem.label}
                   </span>
                 </NavLink>
@@ -286,7 +307,11 @@ const DashboardLayout = () => {
           </ul>
 
           <ul className="pt-6">
-            <p className={`uppercase ml-3 text-gray-500 mb-3 ${!open && "hidden"}`}>
+            <p
+              className={`uppercase ml-3 text-gray-500 mb-3 ${
+                !open && "hidden"
+              }`}
+            >
               <small>Useful links</small>
             </p>
             {lastMenuItems.map((menuItem, index) => (
@@ -301,7 +326,9 @@ const DashboardLayout = () => {
                   }
                 >
                   {menuItem.icon}
-                  <span className={`${!open && "hidden"} origin-left duration-200`}>
+                  <span
+                    className={`${!open && "hidden"} origin-left duration-200`}
+                  >
                     {menuItem.label}
                   </span>
                 </NavLink>
@@ -314,7 +341,9 @@ const DashboardLayout = () => {
                 className={`flex w-full text-[#413F44] duration-150 rounded-md p-2 cursor-pointer hover:shadow-md hover:text-red-500 font-bold text-sm items-center gap-x-4`}
               >
                 <BiLogInCircle className="text-2xl" />
-                <span className={`${!open && "hidden"} origin-left duration-200`}>
+                <span
+                  className={`${!open && "hidden"} origin-left duration-200`}
+                >
                   Logout
                 </span>
               </button>
@@ -331,7 +360,11 @@ const DashboardLayout = () => {
                   className="w-12 h-12 rounded-full object-cover border-2"
                 />
               </Link>
-              <span className={`${!open && "hidden"} text-gray-700 font-semibold text-sm`}>
+              <span
+                className={`${
+                  !open && "hidden"
+                } text-gray-700 font-semibold text-sm`}
+              >
                 {currentUser?.name || "User"}
               </span>
             </div>

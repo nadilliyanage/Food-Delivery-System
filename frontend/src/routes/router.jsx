@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import Home from "../pages/Home/Home";
@@ -19,25 +19,26 @@ import RestaurantRequests from "../pages/Dashboard/Admin/RestaurantRequests";
 import DeliveryPersonnelManagement from "../pages/Dashboard/Admin/DeliveryPersonnelManagement";
 import RestaurantAdminHome from "../pages/dashboard/RestaurantAdminHome";
 import DeliveryRegistration from "../pages/Registration/DeliveryRegistration";
-import DeliveryHome from '../pages/Dashboard/DeliveryHome';
-import CurrentDeliveries from '../pages/Dashboard/Delivery/CurrentDeliveries';
-import DeliveryHistory from '../pages/Dashboard/Delivery/DeliveryHistory';
-import DeliveryProfile from '../pages/Dashboard/Delivery/DeliveryProfile';
-import Earnings from '../pages/Dashboard/Delivery/Earnings';
-import Availability from '../pages/Dashboard/Delivery/Availability';
+import DeliveryHome from "../pages/Dashboard/DeliveryHome";
+import CurrentDeliveries from "../pages/Dashboard/Delivery/CurrentDeliveries";
+import DeliveryHistory from "../pages/Dashboard/Delivery/DeliveryHistory";
+import DeliveryProfile from "../pages/Dashboard/Delivery/DeliveryProfile";
+import Earnings from "../pages/Dashboard/Delivery/Earnings";
+import Availability from "../pages/Dashboard/Delivery/Availability";
 import { Navigate } from "react-router-dom";
-import MyOrders from '../pages/MyOrders';
-import OrderHistory from '../pages/OrderHistory';
-import TrackDelivery from '../pages/TrackDelivery';
-import PaymentHistory from '../pages/PaymentHistory';
-import ManageRestaurants from '../pages/Dashboard/RestaurantAdmin/ManageRestaurants';
-import RestaurantDetails from '../pages/Dashboard/RestaurantAdmin/RestaurantDetails';
-import EditMenuItem from '../pages/Dashboard/RestaurantAdmin/EditMenuItem';
-import Cart from '../pages/Cart/Cart';
-import RestaurantDetailsInHome from '../pages/Restaurant/RestaurantDetails';
-import CartDetails from '../pages/Cart/CartDetails';
-import Checkout from '../pages/Checkout/Checkout';
-import OrderDetails from '../pages/OrderDetails';
+import MyOrders from "../pages/MyOrders";
+import OrderHistory from "../pages/OrderHistory";
+import TrackDelivery from "../pages/TrackDelivery";
+import PaymentHistory from "../pages/PaymentHistory";
+import ManageRestaurants from "../pages/Dashboard/RestaurantAdmin/ManageRestaurants";
+import RestaurantDetails from "../pages/Dashboard/RestaurantAdmin/RestaurantDetails";
+import EditMenuItem from "../pages/Dashboard/RestaurantAdmin/EditMenuItem";
+import ManageOrders from "../pages/Dashboard/RestaurantAdmin/ManageOrders";
+import Cart from "../pages/Cart/Cart";
+import RestaurantDetailsInHome from "../pages/Restaurant/RestaurantDetails";
+import CartDetails from "../pages/Cart/CartDetails";
+import Checkout from "../pages/Checkout/Checkout";
+import OrderDetails from "../pages/OrderDetails";
 
 export const router = createBrowserRouter([
   {
@@ -130,17 +131,17 @@ export const router = createBrowserRouter([
       },
       {
         path: "order-history",
-        element: <OrderHistory />
+        element: <OrderHistory />,
       },
       {
         path: "track-delivery",
-        element: <TrackDelivery />
+        element: <TrackDelivery />,
       },
       {
         path: "my-payments",
-        element: <PaymentHistory />
+        element: <PaymentHistory />,
       },
-      
+
       // admin routes
       {
         path: "admin-home",
@@ -162,14 +163,17 @@ export const router = createBrowserRouter([
         path: "update-user/:id",
         element: <UpdateUser />,
         loader: async ({ params }) => {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`http://localhost:3000/api/auth/users/${params.id}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
+          const token = localStorage.getItem("token");
+          const response = await fetch(
+            `http://localhost:3000/api/auth/users/${params.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             }
-          });
+          );
           if (!response.ok) {
-            throw new Error('Failed to fetch user data');
+            throw new Error("Failed to fetch user data");
           }
           return response.json();
         },
@@ -191,6 +195,10 @@ export const router = createBrowserRouter([
       {
         path: "manage-restaurants/:restaurantId/menu/:menuItemId/edit",
         element: <EditMenuItem />,
+      },
+      {
+        path: "manage-orders",
+        element: <ManageOrders />,
       },
 
       // delivery personnel routes
