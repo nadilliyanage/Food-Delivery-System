@@ -35,9 +35,11 @@ const orderSchema = new mongoose.Schema({
     default: "Pending",
   },
   deliveryAddress: {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    instructions: { type: String }
+    street: { type: String },
+    city: { type: String },
+    instructions: { type: String },
+    latitude: { type: Number },
+    longitude: { type: Number }
   },
   paymentMethod: {
     type: String,
