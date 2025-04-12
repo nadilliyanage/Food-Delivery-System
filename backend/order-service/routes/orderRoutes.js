@@ -7,6 +7,7 @@ const {
   cancelOrder,
   getOrders,
   getRestaurantOrders,
+  getOutForDeliveryOrders,
 } = require("../controllers/orderController");
 const authMiddleware = require("../middleware/middleware");
 
@@ -35,5 +36,8 @@ router.get("/:id/delivery", authMiddleware, getOrderById);
 
 // Get restaurant orders
 router.get("/restaurant/:restaurantId", authMiddleware, getRestaurantOrders);
+
+// Get orders that are out for delivery
+router.get("/delivery/out-for-delivery", authMiddleware, getOutForDeliveryOrders);
 
 module.exports = router;

@@ -39,6 +39,7 @@ import RestaurantDetailsInHome from "../pages/Restaurant/RestaurantDetails";
 import CartDetails from "../pages/Cart/CartDetails";
 import Checkout from "../pages/Checkout/Checkout";
 import OrderDetails from "../pages/OrderDetails";
+import OutForDelivery from "../pages/Dashboard/Delivery/OutForDelivery";
 
 export const router = createBrowserRouter([
   {
@@ -225,6 +226,10 @@ export const router = createBrowserRouter([
       {
         path: "delivery-profile",
         element: <DeliveryProfile />,
+      },
+      {
+        path: "out-for-delivery",
+        element: <OutForDelivery />,
       },
     ],
   },

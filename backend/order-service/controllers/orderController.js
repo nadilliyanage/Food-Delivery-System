@@ -178,67 +178,50 @@ const placeOrder = async (req, res) => {
   }
 };
 
-// Update an Order
+// Update order status
 const updateOrder = async (req, res) => {
   try {
+    const { id } = req.params;
     const { status } = req.body;
-    const orderId = req.params.id;
-    const userRole = req.user.role;
+    const { role } = req.user;
 
-    // Find the order first
-    const order = await Order.findById(orderId);
+    // Find the order
+    const order = await Order.findById(id);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check authorization
-    if (userRole !== "admin" && userRole !== "restaurant_admin") {
-      return res.status(403).json({ message: "Not authorized to update orders" });
-    }
-
-    // If restaurant admin, verify they own this restaurant
-    if (userRole === "restaurant_admin") {
-      try {
-        const restaurantResponse = await axios.get(
-          `${RESTAURANT_SERVICE_URL}/api/restaurants/${order.restaurant}`,
-          {
-            headers: { Authorization: `Bearer ${req.headers.authorization}` }
-          }
-        );
-
-        if (restaurantResponse.data.owner !== req.user.id) {
-          return res.status(403).json({ message: "Not authorized to update this restaurant's orders" });
-        }
-      } catch (error) {
-        console.error("Error verifying restaurant ownership:", error);
-        return res.status(500).json({ message: "Error verifying restaurant ownership" });
+    // Authorization checks based on role and status
+    if (role === "delivery_personnel") {
+      // Delivery personnel can only update to "Delivered" if current status is "Out for Delivery"
+      if (status === "Delivered" && order.status === "Out for Delivery") {
+        order.status = status;
+        await order.save();
+        return res.status(200).json(order);
+      } else {
+        return res.status(403).json({ 
+          message: "Delivery personnel can only mark orders as Delivered when they are Out for Delivery" 
+        });
       }
+    } else if (role === "restaurant_admin") {
+      // Restaurant admin can update to "Preparing" or "Out for Delivery"
+      if (["Preparing", "Confirmed", "Out for Delivery"].includes(status)) {
+        order.status = status;
+        await order.save();
+        return res.status(200).json(order);
+      } else {
+        return res.status(403).json({ 
+          message: "Restaurant admin can only update orders to Preparing or Out for Delivery" 
+        });
+      }
+    } else if (role === "admin") {
+      // Admin can update to any status
+      order.status = status;
+      await order.save();
+      return res.status(200).json(order);
+    } else {
+      return res.status(403).json({ message: "Unauthorized to update order status" });
     }
-
-    // Validate the status transition
-    const validTransitions = {
-      Pending: ["Confirmed", "Cancelled"],
-      Confirmed: ["Preparing", "Cancelled"],
-      Preparing: ["Out for Delivery", "Cancelled"],
-      "Out for Delivery": ["Delivered", "Cancelled"],
-      Delivered: [],
-      Cancelled: []
-    };
-
-    if (!validTransitions[order.status].includes(status)) {
-      return res.status(400).json({ 
-        message: `Invalid status transition from ${order.status} to ${status}` 
-      });
-    }
-
-    // Update the order
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    );
-
-    res.json(updatedOrder);
   } catch (error) {
     console.error("Error updating order:", error);
     res.status(500).json({ message: "Error updating order" });
@@ -352,6 +335,18 @@ const getRestaurantOrders = async (req, res) => {
   }
 };
 
+// Get orders that are out for delivery
+const getOutForDeliveryOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ status: "Out for Delivery" });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching out for delivery orders:", error);
+    res.status(500).json({ message: "Error fetching out for delivery orders" });
+  }
+};
+
 module.exports = {
   getUserOrders,
   getOrderById,
@@ -361,4 +356,5 @@ module.exports = {
   trackOrderStatus,
   getOrders,
   getRestaurantOrders,
+  getOutForDeliveryOrders,
 };
