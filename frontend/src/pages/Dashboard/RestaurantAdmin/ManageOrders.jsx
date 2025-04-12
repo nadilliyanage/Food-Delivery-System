@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -8,8 +8,13 @@ import {
   FaTruck,
   FaChevronDown,
   FaChevronUp,
+  FaFilter,
+  FaEllipsisV,
+  FaThumbtack,
+  FaTimes,
 } from "react-icons/fa";
 import { getCurrentUser } from "../../../utils/auth";
+import Swal from "sweetalert2";
 
 const ManageOrders = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -17,11 +22,59 @@ const ManageOrders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedRestaurant, setExpandedRestaurant] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [statusDropdown, setStatusDropdown] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [pinnedRestaurants, setPinnedRestaurants] = useState([]);
   const navigate = useNavigate();
+  const statusDropdownRef = useRef(null);
 
   useEffect(() => {
+    // Load pinned restaurants from localStorage
+    const loadPinnedRestaurants = () => {
+      const saved = localStorage.getItem('pinnedRestaurants');
+      if (saved) {
+        setPinnedRestaurants(JSON.parse(saved));
+      }
+    };
+    loadPinnedRestaurants();
     fetchRestaurants();
+
+    // Add click outside listener for status dropdown
+    const handleClickOutside = (event) => {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target)) {
+        setStatusDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
+
+  const togglePin = (restaurantId) => {
+    setPinnedRestaurants(prev => {
+      const newPinned = prev.includes(restaurantId)
+        ? prev.filter(id => id !== restaurantId)
+        : [...prev, restaurantId];
+      
+      // Save to localStorage
+      localStorage.setItem('pinnedRestaurants', JSON.stringify(newPinned));
+      return newPinned;
+    });
+  };
+
+  // Sort restaurants with pinned ones first
+  const getSortedRestaurants = () => {
+    return [...restaurants].sort((a, b) => {
+      const aIsPinned = pinnedRestaurants.includes(a._id);
+      const bIsPinned = pinnedRestaurants.includes(b._id);
+      if (aIsPinned && !bIsPinned) return -1;
+      if (!aIsPinned && bIsPinned) return 1;
+      return 0;
+    });
+  };
 
   const fetchRestaurants = async () => {
     try {
@@ -44,38 +97,50 @@ const ManageOrders = () => {
 
       setRestaurants(response.data);
 
-      // Fetch all orders for the restaurant admin
-      try {
-        const ordersResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/orders/all`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        // Group orders by restaurant ID
-        const ordersData = {};
-        for (const restaurant of response.data) {
-          ordersData[restaurant._id] = ordersResponse.data.filter(
-            (order) => order.restaurant === restaurant._id
+      // Fetch orders for each restaurant using the new endpoint
+      const ordersData = {};
+      for (const restaurant of response.data) {
+        try {
+          const ordersResponse = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/orders/restaurant/${restaurant._id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
-        }
 
-        setOrders(ordersData);
-      } catch (err) {
-        console.error("Error fetching orders:", err);
-        toast.error("Failed to fetch orders");
+          // Fetch customer details for each order
+          const ordersWithCustomerDetails = await Promise.all(
+            ordersResponse.data.map(async (order) => {
+              try {
+                const customerResponse = await axios.get(
+                  `${import.meta.env.VITE_API_URL}/api/auth/users/${order.customer}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                  }
+                );
+                return {
+                  ...order,
+                  customerDetails: customerResponse.data
+                };
+              } catch (error) {
+                console.error(`Error fetching customer details for order ${order._id}:`, error);
+                return order;
+              }
+            })
+          );
 
-        // Initialize empty orders for each restaurant
-        const emptyOrders = {};
-        for (const restaurant of response.data) {
-          emptyOrders[restaurant._id] = [];
+          ordersData[restaurant._id] = ordersWithCustomerDetails;
+        } catch (err) {
+          console.error(`Error fetching orders for restaurant ${restaurant._id}:`, err);
+          ordersData[restaurant._id] = [];
         }
-        setOrders(emptyOrders);
       }
 
+      setOrders(ordersData);
       setError(null);
     } catch (err) {
       console.error("Error fetching restaurants:", err);
@@ -90,32 +155,75 @@ const ManageOrders = () => {
     navigate(`/dashboard/order-details/${orderId}`);
   };
 
+  const getNextStatuses = (currentStatus) => {
+    switch (currentStatus) {
+      case "Pending":
+        return ["Confirmed", "Cancelled"];
+      case "Confirmed":
+        return ["Preparing", "Cancelled"];
+      case "Preparing":
+        return ["Out for Delivery", "Cancelled"];
+      case "Out for Delivery":
+        return ["Delivered", "Cancelled"];
+      default:
+        return [];
+    }
+  };
+
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/orders/${orderId}`,
-        { status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // Show confirmation dialog
+      const result = await Swal.fire({
+        title: 'Confirm Status Update',
+        text: `Are you sure you want to change the order status to ${newStatus}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#000',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, update it!',
+        cancelButtonText: 'Cancel'
+      });
 
-      // Update the local state
-      const updatedOrders = { ...orders };
-      for (const restaurantId in updatedOrders) {
-        updatedOrders[restaurantId] = updatedOrders[restaurantId].map((order) =>
-          order._id === orderId ? { ...order, status: newStatus } : order
+      // If user confirms, proceed with the update
+      if (result.isConfirmed) {
+        const token = localStorage.getItem("token");
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/orders/${orderId}`,
+          { status: newStatus },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-      }
-      setOrders(updatedOrders);
 
-      toast.success(`Order status updated to ${newStatus}`);
+        // Update the local state
+        const updatedOrders = { ...orders };
+        for (const restaurantId in updatedOrders) {
+          updatedOrders[restaurantId] = updatedOrders[restaurantId].map((order) =>
+            order._id === orderId ? { ...order, status: newStatus } : order
+          );
+        }
+        setOrders(updatedOrders);
+        setStatusDropdown(null); // Close the dropdown
+
+        // Show success message
+        await Swal.fire({
+          title: 'Updated!',
+          text: `Order status has been updated to ${newStatus}`,
+          icon: 'success',
+          confirmButtonColor: '#000'
+        });
+      }
     } catch (err) {
       console.error("Error updating order status:", err);
-      toast.error("Failed to update order status");
+      // Show error message
+      await Swal.fire({
+        title: 'Error!',
+        text: err.response?.data?.message || 'Failed to update order status',
+        icon: 'error',
+        confirmButtonColor: '#000'
+      });
     }
   };
 
@@ -175,6 +283,21 @@ const ManageOrders = () => {
     }
   };
 
+  const getFilteredOrders = (restaurantId) => {
+    if (!orders[restaurantId]) return [];
+    return selectedStatus === "All" 
+      ? orders[restaurantId]
+      : orders[restaurantId].filter(order => order.status === selectedStatus);
+  };
+
+  const handleOrderClick = (order) => {
+    setSelectedOrder(order);
+  };
+
+  const closeOrderDetails = () => {
+    setSelectedOrder(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -196,169 +319,332 @@ const ManageOrders = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Manage Orders by Restaurant</h1>
-
-      {restaurants.length === 0 ? (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <p className="text-gray-500 text-center">
-            No restaurants found. Please register a restaurant first.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {restaurants.map((restaurant) => (
-            <div
-              key={restaurant._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
-            >
-              <div
-                className="p-4 cursor-pointer flex justify-between items-center"
-                onClick={() => toggleRestaurant(restaurant._id)}
+    <div className="min-h-screen bg-gray-50">
+      <div className="px-6 py-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Manage Orders by Restaurant</h1>
+          <div className="relative">
+            <div className="flex items-center gap-2 border rounded-lg px-4 py-2 bg-white">
+              <FaFilter className="text-gray-400 w-4 h-4" />
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="appearance-none bg-transparent pr-8 focus:outline-none text-gray-700"
               >
-                <div className="flex items-center">
-                  <div className="w-16 h-16 mr-4">
-                    <img
-                      src={restaurant.imageUrl || getDefaultImage()}
-                      alt={restaurant.name}
-                      className="w-full h-full object-cover rounded-lg"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = getDefaultImage();
-                      }}
-                    />
+                <option value="All">All Orders</option>
+                <option value="Pending">Pending Orders</option>
+                <option value="Confirmed">Confirmed Orders</option>
+                <option value="Preparing">Preparing</option>
+                <option value="Out for Delivery">Out for Delivery</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              <FaChevronDown className="text-gray-400 w-4 h-4 absolute right-4" />
+            </div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            {error}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {getSortedRestaurants().map((restaurant) => {
+              const filteredOrders = getFilteredOrders(restaurant._id);
+              const isPinned = pinnedRestaurants.includes(restaurant._id);
+              
+              return (
+                <div key={restaurant._id} className="bg-white">
+                  <div 
+                    className="px-6 py-4 border-b cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => toggleRestaurant(restaurant._id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <img
+                          src={restaurant.imageUrl || getDefaultImage()}
+                          alt={restaurant.name}
+                          className="w-12 h-12 rounded-lg object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = getDefaultImage();
+                          }}
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xl font-semibold text-gray-900">{restaurant.name}</h3>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePin(restaurant._id);
+                              }}
+                              className={`p-1 rounded hover:bg-gray-100 transition-colors ${
+                                isPinned ? 'text-primary' : 'text-gray-400'
+                              }`}
+                              title={isPinned ? 'Unpin restaurant' : 'Pin restaurant'}
+                            >
+                              <FaThumbtack className={`w-4 h-4 ${isPinned ? 'rotate-45' : ''}`} />
+                            </button>
+                          </div>
+                          <span className="text-green-600 text-sm">
+                            {restaurant.registrationStatus.charAt(0).toUpperCase() + 
+                             restaurant.registrationStatus.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-sm">
+                          <span className="font-medium text-primary">
+                            {orders[restaurant._id]?.filter(order => order.status === "Pending").length || 0}
+                          </span>
+                          <span className="text-gray-500"> pending orders</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-600">
+                            {filteredOrders.length} orders
+                          </span>
+                          {expandedRestaurant === restaurant._id ? (
+                            <FaChevronUp className="text-gray-400 w-4 h-4" />
+                          ) : (
+                            <FaChevronDown className="text-gray-400 w-4 h-4" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
+                  {expandedRestaurant === restaurant._id && (
+                    <div className="border-t">
+                      {filteredOrders.length === 0 ? (
+                        <div className="p-6 text-center text-gray-500">
+                          No {selectedStatus.toLowerCase()} orders found
+                        </div>
+                      ) : (
+                        <div className="divide-y">
+                          {filteredOrders.map((order) => (
+                            <div 
+                              key={order._id}
+                              className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                              onClick={() => handleOrderClick(order)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {order._id.substring(0, 8)}...
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {formatDate(order.createdAt)}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-sm text-gray-900">
+                                    {order.customerDetails?.name || "Unknown"}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                    ${order.totalPrice.toFixed(2)}
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(order.status)}`}>
+                                    {order.status}
+                                  </span>
+                                  {order.status !== "Delivered" && order.status !== "Cancelled" && (
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setStatusDropdown(statusDropdown === order._id ? null : order._id);
+                                        }}
+                                        className="text-gray-400 hover:text-gray-600"
+                                      >
+                                        <FaEllipsisV className="w-4 h-4" />
+                                      </button>
+                                      {statusDropdown === order._id && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                                          {getNextStatuses(order.status).map((status) => (
+                                            <button
+                                              key={status}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateOrderStatus(order._id, status);
+                                              }}
+                                              className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 
+                                                ${status === "Cancelled" ? "text-red-600" : "text-gray-700"}`}
+                                            >
+                                              {status}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Order Details</h2>
+              <button
+                onClick={closeOrderDetails}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Order Info */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-xl font-semibold">{restaurant.name}</h3>
-                    <p className="text-gray-600">{restaurant.cuisine}</p>
-                    <span
-                      className={`font-medium ${getStatusColor(
-                        restaurant.registrationStatus
-                      )}`}
-                    >
-                      {restaurant.registrationStatus.charAt(0).toUpperCase() +
-                        restaurant.registrationStatus.slice(1)}
-                    </span>
+                    <p className="text-sm text-gray-500">Order ID</p>
+                    <p className="font-medium">{selectedOrder._id}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(selectedOrder.status)}`}>
+                      {selectedOrder.status}
+                    </div>
+                    {selectedOrder.status !== "Delivered" && selectedOrder.status !== "Cancelled" && (
+                      <div className="relative" ref={statusDropdownRef}>
+                        <button
+                          onClick={() => setStatusDropdown(statusDropdown === selectedOrder._id ? null : selectedOrder._id)}
+                          className="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1"
+                        >
+                          Change Status
+                          <FaChevronDown className={`w-3 h-3 transform transition-transform ${
+                            statusDropdown === selectedOrder._id ? 'rotate-180' : ''
+                          }`} />
+                        </button>
+                        {statusDropdown === selectedOrder._id && (
+                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                            {getNextStatuses(selectedOrder.status).map((status) => (
+                              <button
+                                key={status}
+                                onClick={() => {
+                                  updateOrderStatus(selectedOrder._id, status);
+                                  setStatusDropdown(null);
+                                }}
+                                className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 
+                                  ${status === "Cancelled" ? "text-red-600" : "text-gray-700"}`}
+                              >
+                                {status}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center">
-                  <span className="mr-2 text-gray-500">
-                    {orders[restaurant._id]?.length || 0} orders
-                  </span>
-                  {expandedRestaurant === restaurant._id ? (
-                    <FaChevronUp className="text-gray-500" />
-                  ) : (
-                    <FaChevronDown className="text-gray-500" />
-                  )}
+
+                {/* Status Timeline */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <h3 className="font-medium mb-3">Order Status Timeline</h3>
+                  <div className="flex justify-between items-center">
+                    {["Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"].map((status, index) => (
+                      <div 
+                        key={status}
+                        className={`flex flex-col items-center relative ${
+                          index < ["Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"]
+                            .indexOf(selectedOrder.status) + 1 ? 'text-primary' : 'text-gray-400'
+                        }`}
+                      >
+                        <div className={`w-4 h-4 rounded-full ${
+                          index < ["Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"]
+                            .indexOf(selectedOrder.status) + 1 ? 'bg-primary' : 'bg-gray-300'
+                        }`}></div>
+                        <p className="text-xs mt-1">{status}</p>
+                        {index < 4 && (
+                          <div className={`absolute top-2 left-4 w-[calc(100%-1rem)] h-0.5 -z-10 ${
+                            index < ["Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"]
+                              .indexOf(selectedOrder.status) ? 'bg-primary' : 'bg-gray-300'
+                          }`}></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-500">Customer</p>
+                  <p className="font-medium">{selectedOrder.customerDetails?.name || "Unknown"}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-500">Order Date</p>
+                  <p className="font-medium">{formatDate(selectedOrder.createdAt)}</p>
+                </div>
+
+                {selectedOrder.deliveryAddress && (
+                  <div>
+                    <p className="text-sm text-gray-500">Delivery Address</p>
+                    <p className="font-medium">
+                      {selectedOrder.deliveryAddress.street}, {selectedOrder.deliveryAddress.city}
+                    </p>
+                    {selectedOrder.deliveryAddress.instructions && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        Instructions: {selectedOrder.deliveryAddress.instructions}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Order Items */}
+              <div>
+                <h3 className="font-semibold mb-3">Order Items</h3>
+                <div className="space-y-3">
+                  {selectedOrder.items.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                      <div>
+                        <p className="font-medium">{item.menuItem?.name}</p>
+                        <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                      </div>
+                      <p className="font-medium">
+                        ${(item.menuItem?.price * item.quantity).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {expandedRestaurant === restaurant._id && (
-                <div className="border-t">
-                  {orders[restaurant._id]?.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">
-                      No orders found for this restaurant.
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Order ID
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Date
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Customer
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Total
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Status
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {orders[restaurant._id]?.map((order) => (
-                            <tr key={order._id}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {order._id.substring(0, 8)}...
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {formatDate(order.createdAt)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {order.customer?.name || "Unknown"}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                ${order.totalPrice.toFixed(2)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
-                                    order.status
-                                  )}`}
-                                >
-                                  {order.status}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div className="flex space-x-2">
-                                  <button
-                                    onClick={() => handleViewOrder(order._id)}
-                                    className="text-blue-600 hover:text-blue-900"
-                                    title="View Details"
-                                  >
-                                    <FaEye />
-                                  </button>
-
-                                  {order.status === "Confirmed" && (
-                                    <button
-                                      onClick={() =>
-                                        updateOrderStatus(
-                                          order._id,
-                                          "Preparing"
-                                        )
-                                      }
-                                      className="text-purple-600 hover:text-purple-900"
-                                      title="Mark as Preparing"
-                                    >
-                                      <FaCheck />
-                                    </button>
-                                  )}
-
-                                  {order.status === "Preparing" && (
-                                    <button
-                                      onClick={() =>
-                                        updateOrderStatus(
-                                          order._id,
-                                          "Out for Delivery"
-                                        )
-                                      }
-                                      className="text-indigo-600 hover:text-indigo-900"
-                                      title="Mark as Out for Delivery"
-                                    >
-                                      <FaTruck />
-                                    </button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+              {/* Order Total */}
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <p className="font-semibold">Total Amount</p>
+                  <p className="text-xl font-bold">${selectedOrder.totalPrice.toFixed(2)}</p>
                 </div>
-              )}
+              </div>
+
+              {/* Payment Info */}
+              <div>
+                <p className="text-sm text-gray-500">Payment Method</p>
+                <p className="font-medium capitalize">{selectedOrder.paymentMethod}</p>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
       )}
     </div>
