@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import storage from '../../../config/firebase.init';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { FaEdit, FaPencilAlt } from 'react-icons/fa';
+import { categoryOptions } from '../../../data/CategoryData';
 
 const RestaurantDetails = () => {
   const { restaurantId } = useParams();
@@ -306,13 +307,19 @@ const RestaurantDetails = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Category</label>
-                <input
-                  type="text"
+                <select
                   value={newMenuItem.category}
                   onChange={(e) => setNewMenuItem({ ...newMenuItem, category: e.target.value })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                   required
-                />
+                >
+                  <option value="">Select a category</option>
+                  {categoryOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Image</label>
