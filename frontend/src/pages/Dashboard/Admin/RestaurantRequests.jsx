@@ -301,7 +301,9 @@ const RestaurantRequests = () => {
                 </p>
                 <p>
                   <span className="font-medium">Location:</span>{" "}
-                  {restaurant.location}
+                  {restaurant.location?.coordinates
+                    ? `${restaurant.location.coordinates[1]}, ${restaurant.location.coordinates[0]}`
+                    : "Location not available"}
                 </p>
                 <p>
                   <span className="font-medium">Phone:</span> {restaurant.phone}
