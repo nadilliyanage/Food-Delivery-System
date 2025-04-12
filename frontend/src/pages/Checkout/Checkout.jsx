@@ -14,8 +14,11 @@ const Checkout = () => {
   const [deliveryAddress, setDeliveryAddress] = useState({
     street: '',
     city: '',
-    instructions: ''
+    instructions: '',
+    latitude: null,
+    longitude: null
   });
+  const [locationLoading, setLocationLoading] = useState(false);
   const [cardDetails, setCardDetails] = useState({
     number: '',
     expiry: '',
@@ -67,6 +70,60 @@ const Checkout = () => {
     }));
   };
 
+  const getCurrentLocation = () => {
+    setLocationLoading(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            // Use reverse geocoding to get address details
+            const response = await axios.get(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            
+            const address = response.data.address;
+            setDeliveryAddress({
+              street: address.road || address.street || '',
+              city: address.city || address.town || '',
+              instructions: '',
+              latitude,
+              longitude
+            });
+          } catch (error) {
+            console.error('Error getting location details:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Location Error',
+              text: 'Failed to get your location details. Please enter manually.',
+              confirmButtonColor: '#000'
+            });
+          } finally {
+            setLocationLoading(false);
+          }
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          setLocationLoading(false);
+          Swal.fire({
+            icon: 'error',
+            title: 'Location Access Denied',
+            text: 'Please enable location access or enter your address manually.',
+            confirmButtonColor: '#000'
+          });
+        }
+      );
+    } else {
+      setLocationLoading(false);
+      Swal.fire({
+        icon: 'error',
+        title: 'Location Not Supported',
+        text: 'Your browser does not support geolocation.',
+        confirmButtonColor: '#000'
+      });
+    }
+  };
+
   const handleCardDetailsChange = (e) => {
     const { name, value } = e.target;
     setCardDetails(prev => ({
@@ -85,11 +142,6 @@ const Checkout = () => {
           throw new Error('Please fill in all card details');
         }
       }
-      
-      // Validate address
-      if (!deliveryAddress.street || !deliveryAddress.city) {
-        throw new Error('Please fill in all address details');
-      }
 
       // Create order with the correct format expected by backend
       const orderData = {
@@ -102,7 +154,9 @@ const Checkout = () => {
         deliveryAddress: {
           street: deliveryAddress.street,
           city: deliveryAddress.city,
-          instructions: deliveryAddress.instructions
+          instructions: deliveryAddress.instructions,
+          latitude: deliveryAddress.latitude,
+          longitude: deliveryAddress.longitude
         },
         paymentMethod: selectedPaymentMethod,
         ...(selectedPaymentMethod === 'card' && { cardDetails })
@@ -188,10 +242,19 @@ const Checkout = () => {
       <div className="max-w-2xl mx-auto p-4 space-y-6">
         {/* Delivery Address */}
         <div className="bg-white p-4 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <MapPinIcon className="h-5 w-5" />
-            Delivery Address
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <MapPinIcon className="h-5 w-5" />
+              Delivery Address
+            </h2>
+            <button
+              onClick={getCurrentLocation}
+              disabled={locationLoading}
+              className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-dark transition-colors"
+            >
+              {locationLoading ? 'Getting Location...' : 'Use Current Location'}
+            </button>
+          </div>
           <div className="space-y-4">
             <input
               type="text"
@@ -200,7 +263,6 @@ const Checkout = () => {
               value={deliveryAddress.street}
               onChange={handleAddressChange}
               className="w-full p-2 border rounded-lg"
-              required
             />
             <input
               type="text"
@@ -209,7 +271,6 @@ const Checkout = () => {
               value={deliveryAddress.city}
               onChange={handleAddressChange}
               className="w-full p-2 border rounded-lg"
-              required
             />
             <textarea
               name="instructions"

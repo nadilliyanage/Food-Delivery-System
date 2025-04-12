@@ -26,6 +26,7 @@
     "axios": "^1.4.0",
     "chart.js": "^4.4.5",
     "create-file-list": "^1.1.0",
+    "date-fns": "^4.1.0",
     "firebase": "^9.22.1",
     "framer-motion": "^10.12.16",
     "jsqr": "^1.4.0",

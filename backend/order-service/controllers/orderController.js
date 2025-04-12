@@ -141,16 +141,11 @@ const getOrderById = async (req, res) => {
 // ✅ Place a New Order (Fetch Restaurant First)
 const placeOrder = async (req, res) => {
   try {
-    const { restaurant, items, totalPrice, deliveryAddress, paymentMethod, cardDetails } = req.body;
+    const { restaurant, items, totalPrice, paymentMethod, cardDetails, deliveryAddress } = req.body;
 
     // Validate required fields
-    if (!restaurant || !items || !totalPrice || !deliveryAddress || !paymentMethod) {
+    if (!restaurant || !items || !totalPrice || !paymentMethod) {
       return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Validate delivery address
-    if (!deliveryAddress.street || !deliveryAddress.city) {
-      return res.status(400).json({ message: "Incomplete delivery address" });
     }
 
     // Validate payment method
@@ -170,11 +165,7 @@ const placeOrder = async (req, res) => {
       restaurant,
       items,
       totalPrice,
-      deliveryAddress: {
-        street: deliveryAddress.street,
-        city: deliveryAddress.city,
-        instructions: deliveryAddress.instructions
-      },
+      deliveryAddress,
       paymentMethod,
       ...(paymentMethod === "card" && { cardDetails })
     });
@@ -187,23 +178,69 @@ const placeOrder = async (req, res) => {
   }
 };
 
-// ✅ Update an Order (Only if Status is `Pending`)
+// Update an Order
 const updateOrder = async (req, res) => {
   try {
-    const updatedOrder = await Order.findOneAndUpdate(
-      { _id: req.params.id, customer: req.user.id, status: "Pending" },
-      req.body,
+    const { status } = req.body;
+    const orderId = req.params.id;
+    const userRole = req.user.role;
+
+    // Find the order first
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check authorization
+    if (userRole !== "admin" && userRole !== "restaurant_admin") {
+      return res.status(403).json({ message: "Not authorized to update orders" });
+    }
+
+    // If restaurant admin, verify they own this restaurant
+    if (userRole === "restaurant_admin") {
+      try {
+        const restaurantResponse = await axios.get(
+          `${RESTAURANT_SERVICE_URL}/api/restaurants/${order.restaurant}`,
+          {
+            headers: { Authorization: `Bearer ${req.headers.authorization}` }
+          }
+        );
+
+        if (restaurantResponse.data.owner !== req.user.id) {
+          return res.status(403).json({ message: "Not authorized to update this restaurant's orders" });
+        }
+      } catch (error) {
+        console.error("Error verifying restaurant ownership:", error);
+        return res.status(500).json({ message: "Error verifying restaurant ownership" });
+      }
+    }
+
+    // Validate the status transition
+    const validTransitions = {
+      Pending: ["Confirmed", "Cancelled"],
+      Confirmed: ["Preparing", "Cancelled"],
+      Preparing: ["Out for Delivery", "Cancelled"],
+      "Out for Delivery": ["Delivered", "Cancelled"],
+      Delivered: [],
+      Cancelled: []
+    };
+
+    if (!validTransitions[order.status].includes(status)) {
+      return res.status(400).json({ 
+        message: `Invalid status transition from ${order.status} to ${status}` 
+      });
+    }
+
+    // Update the order
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
       { new: true }
     );
 
-    if (!updatedOrder)
-      return res
-        .status(404)
-        .json({ message: "Order not found or cannot be modified" });
-
     res.json(updatedOrder);
   } catch (error) {
-    console.error("❌ Error updating order:", error);
+    console.error("Error updating order:", error);
     res.status(500).json({ message: "Error updating order" });
   }
 };
@@ -246,6 +283,75 @@ const trackOrderStatus = async (req, res) => {
   }
 };
 
+// Get orders for a specific restaurant
+const getRestaurantOrders = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const userRole = req.user.role;
+
+    // Check if user has permission to access these orders
+    if (userRole !== "admin" && userRole !== "restaurant_admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // If restaurant admin, verify they own this restaurant
+    if (userRole === "restaurant_admin") {
+      try {
+        const restaurantResponse = await axios.get(
+          `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurantId}`,
+          {
+            headers: { Authorization: `Bearer ${req.headers.authorization}` }
+          }
+        );
+
+        if (restaurantResponse.data.owner !== req.user.id) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      } catch (error) {
+        console.error("Error verifying restaurant ownership:", error);
+        return res.status(500).json({ message: "Error verifying restaurant ownership" });
+      }
+    }
+
+    // Fetch orders for the restaurant
+    const orders = await Order.find({ restaurant: restaurantId })
+      .sort({ createdAt: -1 }); // Sort by newest first
+
+    // Fetch customer details for each order
+    const ordersWithDetails = await Promise.all(
+      orders.map(async (order) => {
+        try {
+          // Fetch menu item details
+          const detailedItems = await Promise.all(
+            order.items.map(async (item) => {
+              const menuResponse = await axios.get(
+                `${RESTAURANT_SERVICE_URL}/api/menu/${item.menuItem}`
+              );
+              return {
+                menuItem: menuResponse.data,
+                quantity: item.quantity,
+              };
+            })
+          );
+
+          return {
+            ...order.toObject(),
+            items: detailedItems,
+          };
+        } catch (error) {
+          console.error("Error fetching order details:", error);
+          return order;
+        }
+      })
+    );
+
+    res.json(ordersWithDetails);
+  } catch (error) {
+    console.error("Error fetching restaurant orders:", error);
+    res.status(500).json({ message: "Error fetching restaurant orders" });
+  }
+};
+
 module.exports = {
   getUserOrders,
   getOrderById,
@@ -254,4 +360,5 @@ module.exports = {
   cancelOrder,
   trackOrderStatus,
   getOrders,
+  getRestaurantOrders,
 };
