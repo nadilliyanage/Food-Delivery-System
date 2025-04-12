@@ -141,16 +141,11 @@ const getOrderById = async (req, res) => {
 // ✅ Place a New Order (Fetch Restaurant First)
 const placeOrder = async (req, res) => {
   try {
-    const { restaurant, items, totalPrice, deliveryAddress, paymentMethod, cardDetails } = req.body;
+    const { restaurant, items, totalPrice, paymentMethod, cardDetails, deliveryAddress } = req.body;
 
     // Validate required fields
-    if (!restaurant || !items || !totalPrice || !deliveryAddress || !paymentMethod) {
+    if (!restaurant || !items || !totalPrice || !paymentMethod) {
       return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Validate delivery address
-    if (!deliveryAddress.street || !deliveryAddress.city) {
-      return res.status(400).json({ message: "Incomplete delivery address" });
     }
 
     // Validate payment method
@@ -170,11 +165,7 @@ const placeOrder = async (req, res) => {
       restaurant,
       items,
       totalPrice,
-      deliveryAddress: {
-        street: deliveryAddress.street,
-        city: deliveryAddress.city,
-        instructions: deliveryAddress.instructions
-      },
+      deliveryAddress,
       paymentMethod,
       ...(paymentMethod === "card" && { cardDetails })
     });
