@@ -6,10 +6,12 @@ import { MdDashboard } from "react-icons/md";
 import userImg from "../../assets/farmer.jpg";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../utilities/providers/AuthProvider";
+import { useCart } from "../../utilities/providers/CartProvider";
 import Swal from "sweetalert2";
 import useUser from "../../hooks/useUser";
 import logo from "/logo.png";
 import { isAuthenticated } from "../../utils/auth";
+import axios from "axios";
 
 const navLinks = [
   { name: "Home", route: "/", icon: FaHome },
@@ -53,9 +55,17 @@ const NavBar = () => {
   const [navBg, setNavBg] = useState("bg-[#15151580]");
   const { logout, user } = useContext(AuthContext);
   const { currentUser } = useUser();
+  const { cartCount, fetchCartData } = useCart();
   
   // Check if user is authenticated (using either context or token)
   const isUserAuthenticated = !!user || isAuthenticated();
+
+  // Fetch cart data when authentication status changes
+  useEffect(() => {
+    if (isUserAuthenticated) {
+      fetchCartData();
+    }
+  }, [isUserAuthenticated, fetchCartData]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -207,7 +217,7 @@ const NavBar = () => {
                       <NavLink
                         to="/cart"
                         className={({ isActive }) =>
-                          `font-bold ${
+                          `font-bold relative inline-flex items-center ${
                             isActive
                               ? "text-primary"
                               : navBg.includes("bg-transparent") && isHome
@@ -216,7 +226,14 @@ const NavBar = () => {
                           } hover:text-primary duration-300`
                         }
                       >
-                        Cart
+                        <span className="relative">
+                          Cart
+                          {cartCount > 0 && (
+                            <span className="absolute -top-3 -right-4 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                              {cartCount}
+                            </span>
+                          )}
+                        </span>
                       </NavLink>
                     </li>
                   )}
@@ -371,12 +388,19 @@ const NavBar = () => {
                     key={link.route}
                     to={link.route}
                     className={({ isActive }) =>
-                      `flex flex-col items-center justify-center w-full h-full ${
+                      `flex flex-col items-center justify-center w-full h-full relative ${
                         isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
                       }`
                     }
                   >
-                    <Icon className="w-5 h-5" />
+                    <div className="relative">
+                      <Icon className="w-5 h-5" />
+                      {link.route === '/cart' && cartCount > 0 && (
+                        <span className="absolute -top-2.5 -right-3 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                          {cartCount}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs mt-0.5">{link.name}</span>
                   </NavLink>
                 );

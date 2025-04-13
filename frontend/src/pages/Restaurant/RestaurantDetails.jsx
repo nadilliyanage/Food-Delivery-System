@@ -111,7 +111,6 @@ const RestaurantDetails = () => {
           progress: undefined,
           theme: "light",
         });
-        console.log("Item added to cart");
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
