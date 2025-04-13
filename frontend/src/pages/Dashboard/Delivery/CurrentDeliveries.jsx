@@ -27,7 +27,7 @@ const CurrentDeliveries = () => {
 
   const handleUpdateStatus = async (deliveryId, newStatus) => {
     try {
-      await axiosSecure.put(`/api/deliveries/${deliveryId}`, { status: newStatus });
+      await axiosSecure.patch(`/api/deliveries/${deliveryId}`, { status: newStatus });
       // Refresh deliveries after update
       const response = await axiosSecure.get("/api/deliveries/user/deliveries");
       setDeliveries(response.data.deliveries);
