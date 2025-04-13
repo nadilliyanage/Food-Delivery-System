@@ -53,21 +53,24 @@ const Categories = ({ searchQuery }) => {
                 className="flex flex-col items-center min-w-[80px] md:min-w-0 cursor-pointer group"
                 onClick={() => setSelectedCategory(category.name)}
               >
-                <div 
-                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 transition-transform duration-300 group-hover:scale-110 ${
-                    selectedCategory === category.name ? 'ring-2 ring-primary' : ''
-                  }`}
-                  style={{ backgroundColor: `${category.color}20` }}
-                >
-                  <Icon 
-                    className="w-8 h-8 transition-colors duration-300" 
-                    style={{ color: category.color }}
-                  />
+                <div className="mb-2 transition-transform duration-300 group-hover:scale-125">
+                  {typeof Icon === 'string' ? (
+                    <img 
+                      src={Icon} 
+                      alt={category.name}
+                      className="w-16 h-16 object-contain transition-colors duration-300"
+                    />
+                  ) : (
+                    <Icon 
+                      className="w-16 h-16 transition-colors duration-300" 
+                      style={{ color: category.color }}
+                    />
+                  )}
                 </div>
                 <span className={`text-sm font-medium transition-colors text-center ${
                   selectedCategory === category.name 
                     ? 'text-primary' 
-                    : 'text-gray-700 dark:text-gray-300 group-hover:text-primary'
+                    : 'text-gray-700 dark:text-gray-300 group-hover:text-primary duration-300'
                 }`}>
                   {category.name}
                 </span>
