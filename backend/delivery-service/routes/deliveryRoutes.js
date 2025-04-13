@@ -46,7 +46,7 @@ router.put("/admin/registration-status", isAdmin, updateRegistrationStatus);
 
 // Delivery routes (must come after specific routes)
 router.get("/:id", getDeliveryById);
-router.put("/:id", updateDeliveryStatus);
+router.patch("/:id", updateDeliveryStatus);
 router.delete("/:id", deleteDelivery);
 
 module.exports = router;
