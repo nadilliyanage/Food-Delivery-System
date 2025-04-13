@@ -111,7 +111,7 @@ const OutForDelivery = () => {
                     Ordered on: {format(new Date(order.createdAt), "PPp")}
                   </p>
                   <p className="text-lg font-semibold mt-2">
-                    Total: ${order.totalPrice.toFixed(2)}
+                  Total: Rs. {(order.totalPrice + 150).toFixed(2)}
                   </p>
                 </div>
 

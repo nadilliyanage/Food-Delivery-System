@@ -187,7 +187,7 @@ const ManageOrders = () => {
       // If user confirms, proceed with the update
       if (result.isConfirmed) {
         const token = localStorage.getItem("token");
-        await axios.put(
+        await axios.patch(
           `${import.meta.env.VITE_API_URL}/api/orders/${orderId}`,
           { status: newStatus },
           {
@@ -197,7 +197,7 @@ const ManageOrders = () => {
           }
         );
 
-        // Update the local state
+        // Update the local state for orders list
         const updatedOrders = { ...orders };
         for (const restaurantId in updatedOrders) {
           updatedOrders[restaurantId] = updatedOrders[restaurantId].map((order) =>
@@ -205,6 +205,15 @@ const ManageOrders = () => {
           );
         }
         setOrders(updatedOrders);
+
+        // Update the selected order state if it's the one being modified
+        if (selectedOrder && selectedOrder._id === orderId) {
+          setSelectedOrder({
+            ...selectedOrder,
+            status: newStatus
+          });
+        }
+
         setStatusDropdown(null); // Close the dropdown
 
         // Show success message
