@@ -41,10 +41,10 @@ const Categories = ({ searchQuery }) => {
   });
 
   return (
-    <div className="py-6 px-4">
+    <div className="pt-3 pb-6 px-4">
       <h2 className="text-2xl font-bold mb-4">Categories</h2>
       <div className="overflow-x-auto md:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <div className="flex md:grid md:grid-cols-8 gap-4 my-4">
+        <div className="flex md:grid md:grid-cols-8 gap-4">
           {categories.map((category, index) => {
             const Icon = category.icon;
             return (
@@ -53,7 +53,7 @@ const Categories = ({ searchQuery }) => {
                 className="flex flex-col items-center min-w-[80px] md:min-w-0 cursor-pointer group"
                 onClick={() => setSelectedCategory(category.name)}
               >
-                <div className="mb-2 transition-transform duration-300 group-hover:scale-125">
+                <div className="transition-transform duration-300 group-hover:scale-125">
                   {typeof Icon === 'string' ? (
                     <img 
                       src={Icon} 
@@ -79,7 +79,7 @@ const Categories = ({ searchQuery }) => {
           })}
         </div>
       </div>
-      <div className="mt-8">
+      <div className="mt-4">
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
