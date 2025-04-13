@@ -23,32 +23,34 @@ const RestaurantDetails = () => {
         setError(null);
 
         const token = localStorage.getItem('token');
-        const config = {
+        const config = token ? {
           headers: {
             Authorization: `Bearer ${token}`
           }
-        };
+        } : null;
 
-        // Fetch restaurant details, menus, and cart in parallel
-        const [restaurantResponse, menuResponse, cartResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/${id}`),
-          axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/${id}/menu`, config),
-          axios.get(`${import.meta.env.VITE_API_URL}/api/cart`, config)
-        ]);
-
+        // Fetch restaurant details without auth
+        const restaurantResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/${id}`);
         setRestaurant(restaurantResponse.data);
-        setMenus(menuResponse.data);
-        
-        // Find cart for this restaurant
-        const restaurantCart = cartResponse.data.find(cart => cart.restaurantId === id);
-        setCartItems(restaurantCart);
+
+        // Only fetch menu and cart if user is logged in
+        if (token) {
+          const [menuResponse, cartResponse] = await Promise.all([
+            axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/${id}/menu`, config),
+            axios.get(`${import.meta.env.VITE_API_URL}/api/cart`, config)
+          ]);
+
+          setMenus(menuResponse.data);
+          const restaurantCart = cartResponse.data.find(cart => cart.restaurantId === id);
+          setCartItems(restaurantCart);
+        } else {
+          // If not logged in, just fetch menu without auth
+          const menuResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/${id}/menu`);
+          setMenus(menuResponse.data);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
-        if (error.response?.status === 401) {
-          setError('Please login to view menu items');
-        } else {
-          setError('Failed to load restaurant details and menus');
-        }
+        setError('Failed to load restaurant details and menus');
       } finally {
         setLoading(false);
       }
@@ -109,7 +111,6 @@ const RestaurantDetails = () => {
           progress: undefined,
           theme: "light",
         });
-        console.log("Item added to cart");
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
