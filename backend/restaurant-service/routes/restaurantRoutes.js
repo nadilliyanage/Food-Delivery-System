@@ -26,22 +26,19 @@ router.get("/", getRestaurants);
 router.get("/:id", getRestaurantById);
 router.get("/category/:category", getRestaurantsByCategory);
 
-// Protected routes (require authentication)
-router.use(authMiddleware);
-
 // Restaurant registration
-router.post("/register", registerRestaurant);
+router.post("/register", authMiddleware, registerRestaurant);
 
 // Restaurant owner routes
-router.get("/user/restaurants", getUserRestaurants);
-router.post("/", createRestaurant);
-router.put("/:id", updateRestaurant);
-router.delete("/:id", deleteRestaurant);
+router.get("/user/restaurants", authMiddleware, getUserRestaurants);
+router.post("/", authMiddleware, createRestaurant);
+router.put("/:id", authMiddleware, updateRestaurant);
+router.delete("/:id", authMiddleware, deleteRestaurant);
 
 // Menu routes
 router.get("/:id/menu", getMenuItems);
-router.post("/:id/menu", addMenuItem);
-router.delete("/:id/menu/:menuItemId", deleteMenuItem);
+router.post("/:id/menu", authMiddleware, addMenuItem);
+router.delete("/:id/menu/:menuItemId", authMiddleware, deleteMenuItem);
 
 // Admin routes
 router.get("/admin/pending-registrations", isAdmin, getPendingRegistrations);

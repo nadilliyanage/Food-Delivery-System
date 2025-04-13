@@ -8,6 +8,7 @@ import Aos from "aos";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router } from "./routes/router";
 import AuthProvider from "./utilities/providers/AuthProvider";
+import { CartProvider } from "./utilities/providers/CartProvider";
 
 const queryClient = new QueryClient();
 
@@ -15,7 +16,9 @@ Aos.init();
 ReactDOM.createRoot(document.getElementById("root")).render(
   <AuthProvider>
     <QueryClientProvider client={queryClient}>
+      <CartProvider>
       <RouterProvider router={router} />
+      </CartProvider>
     </QueryClientProvider>
   </AuthProvider>
 );

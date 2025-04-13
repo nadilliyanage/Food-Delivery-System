@@ -392,8 +392,6 @@ const getRestaurantsByCategory = async (req, res) => {
       category: category,
       isAvailable: true 
     }).populate('restaurant');
-    
-    console.log('Found menu items for category:', category, menuItems.length);
 
     // Get unique restaurants from the menu items
     const restaurants = menuItems.reduce((acc, menuItem) => {
@@ -402,8 +400,6 @@ const getRestaurantsByCategory = async (req, res) => {
       }
       return acc;
     }, []);
-
-    console.log('Found unique restaurants:', restaurants.length);
     
     if (restaurants.length === 0) {
       return res.status(200).json([]); // Return empty array instead of 404
