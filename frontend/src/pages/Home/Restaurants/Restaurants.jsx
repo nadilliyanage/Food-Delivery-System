@@ -59,7 +59,6 @@ const Restaurants = ({ searchQuery = { term: '', type: 'restaurant' } }) => {
   if (loading) {
     return (
       <div className="py-6 px-4">
-        <h2 className="text-2xl font-bold mb-4">Available Restaurants</h2>
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -70,28 +69,12 @@ const Restaurants = ({ searchQuery = { term: '', type: 'restaurant' } }) => {
   if (error) {
     return (
       <div className="py-6 px-4">
-        <h2 className="text-2xl font-bold mb-4">Available Restaurants</h2>
         <div className="text-center py-8 text-red-500">
           {error}
         </div>
       </div>
     );
   }
-
-  return (
-    <div className="py-6 px-4">
-      <h2 className="text-2xl font-bold mb-4">Available Restaurants</h2>
-      <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <div className="flex gap-4 pb-4">
-          {filteredRestaurants.map((restaurant) => (
-            <div key={restaurant.id} className="flex-none w-[300px]">
-              <RestaurantCard restaurant={restaurant} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 };
 
 export default Restaurants; 
