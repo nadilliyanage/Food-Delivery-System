@@ -21,18 +21,17 @@ const { isAdmin } = require('../middleware/isAdmin');
 
 const router = express.Router();
 
-// Protected routes (require authentication)
-router.use(authMiddleware);
+
 
 // Delivery Personnel Registration
-router.post("/register", registerDeliveryPersonnel);
+router.post("/register", authMiddleware, registerDeliveryPersonnel);
 
 // Get user's delivery personnel registrations
-router.get("/user/delivery-personnel-registrations", getUserRegistrations);
+router.get("/user/delivery-personnel-registrations", authMiddleware, getUserRegistrations);
 
 // Delivery Personnel routes
-router.get("/user/deliveries", getUserDeliveries);
-router.post("/", assignDriver);
+router.get("/user/deliveries", authMiddleware, getUserDeliveries);
+router.post("/", authMiddleware, assignDriver);
 
 // Profile routes (must come before /:id route)
 router.get('/profile', getProfile);
@@ -45,8 +44,8 @@ router.get("/admin/rejected-registrations", isAdmin, getRejectedRegistrations);
 router.put("/admin/registration-status", isAdmin, updateRegistrationStatus);
 
 // Delivery routes (must come after specific routes)
-router.get("/:id", getDeliveryById);
-router.patch("/:id", updateDeliveryStatus);
-router.delete("/:id", deleteDelivery);
+router.get("/:id", authMiddleware, getDeliveryById);
+router.patch("/:id", authMiddleware, updateDeliveryStatus);
+router.delete("/:id", authMiddleware, deleteDelivery);
 
 module.exports = router;

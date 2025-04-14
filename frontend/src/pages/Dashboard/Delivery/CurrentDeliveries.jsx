@@ -1,29 +1,44 @@
 import React, { useEffect, useState } from "react";
-import useAxiosSecure from "../../../hooks/useAxiosSecure";
 import { MdDeliveryDining } from "react-icons/md";
 import { FaMapMarkerAlt, FaPhone, FaUser } from "react-icons/fa";
 import { format, isValid } from "date-fns";
 import Button from "../../../components/Button/Button";
+import axios from "axios";
 
 const CurrentDeliveries = () => {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const axiosSecure = useAxiosSecure();
 
   useEffect(() => {
     const fetchDeliveries = async () => {
       try {
-        const response = await axiosSecure.get("/api/deliveries/user/deliveries");
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/deliveries/user/deliveries`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         // Fetch order and customer details for each delivery
         const deliveriesWithDetails = await Promise.all(
           response.data.deliveries.map(async (delivery) => {
             try {
               // Fetch order details
-              const orderResponse = await axiosSecure.get(`/api/orders/${delivery.order}`);
+              const orderResponse = await axios.get(
+                `${import.meta.env.VITE_API_URL}/api/orders/${delivery.order}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
               const order = orderResponse.data;
               
               // Fetch customer details
-              const customerResponse = await axiosSecure.get(`/api/auth/users/${order.customer}`);
+              const customerResponse = await axios.get(
+                `${import.meta.env.VITE_API_URL}/api/auth/users/${order.customer}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
               const customer = customerResponse.data;
               
               return {
@@ -48,14 +63,70 @@ const CurrentDeliveries = () => {
     };
 
     fetchDeliveries();
-  }, [axiosSecure]);
+  }, []);
 
   const handleUpdateStatus = async (deliveryId, newStatus) => {
     try {
-      await axiosSecure.patch(`/api/deliveries/${deliveryId}`, { status: newStatus });
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
+
+      // Update delivery status
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/deliveries/${deliveryId}`,
+        { status: newStatus },
+        config
+      );
+      
+      // Update order status
+      const delivery = deliveries.find(d => d._id === deliveryId);
+      if (delivery && delivery.order) {
+        await axios.patch(
+          `${import.meta.env.VITE_API_URL}/api/orders/${delivery.order._id}`,
+          { status: newStatus },
+          config
+        );
+      }
+
       // Refresh deliveries after update
-      const response = await axiosSecure.get("/api/deliveries/user/deliveries");
-      setDeliveries(response.data.deliveries);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/deliveries/user/deliveries`,
+        config
+      );
+
+      // Fetch updated details for each delivery
+      const deliveriesWithDetails = await Promise.all(
+        response.data.deliveries.map(async (delivery) => {
+          try {
+            // Fetch order details
+            const orderResponse = await axios.get(
+              `${import.meta.env.VITE_API_URL}/api/orders/${delivery.order}`,
+              config
+            );
+            const order = orderResponse.data;
+            
+            // Fetch customer details
+            const customerResponse = await axios.get(
+              `${import.meta.env.VITE_API_URL}/api/auth/users/${order.customer}`,
+              config
+            );
+            const customer = customerResponse.data;
+            
+            return {
+              ...delivery,
+              order: {
+                ...order,
+                customer: customer
+              }
+            };
+          } catch (error) {
+            console.error("Error fetching delivery details:", error);
+            return delivery;
+          }
+        })
+      );
+      setDeliveries(deliveriesWithDetails);
     } catch (error) {
       console.error("Error updating delivery status:", error);
     }
@@ -97,7 +168,7 @@ const CurrentDeliveries = () => {
                 <h3 className="text-xl font-semibold">Order #{delivery.order?._id.slice(-6) || "N/A"}</h3>
                 <span className={`px-3 py-1 rounded-full text-sm ${
                   delivery.status === "Assigned" ? "bg-blue-100 text-blue-800" :
-                  delivery.status === "Out for Delivery" ? "bg-yellow-100 text-yellow-800" :
+                  delivery.status === "On the Way" ? "bg-yellow-100 text-yellow-800" :
                   "bg-gray-100 text-gray-800"
                 }`}>
                   {delivery.status}
@@ -140,12 +211,12 @@ const CurrentDeliveries = () => {
                   {delivery.status === "Assigned" && (
                     <Button
                       className="bg-yellow-500 text-white flex-1"
-                      onClick={() => handleUpdateStatus(delivery._id, "Out for Delivery")}
+                      onClick={() => handleUpdateStatus(delivery._id, "On the Way")}
                     >
                       Start Delivery
                     </Button>
                   )}
-                  {delivery.status === "Out for Delivery" && (
+                  {delivery.status === "On the Way" && (
                     <Button
                       className="bg-green-500 text-white flex-1"
                       onClick={() => handleUpdateStatus(delivery._id, "Delivered")}

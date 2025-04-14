@@ -164,6 +164,19 @@ const updateDeliveryStatus = async (req, res) => {
     if (!updatedDelivery)
       return res.status(404).json({ message: "Delivery not found" });
 
+    // Update the order status as well
+    try {
+      const authToken = req.headers.authorization;
+      await axios.patch(
+        `${ORDER_SERVICE_URL}/api/orders/${updatedDelivery.order}`,
+        { status },
+        { headers: { Authorization: authToken } }
+      );
+    } catch (error) {
+      console.error("❌ Error updating order status:", error);
+      // Continue with the response even if order update fails
+    }
+
     res.json(updatedDelivery);
   } catch (error) {
     console.error("❌ Error updating delivery status:", error);
