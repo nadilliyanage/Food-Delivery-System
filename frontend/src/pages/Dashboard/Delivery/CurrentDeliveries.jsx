@@ -14,7 +14,32 @@ const CurrentDeliveries = () => {
     const fetchDeliveries = async () => {
       try {
         const response = await axiosSecure.get("/api/deliveries/user/deliveries");
-        setDeliveries(response.data.deliveries);
+        // Fetch order and customer details for each delivery
+        const deliveriesWithDetails = await Promise.all(
+          response.data.deliveries.map(async (delivery) => {
+            try {
+              // Fetch order details
+              const orderResponse = await axiosSecure.get(`/api/orders/${delivery.order}`);
+              const order = orderResponse.data;
+              
+              // Fetch customer details
+              const customerResponse = await axiosSecure.get(`/api/auth/users/${order.customer}`);
+              const customer = customerResponse.data;
+              
+              return {
+                ...delivery,
+                order: {
+                  ...order,
+                  customer: customer
+                }
+              };
+            } catch (error) {
+              console.error("Error fetching delivery details:", error);
+              return delivery;
+            }
+          })
+        );
+        setDeliveries(deliveriesWithDetails);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching deliveries:", error);
@@ -69,7 +94,7 @@ const CurrentDeliveries = () => {
               className="bg-white rounded-lg shadow-md p-6 border border-gray-200"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold">Order #{delivery.order?.slice(-6) || "N/A"}</h3>
+                <h3 className="text-xl font-semibold">Order #{delivery.order?._id.slice(-6) || "N/A"}</h3>
                 <span className={`px-3 py-1 rounded-full text-sm ${
                   delivery.status === "Assigned" ? "bg-blue-100 text-blue-800" :
                   delivery.status === "Out for Delivery" ? "bg-yellow-100 text-yellow-800" :
@@ -82,12 +107,12 @@ const CurrentDeliveries = () => {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <FaUser className="text-gray-500" />
-                  <span>{delivery.customer?.name || "N/A"}</span>
+                  <span>{delivery.order?.customer?.name || "N/A"}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <FaPhone className="text-gray-500" />
-                  <span>{delivery.customer?.phone || "N/A"}</span>
+                  <span>{delivery.order?.customer?.phone || "N/A"}</span>
                 </div>
 
                 <div className="flex items-start gap-2">
