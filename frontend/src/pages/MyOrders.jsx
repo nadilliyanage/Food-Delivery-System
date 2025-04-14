@@ -162,7 +162,7 @@ const MyOrders = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-gray-600">Total Amount:</p>
-                    <p className="text-xl font-bold">LKR {order.totalPrice.toFixed(2)}</p>
+                    <p className="text-xl font-bold">LKR {(order.totalPrice + 150).toFixed(2)}</p>
                   </div>
                 </div>
               </div>

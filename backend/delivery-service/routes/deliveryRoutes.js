@@ -35,7 +35,7 @@ router.post("/", authMiddleware, assignDriver);
 
 // Profile routes (must come before /:id route)
 router.get('/profile', getProfile);
-router.put('/profile', updateProfile);
+router.patch('/profile', updateProfile);
 
 // Admin routes
 router.get("/admin/pending-registrations", isAdmin, getPendingRegistrations);

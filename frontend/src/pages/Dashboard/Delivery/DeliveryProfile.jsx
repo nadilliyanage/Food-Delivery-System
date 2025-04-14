@@ -44,7 +44,7 @@ const DeliveryProfile = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:3000/api/deliveries/profile', profile, {
+      await axios.patch('http://localhost:3000/api/deliveries/profile', profile, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

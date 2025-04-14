@@ -4,6 +4,57 @@ import { XMarkIcon, MapPinIcon, CreditCardIcon, BanknotesIcon } from '@heroicons
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import Scroll from '../../hooks/useScroll';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// LocationMarker component to handle map clicks and location updates
+function LocationMarker({ position, setPosition, setDeliveryAddress }) {
+  const map = useMapEvents({
+    click: async (e) => {
+      const { lat, lng } = e.latlng;
+      setPosition([lat, lng]);
+      
+      try {
+        // Reverse geocoding using OpenStreetMap Nominatim
+        const response = await axios.get(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        );
+        
+        const address = response.data.address;
+        setDeliveryAddress(prev => ({
+          ...prev,
+          street: address.road || address.street || '',
+          city: address.city || address.town || '',
+          latitude: lat,
+          longitude: lng
+        }));
+
+        // Center map on selected location
+        map.flyTo([lat, lng], map.getZoom());
+      } catch (error) {
+        console.error('Error getting location details:', error);
+      }
+    },
+  });
+
+  // Update map center when position changes
+  useEffect(() => {
+    if (position) {
+      map.flyTo(position, map.getZoom());
+    }
+  }, [position, map]);
+
+  return position ? <Marker position={position} /> : null;
+}
 
 const Checkout = () => {
   const { restaurantId } = useParams();
@@ -25,6 +76,9 @@ const Checkout = () => {
     cvc: '',
     name: ''
   });
+  const [position, setPosition] = useState(null);
+  const [mapCenter, setMapCenter] = useState([6.927079, 79.861244]); // Default center (Colombo)
+  const [mapZoom, setMapZoom] = useState(13);
 
   useEffect(() => {
     fetchCartDetails();
@@ -77,19 +131,24 @@ const Checkout = () => {
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
+            
+            // Update position and map will automatically center
+            setPosition([latitude, longitude]);
+            setMapZoom(16);
+            
             // Use reverse geocoding to get address details
             const response = await axios.get(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
             );
             
             const address = response.data.address;
-            setDeliveryAddress({
+            setDeliveryAddress(prev => ({
+              ...prev,
               street: address.road || address.street || '',
               city: address.city || address.town || '',
-              instructions: '',
               latitude,
               longitude
-            });
+            }));
           } catch (error) {
             console.error('Error getting location details:', error);
             Swal.fire({
@@ -255,6 +314,30 @@ const Checkout = () => {
               {locationLoading ? 'Getting Location...' : 'Use Current Location'}
             </button>
           </div>
+
+          {/* Map */}
+          <div className="w-full h-[300px] mb-4 rounded-lg overflow-hidden">
+            <MapContainer
+              center={mapCenter}
+              zoom={mapZoom}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
+              <LocationMarker 
+                position={position}
+                setPosition={setPosition}
+                setDeliveryAddress={setDeliveryAddress}
+              />
+            </MapContainer>
+          </div>
+
+          <p className="text-sm text-gray-500 mb-4">
+            Click on the map to set delivery location or use current location button.
+          </p>
+
           <div className="space-y-4">
             <input
               type="text"
