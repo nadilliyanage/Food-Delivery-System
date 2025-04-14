@@ -4,11 +4,13 @@ import { MdDeliveryDining } from "react-icons/md";
 import { FaMapMarkerAlt, FaPhone, FaUser } from "react-icons/fa";
 import { format } from "date-fns";
 import Button from "../../../components/Button/Button";
+import { useNavigate } from "react-router-dom";
 
 const OutForDelivery = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -38,6 +40,7 @@ const OutForDelivery = () => {
       // Refresh orders after update
       const response = await axiosSecure.get("/api/orders/delivery/out-for-delivery");
       setOrders(response.data);
+      navigate("/dashboard/current-deliveries");
     } catch (error) {
       console.error("Error updating order status:", error);
     }
@@ -73,7 +76,7 @@ const OutForDelivery = () => {
                 <h3 className="text-xl font-semibold">Order #{order._id.slice(-6)}</h3>
                 <span className={`px-3 py-1 rounded-full text-sm ${
                   order.status === "Out for Delivery" ? "bg-yellow-100 text-yellow-800" :
-                  order.status === "Delivery Accepted" ? "bg-blue-100 text-blue-800" :
+                  order.status === "On the Way" ? "bg-blue-100 text-blue-800" :
                   "bg-gray-100 text-gray-800"
                 }`}>
                   {order.status}
@@ -132,7 +135,7 @@ const OutForDelivery = () => {
                       </Button>
                     </>
                   )}
-                  {order.status === "Delivery Accepted" && (
+                  {order.status === "On the Way" && (
                     <Button
                       className="bg-green-500 text-white flex-1"
                       onClick={() => handleUpdateStatus(order._id, "Delivered")}

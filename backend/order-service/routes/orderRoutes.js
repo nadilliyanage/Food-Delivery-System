@@ -38,6 +38,6 @@ router.get("/:id/delivery", authMiddleware, getOrderById);
 router.get("/restaurant/:restaurantId", authMiddleware, getRestaurantOrders);
 
 // Get orders that are out for delivery
-router.get("/delivery/out-for-delivery", authMiddleware, getOutForDeliveryOrders);
+router.get("/delivery/out-for-delivery", getOutForDeliveryOrders);
 
 module.exports = router;
