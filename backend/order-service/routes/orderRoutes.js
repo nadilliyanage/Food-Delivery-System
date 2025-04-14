@@ -7,6 +7,7 @@ const {
   cancelOrder,
   getOrders,
   getRestaurantOrders,
+  getOutForDeliveryOrders,
 } = require("../controllers/orderController");
 const authMiddleware = require("../middleware/middleware");
 
@@ -25,7 +26,7 @@ router.get("/:id", authMiddleware, getOrderById);
 router.post("/", authMiddleware, placeOrder);
 
 // Update order status
-router.put("/:id", authMiddleware, updateOrder);
+router.patch("/:id", authMiddleware, updateOrder);
 
 // Cancel order
 router.delete("/:id", authMiddleware, cancelOrder);
@@ -35,5 +36,8 @@ router.get("/:id/delivery", authMiddleware, getOrderById);
 
 // Get restaurant orders
 router.get("/restaurant/:restaurantId", authMiddleware, getRestaurantOrders);
+
+// Get orders that are out for delivery
+router.get("/delivery/out-for-delivery", getOutForDeliveryOrders);
 
 module.exports = router;

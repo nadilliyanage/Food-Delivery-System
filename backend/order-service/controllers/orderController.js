@@ -4,6 +4,7 @@ require("dotenv").config();
 
 // Load API Gateway service URLs from environment variables
 const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
+const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 
 // ✅ Get All Orders (For Admins and Restaurant Owners)
 const getOrders = async (req, res) => {
@@ -89,10 +90,6 @@ const getOrderById = async (req, res) => {
     // ✅ Allow Admins and Delivery Personnel to Fetch Any Order
     const order = await Order.findOne({
       _id: req.params.id,
-      ...(userRole === "customer" && { customer: userId }),
-      ...(userRole === "delivery_personnel" && {
-        status: { $in: ["Assigned", "Out for Delivery"] },
-      }),
     });
 
     if (!order) return res.status(404).json({ message: "Order not found" });
@@ -141,7 +138,14 @@ const getOrderById = async (req, res) => {
 // ✅ Place a New Order (Fetch Restaurant First)
 const placeOrder = async (req, res) => {
   try {
-    const { restaurant, items, totalPrice, paymentMethod, cardDetails, deliveryAddress } = req.body;
+    const {
+      restaurant,
+      items,
+      totalPrice,
+      paymentMethod,
+      cardDetails,
+      deliveryAddress,
+    } = req.body;
 
     // Validate required fields
     if (!restaurant || !items || !totalPrice || !paymentMethod) {
@@ -150,7 +154,9 @@ const placeOrder = async (req, res) => {
 
     // Validate payment method
     if (paymentMethod === "card" && !cardDetails) {
-      return res.status(400).json({ message: "Card details required for card payment" });
+      return res
+        .status(400)
+        .json({ message: "Card details required for card payment" });
     }
 
     // ✅ Ensure restaurant exists before placing an order
@@ -167,7 +173,7 @@ const placeOrder = async (req, res) => {
       totalPrice,
       deliveryAddress,
       paymentMethod,
-      ...(paymentMethod === "card" && { cardDetails })
+      ...(paymentMethod === "card" && { cardDetails }),
     });
 
     await newOrder.save();
@@ -178,67 +184,87 @@ const placeOrder = async (req, res) => {
   }
 };
 
-// Update an Order
+// Update order status
 const updateOrder = async (req, res) => {
   try {
+    const { id } = req.params;
     const { status } = req.body;
-    const orderId = req.params.id;
-    const userRole = req.user.role;
+    const { role, id: userId } = req.user;
 
-    // Find the order first
-    const order = await Order.findById(orderId);
+    // Find the order
+    const order = await Order.findById(id);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check authorization
-    if (userRole !== "admin" && userRole !== "restaurant_admin") {
-      return res.status(403).json({ message: "Not authorized to update orders" });
-    }
+    // Authorization checks based on role and status
 
-    // If restaurant admin, verify they own this restaurant
-    if (userRole === "restaurant_admin") {
+    // Delivery personnel can:
+    // 1. Accept delivery (Out for Delivery -> Delivery Accepted)
+    // 2. Reject delivery (Out for Delivery -> Delivery Rejected)
+    // 3. Mark as delivered (Delivery Accepted -> Delivered)
+
+    order.status = status;
+    await order.save();
+
+    // If order is accepted, create a delivery record
+    if (status === "Delivery Accepted") {
       try {
-        const restaurantResponse = await axios.get(
-          `${RESTAURANT_SERVICE_URL}/api/restaurants/${order.restaurant}`,
+        if (!DELIVERY_SERVICE_URL) {
+          console.error(
+            "DELIVERY_SERVICE_URL is not set in environment variables"
+          );
+          return res.status(200).json(order); // Continue with order update even if delivery record fails
+        }
+
+        await axios.post(
+          `${DELIVERY_SERVICE_URL}/api/deliveries`,
           {
-            headers: { Authorization: `Bearer ${req.headers.authorization}` }
+            orderId: order._id,
+            driverId: userId,
+          },
+          {
+            headers: { Authorization: req.headers.authorization },
           }
         );
-
-        if (restaurantResponse.data.owner !== req.user.id) {
-          return res.status(403).json({ message: "Not authorized to update this restaurant's orders" });
-        }
       } catch (error) {
-        console.error("Error verifying restaurant ownership:", error);
-        return res.status(500).json({ message: "Error verifying restaurant ownership" });
+        console.error("Error creating delivery record:", error.message);
+        // Don't fail the order update if delivery record creation fails
       }
     }
 
-    // Validate the status transition
-    const validTransitions = {
-      Pending: ["Confirmed", "Cancelled"],
-      Confirmed: ["Preparing", "Cancelled"],
-      Preparing: ["Out for Delivery", "Cancelled"],
-      "Out for Delivery": ["Delivered", "Cancelled"],
-      Delivered: [],
-      Cancelled: []
-    };
-
-    if (!validTransitions[order.status].includes(status)) {
-      return res.status(400).json({ 
-        message: `Invalid status transition from ${order.status} to ${status}` 
+    return res.status(200).json(order);
+    if (order.status === "Delivery Accepted" && status === "Delivered") {
+      order.status = status;
+      await order.save();
+      return res.status(200).json(order);
+    } else {
+      return res.status(403).json({
+        message: "Invalid status transition for delivery personnel",
       });
     }
-
-    // Update the order
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    );
-
-    res.json(updatedOrder);
+    if (role === "restaurant_admin") {
+      // Restaurant admin can update to "Preparing" or "Out for Delivery"
+      if (["Preparing", "Confirmed", "Out for Delivery"].includes(status)) {
+        order.status = status;
+        await order.save();
+        return res.status(200).json(order);
+      } else {
+        return res.status(403).json({
+          message:
+            "Restaurant admin can only update orders to Preparing or Out for Delivery",
+        });
+      }
+    } else if (role === "admin") {
+      // Admin can update to any status
+      order.status = status;
+      await order.save();
+      return res.status(200).json(order);
+    } else {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to update order status" });
+    }
   } catch (error) {
     console.error("Error updating order:", error);
     res.status(500).json({ message: "Error updating order" });
@@ -300,7 +326,7 @@ const getRestaurantOrders = async (req, res) => {
         const restaurantResponse = await axios.get(
           `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurantId}`,
           {
-            headers: { Authorization: `Bearer ${req.headers.authorization}` }
+            headers: { Authorization: `Bearer ${req.headers.authorization}` },
           }
         );
 
@@ -309,13 +335,16 @@ const getRestaurantOrders = async (req, res) => {
         }
       } catch (error) {
         console.error("Error verifying restaurant ownership:", error);
-        return res.status(500).json({ message: "Error verifying restaurant ownership" });
+        return res
+          .status(500)
+          .json({ message: "Error verifying restaurant ownership" });
       }
     }
 
     // Fetch orders for the restaurant
-    const orders = await Order.find({ restaurant: restaurantId })
-      .sort({ createdAt: -1 }); // Sort by newest first
+    const orders = await Order.find({ restaurant: restaurantId }).sort({
+      createdAt: -1,
+    }); // Sort by newest first
 
     // Fetch customer details for each order
     const ordersWithDetails = await Promise.all(
@@ -352,6 +381,18 @@ const getRestaurantOrders = async (req, res) => {
   }
 };
 
+// Get orders that are out for delivery
+const getOutForDeliveryOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ status: "Out for Delivery" });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching out for delivery orders:", error);
+    res.status(500).json({ message: "Error fetching out for delivery orders" });
+  }
+};
+
 module.exports = {
   getUserOrders,
   getOrderById,
@@ -361,4 +402,5 @@ module.exports = {
   trackOrderStatus,
   getOrders,
   getRestaurantOrders,
+  getOutForDeliveryOrders,
 };

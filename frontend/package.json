@@ -31,6 +31,7 @@
     "framer-motion": "^10.12.16",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
+    "leaflet-routing-machine": "^3.2.12",
     "localforage": "^1.10.0",
     "match-sorter": "^6.3.1",
     "moment": "^2.29.4",

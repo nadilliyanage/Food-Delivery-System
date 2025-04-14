@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { isAuthenticated } from '../../utils/auth';
+import { getCurrentUser, isAuthenticated } from '../../utils/auth';
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);
   const [cartItems, setCartItems] = useState([]);
+  const currentUser = getCurrentUser();
 
   const fetchCartData = async () => {
+    if (currentUser?.role === "customer") {
     if (isAuthenticated()) {
       try {
         const token = localStorage.getItem('token');
@@ -26,6 +28,7 @@ export const CartProvider = ({ children }) => {
       } catch (error) {
         console.error('Error fetching cart data:', error);
       }
+    }
     }
   };
 

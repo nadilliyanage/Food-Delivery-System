@@ -10,7 +10,7 @@ const deliverySchema = new mongoose.Schema({
   driver: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   status: {
     type: String,
-    enum: ["Pending", "Assigned", "Out for Delivery", "Delivered", "Cancelled"],
+    enum: ["Pending", "Assigned", "Out for Delivery", "On the Way", "Delivered", "Cancelled"],
     default: "Pending",
   },
   deliveryTime: { type: Date, default: null },

@@ -134,6 +134,11 @@ const deliveryPersonnelNavItems = [
     label: "Current Deliveries",
   },
   {
+    to: "/dashboard/out-for-delivery",
+    icon: <MdDeliveryDining className="text-2xl" />,
+    label: "Out for Delivery",
+  },
+  {
     to: "/dashboard/delivery-history",
     icon: <FaHistory className="text-2xl" />,
     label: "Delivery History",

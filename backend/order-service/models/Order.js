@@ -28,9 +28,12 @@ const orderSchema = new mongoose.Schema({
       "Pending",
       "Confirmed",
       "Preparing",
+      "Delivery Accepted",
       "Out for Delivery",
+      "On the Way",
       "Delivered",
       "Cancelled",
+      "Delivery Rejected"
     ],
     default: "Pending",
   },
