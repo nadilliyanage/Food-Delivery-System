@@ -5,6 +5,7 @@ require("dotenv").config();
 // Load API Gateway service URLs from environment variables
 const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
 const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
+const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL;
 
 // ✅ Get All Orders (For Admins and Restaurant Owners)
 const getOrders = async (req, res) => {
@@ -135,6 +136,77 @@ const getOrderById = async (req, res) => {
   }
 };
 
+// Send customer notification
+const sendCustomerNotification = async (order, token) => {
+  try {
+    // Get customer details from auth service
+    const customerResponse = await axios.get(
+      `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const customer = customerResponse.data;
+    console.log("Customer details:", customer);
+
+    // Format phone number
+    let phoneNumber = customer.phone;
+    console.log("Original phone number:", phoneNumber);
+
+    // Remove any spaces or dashes
+    phoneNumber = phoneNumber.replace(/[\s-]/g, "");
+
+    // Format for Sri Lankan numbers
+    if (phoneNumber.startsWith("94")) {
+      // Already in correct format
+    } else if (phoneNumber.startsWith("0")) {
+      phoneNumber = "94" + phoneNumber.substring(1);
+    } else if (!phoneNumber.startsWith("94")) {
+      phoneNumber = "94" + phoneNumber;
+    }
+
+    console.log("Formatted phone number:", phoneNumber);
+
+    // Send notifications to customer
+    const notifications = [
+      {
+        type: "email",
+        email: customer.email,
+        subject: "Order Confirmation",
+        message: `Your order #${order._id} has been placed successfully. Total amount: $${order.totalPrice}. Status: ${order.status}`,
+      },
+      {
+        type: "sms",
+        phone: phoneNumber,
+        message: `Order #${order._id} placed successfully. Amount: $${order.totalPrice}. Status: ${order.status}`,
+      },
+      {
+        type: "whatsapp",
+        phone: phoneNumber,
+        message: `Order #${order._id}:${order.status}`,
+      },
+    ];
+
+    await axios.post(
+      `${NOTIFICATION_SERVICE_URL}/api/notifications`,
+      {
+        userId: order.customer,
+        notifications,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log(`📧 Notifications sent to customer for order: ${order._id}`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error sending customer notifications:", error.message);
+    return false;
+  }
+};
+
 // ✅ Place a New Order (Fetch Restaurant First)
 const placeOrder = async (req, res) => {
   try {
@@ -177,6 +249,10 @@ const placeOrder = async (req, res) => {
     });
 
     await newOrder.save();
+
+    // Send notifications to customer
+    await sendCustomerNotification(newOrder, req.headers.authorization);
+
     res.status(201).json(newOrder);
   } catch (error) {
     console.error("❌ Error placing order:", error);
@@ -191,65 +267,92 @@ const updateOrder = async (req, res) => {
     const { status } = req.body;
     const { role, id: userId } = req.user;
 
+    console.log("🔍 Starting order status update...");
+    console.log("Order ID:", id);
+    console.log("New status:", status);
+    console.log("User role:", role);
+
     // Find the order
     const order = await Order.findById(id);
     if (!order) {
+      console.error("❌ Order not found:", id);
       return res.status(404).json({ message: "Order not found" });
     }
 
     // Authorization checks based on role and status
-
-    // Delivery personnel can:
-    // 1. Accept delivery (Out for Delivery -> Delivery Accepted)
-    // 2. Reject delivery (Out for Delivery -> Delivery Rejected)
-    // 3. Mark as delivered (Delivery Accepted -> Delivered)
-
-    order.status = status;
-    await order.save();
-
-    // If order is accepted, create a delivery record
-    if (status === "Delivery Accepted") {
-      try {
-        if (!DELIVERY_SERVICE_URL) {
-          console.error(
-            "DELIVERY_SERVICE_URL is not set in environment variables"
-          );
-          return res.status(200).json(order); // Continue with order update even if delivery record fails
-        }
-
-        await axios.post(
-          `${DELIVERY_SERVICE_URL}/api/deliveries`,
-          {
-            orderId: order._id,
-            driverId: userId,
-          },
-          {
-            headers: { Authorization: req.headers.authorization },
-          }
-        );
-      } catch (error) {
-        console.error("Error creating delivery record:", error.message);
-        // Don't fail the order update if delivery record creation fails
-      }
-    }
-
-    return res.status(200).json(order);
-    if (order.status === "Delivery Accepted" && status === "Delivered") {
-      order.status = status;
-      await order.save();
-      return res.status(200).json(order);
-    } else {
-      return res.status(403).json({
-        message: "Invalid status transition for delivery personnel",
-      });
-    }
     if (role === "restaurant_admin") {
       // Restaurant admin can update to "Preparing" or "Out for Delivery"
       if (["Preparing", "Confirmed", "Out for Delivery"].includes(status)) {
         order.status = status;
         await order.save();
+
+        // Send notification to customer about status update
+        try {
+          console.log("📧 Sending status update notification to customer...");
+
+          // Verify notification service URL is set
+          if (!process.env.NOTIFICATION_SERVICE_URL) {
+            console.error(
+              "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
+            );
+            return res.status(200).json(order); // Continue with order update even if notification fails
+          }
+
+          // Get customer details from auth service
+          const customerResponse = await axios.get(
+            `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+            {
+              headers: { Authorization: req.headers.authorization },
+            }
+          );
+
+          const customer = customerResponse.data;
+          console.log("Customer details:", customer);
+
+          const notifications = [
+            {
+              type: "email",
+              email: customer.email,
+              subject: "Order Status Update",
+              message: `Your order #${order._id} status has been updated to: ${status}`,
+            },
+            {
+              type: "sms",
+              phone: customer.phone,
+              message: `Order #${order._id} status updated to: ${status}`,
+            },
+            {
+              type: "whatsapp",
+              phone: customer.phone,
+              message: `Order #${order._id}:${status}`,
+            },
+          ];
+
+          await axios.post(
+            `${process.env.NOTIFICATION_SERVICE_URL}/api/notifications`,
+            {
+              userId: order.customer,
+              notifications,
+            },
+            {
+              headers: { Authorization: req.headers.authorization },
+            }
+          );
+
+          console.log("✅ Status update notifications sent successfully");
+        } catch (error) {
+          console.error("❌ Error sending status update notifications:", error);
+          console.error("Error details:", {
+            message: error.message,
+            url: process.env.NOTIFICATION_SERVICE_URL,
+            customerId: order.customer,
+          });
+          // Don't fail the order update if notification fails
+        }
+
         return res.status(200).json(order);
       } else {
+        console.error("❌ Invalid status update for restaurant admin:", status);
         return res.status(403).json({
           message:
             "Restaurant admin can only update orders to Preparing or Out for Delivery",
@@ -259,15 +362,86 @@ const updateOrder = async (req, res) => {
       // Admin can update to any status
       order.status = status;
       await order.save();
+
+      // Send notification to customer about status update
+      try {
+        console.log("📧 Sending status update notification to customer...");
+
+        // Verify notification service URL is set
+        if (!process.env.NOTIFICATION_SERVICE_URL) {
+          console.error(
+            "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
+          );
+          return res.status(200).json(order); // Continue with order update even if notification fails
+        }
+
+        // Get customer details from auth service
+        const customerResponse = await axios.get(
+          `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+          {
+            headers: { Authorization: req.headers.authorization },
+          }
+        );
+
+        const customer = customerResponse.data;
+        console.log("Customer details:", customer);
+
+        const notifications = [
+          {
+            type: "email",
+            email: customer.email,
+            subject: "Order Status Update",
+            message: `Your order #${order._id} status has been updated to: ${status}`,
+          },
+          {
+            type: "sms",
+            phone: customer.phone,
+            message: `Order #${order._id} status updated to: ${status}`,
+          },
+          {
+            type: "whatsapp",
+            phone: customer.phone,
+            message: `Order #${order._id}:${status}`,
+          },
+        ];
+
+        await axios.post(
+          `${process.env.NOTIFICATION_SERVICE_URL}/api/notifications`,
+          {
+            userId: order.customer,
+            notifications,
+          },
+          {
+            headers: { Authorization: req.headers.authorization },
+          }
+        );
+
+        console.log("✅ Status update notifications sent successfully");
+      } catch (error) {
+        console.error("❌ Error sending status update notifications:", error);
+        console.error("Error details:", {
+          message: error.message,
+          url: process.env.NOTIFICATION_SERVICE_URL,
+          customerId: order.customer,
+        });
+        // Don't fail the order update if notification fails
+      }
+
       return res.status(200).json(order);
     } else {
+      console.error("❌ Unauthorized role for status update:", role);
       return res
         .status(403)
         .json({ message: "Unauthorized to update order status" });
     }
   } catch (error) {
-    console.error("Error updating order:", error);
-    res.status(500).json({ message: "Error updating order" });
+    console.error("❌ Error updating order:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({
+      message: "Error updating order",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
