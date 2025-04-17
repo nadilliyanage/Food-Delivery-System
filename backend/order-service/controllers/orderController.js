@@ -242,12 +242,12 @@ const placeOrder = async (req, res) => {
     // ✅ Ensure restaurant exists before placing an order
     try {
       console.log("🔍 Verifying restaurant...");
-      const restaurantResponse = await axios.get(
-        `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurant}`
-      );
+    const restaurantResponse = await axios.get(
+      `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurant}`
+    );
       if (!restaurantResponse.data) {
         console.error("❌ Restaurant not found:", restaurant);
-        return res.status(404).json({ message: "Restaurant not found" });
+      return res.status(404).json({ message: "Restaurant not found" });
       }
       console.log("✅ Restaurant verified");
     } catch (error) {
@@ -301,7 +301,7 @@ const placeOrder = async (req, res) => {
 
     try {
       console.log("💾 Saving order...");
-      await newOrder.save();
+    await newOrder.save();
       console.log("✅ Order saved successfully");
     } catch (error) {
       console.error("❌ Error saving order:", error);

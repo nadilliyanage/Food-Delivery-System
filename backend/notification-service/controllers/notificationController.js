@@ -33,10 +33,10 @@ const sendEmail = async (email, subject, message) => {
       html: `<p>${message}</p>`,
     });
 
-    console.log(`📧 Email sent to ${email}: ${info.messageId}`);
+    console.log(`Email sent to ${email}: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error("❌ Email sending failed:", error.message);
+    console.error("Email sending failed:", error.message);
     return false;
   }
 };
@@ -64,10 +64,10 @@ const sendSMS = async (phone, message) => {
       to: smsNumber,
     });
 
-    console.log(`📱 SMS sent to ${smsNumber}: ${smsResponse.sid}`);
+    console.log(`SMS sent to ${smsNumber}: ${smsResponse.sid}`);
     return true;
   } catch (error) {
-    console.error("❌ SMS sending failed:", error.message);
+    console.error("SMS sending failed:", error.message);
     return false;
   }
 };
@@ -100,72 +100,72 @@ const sendWhatsApp = async (phone, message) => {
     });
 
     console.log(
-      `📱 WhatsApp message sent to ${whatsappNumber}: ${whatsappResponse.sid}`
+      `WhatsApp message sent to ${whatsappNumber}: ${whatsappResponse.sid}`
     );
     return true;
   } catch (error) {
-    console.error("❌ WhatsApp sending failed:", error.message);
+    console.error("WhatsApp sending failed:", error.message);
     return false;
   }
 };
 
 // Send Multiple Notifications
 const sendMultipleNotifications = async (notifications) => {
-  console.log("🔍 Starting multiple notifications...");
+  console.log("Starting multiple notifications...");
   const results = [];
 
   for (const notification of notifications) {
     const { type, email, phone, subject, message } = notification;
-    console.log(`📧 Processing ${type} notification...`);
+    console.log(`Processing ${type} notification...`);
 
     try {
       let success = false;
       let error = null;
 
       if (type === "email" && email) {
-        console.log("📧 Sending email to:", email);
+        console.log("Sending email to:", email);
         success = await sendEmail(
           email,
           subject || "Order Notification",
           message
         );
-        console.log("✅ Email result:", success);
+        console.log("Email result:", success);
       } else if (type === "sms" && phone) {
-        console.log("📱 Sending SMS to:", phone);
+        console.log("Sending SMS to:", phone);
         success = await sendSMS(phone, message);
-        console.log("✅ SMS result:", success);
+        console.log("SMS result:", success);
       } else if (type === "whatsapp" && phone) {
-        console.log("💬 Sending WhatsApp to:", phone);
+        console.log("Sending WhatsApp to:", phone);
         success = await sendWhatsApp(phone, message);
-        console.log("✅ WhatsApp result:", success);
+        console.log("WhatsApp result:", success);
       } else {
         error = `Invalid notification type or missing required fields for ${type}`;
-        console.error("❌", error);
+        console.error(error);
       }
 
       results.push({ success, error });
     } catch (error) {
-      console.error(`❌ Error sending ${type} notification:`, error.message);
+      console.error(`Error sending ${type} notification:`, error.message);
       console.error("Error stack:", error.stack);
       results.push({ success: false, error: error.message });
     }
   }
 
-  console.log("✅ All notifications processed:", results);
+  console.log("All notifications processed:", results);
   return results;
 };
 
 // Send Notification
 const sendNotification = async (req, res) => {
   try {
-    console.log("🔍 Starting notification process...");
+    console.log("Starting notification process...");
     console.log("Request body:", req.body);
 
     const { userId, notifications } = req.body;
 
     // Validate request format
     if (!userId || !notifications || !Array.isArray(notifications)) {
-      console.error("❌ Invalid request format:", {
+      console.error("Invalid request format:", {
         hasUserId: !!userId,
         hasNotifications: !!notifications,
         isArray: Array.isArray(notifications),
@@ -182,7 +182,7 @@ const sendNotification = async (req, res) => {
 
     // Validate user ID format
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      console.error("❌ Invalid user ID format:", userId);
+      console.error("Invalid user ID format:", userId);
       return res.status(400).json({
         message: "Invalid user ID format",
         details: { userId },
@@ -192,7 +192,7 @@ const sendNotification = async (req, res) => {
     // Validate each notification
     for (const notification of notifications) {
       if (!notification.type || !notification.message) {
-        console.error("❌ Invalid notification format:", notification);
+        console.error("Invalid notification format:", notification);
         return res.status(400).json({
           message: "Invalid notification format",
           details: { notification },
@@ -200,7 +200,7 @@ const sendNotification = async (req, res) => {
       }
 
       if (notification.type === "email" && !notification.email) {
-        console.error("❌ Email notification missing email address");
+        console.error("Email notification missing email address");
         return res.status(400).json({
           message: "Email notification missing email address",
           details: { notification },
@@ -211,7 +211,7 @@ const sendNotification = async (req, res) => {
         (notification.type === "sms" || notification.type === "whatsapp") &&
         !notification.phone
       ) {
-        console.error("❌ Phone notification missing phone number");
+        console.error("Phone notification missing phone number");
         return res.status(400).json({
           message: "Phone notification missing phone number",
           details: { notification },
@@ -220,12 +220,12 @@ const sendNotification = async (req, res) => {
     }
 
     // Send notifications
-    console.log("📧 Sending notifications...");
+    console.log("Sending notifications...");
     const results = await sendMultipleNotifications(notifications);
     console.log("Notification results:", results);
 
     // Save notification records
-    console.log("💾 Saving notification records...");
+    console.log("Saving notification records...");
     const notificationRecords = notifications.map((notification, index) => ({
       userId: new mongoose.Types.ObjectId(userId),
       type: notification.type,
@@ -234,14 +234,14 @@ const sendNotification = async (req, res) => {
     }));
 
     await Notification.insertMany(notificationRecords);
-    console.log("✅ Notification records saved");
+    console.log("Notification records saved");
 
     res.status(201).json({
       message: "Notifications sent successfully",
       results,
     });
   } catch (error) {
-    console.error("❌ Error in sendNotification:", error);
+    console.error("Error in sendNotification:", error);
     console.error("Error stack:", error.stack);
     res.status(500).json({
       message: "Error sending notifications",
@@ -257,7 +257,7 @@ const getUserNotifications = async (req, res) => {
     const notifications = await Notification.find({ userId: req.user.id });
     res.json(notifications);
   } catch (error) {
-    console.error("❌ Error fetching notifications:", error);
+    console.error("Error fetching notifications:", error);
     res.status(500).json({ message: "Error fetching notifications" });
   }
 };
