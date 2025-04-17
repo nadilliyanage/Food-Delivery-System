@@ -312,7 +312,6 @@ const placeOrder = async (req, res) => {
     try {
       console.log("📧 Sending order confirmation notifications...");
 
-      // Verify notification service URL is set
       if (!NOTIFICATION_SERVICE_URL) {
         console.error(
           "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
@@ -325,21 +324,30 @@ const placeOrder = async (req, res) => {
           type: "email",
           email: customer.email,
           subject: "Order Confirmation - Food Delivery System",
-          message: `Dear ${customer.name},
-
-Thank you for placing your order with us!
-
-Order Details:
-Order ID: #${newOrder._id}
-Total Amount: $${newOrder.totalPrice}
-Status: ${newOrder.status}
-
-We will notify you once your order is confirmed by the restaurant.
-
-Thank you for choosing our service!
-
-Best regards,
-Food Delivery System Team`,
+          message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+            <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h2 style="color: #333333; margin-bottom: 20px;">Order Confirmation</h2>
+                
+                <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
+                
+                <p style="color: #666666; margin-bottom: 20px;">Thank you for placing your order with us!</p>
+                
+                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                    <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
+                    <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${newOrder._id}</p>
+                    <p style="color: #666666; margin: 5px 0;"><strong>Total Amount:</strong> $${newOrder.totalPrice}</p>
+                    <p style="color: #666666; margin: 5px 0;"><strong>Status:</strong> ${newOrder.status}</p>
+                </div>
+                
+                <p style="color: #666666; margin-bottom: 20px;">We will notify you once your order is confirmed by the restaurant.</p>
+                
+                <p style="color: #666666; margin-bottom: 20px;">Thank you for choosing our service!</p>
+                
+                <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
+                    <p style="color: #999999; margin: 0;">Best regards,<br>Food Delivery System Team</p>
+                </div>
+            </div>
+        </div>`,
         },
         {
           type: "sms",
@@ -383,7 +391,6 @@ Thank you for choosing our service! 🚀`,
         "❌ Error sending order confirmation notifications:",
         error
       );
-      // Don't fail the order creation if notification fails
     }
 
     res.status(201).json(newOrder);
@@ -456,21 +463,28 @@ const updateOrder = async (req, res) => {
               type: "email",
               email: customer.email,
               subject: "Order Status Update - Food Delivery System",
-              message: `Dear ${customer.name},
-
-Your order status has been updated!
-
-Order Details:
-Order ID: #${order._id}
-New Status: ${status}
-${statusMessages[status]}
-
-We'll keep you updated on your order's progress.
-
-Thank you for choosing our service!
-
-Best regards,
-Food Delivery System Team`,
+              message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+                <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">Your order status has been updated!</p>
+                    
+                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                        <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
+                        <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
+                        <p style="color: #666666; margin: 5px 0;"><strong>New Status:</strong> ${status}</p>
+                        <p style="color: #666666; margin: 5px 0;">${statusMessages[status]}</p>
+                    </div>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
+                    
+                    <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
+                        <p style="color: #999999; margin: 0;">Best regards,<br>Food Delivery System Team</p>
+                    </div>
+                </div>
+            </div>`,
             },
             {
               type: "sms",
@@ -511,7 +525,6 @@ Thank you for choosing our service! 🚀`,
           console.log("✅ Status update notifications sent successfully");
         } catch (error) {
           console.error("❌ Error sending status update notifications:", error);
-          // Don't fail the order update if notification fails
         }
 
         return res.status(200).json(order);
@@ -561,21 +574,28 @@ Thank you for choosing our service! 🚀`,
             type: "email",
             email: customer.email,
             subject: "Order Status Update - Food Delivery System",
-            message: `Dear ${customer.name},
-
-Your order status has been updated!
-
-Order Details:
-Order ID: #${order._id}
-New Status: ${status}
-${statusMessages[status]}
-
-We'll keep you updated on your order's progress.
-
-Thank you for choosing our service!
-
-Best regards,
-Food Delivery System Team`,
+            message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+                <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">Your order status has been updated!</p>
+                    
+                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                        <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
+                        <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
+                        <p style="color: #666666; margin: 5px 0;"><strong>New Status:</strong> ${status}</p>
+                        <p style="color: #666666; margin: 5px 0;">${statusMessages[status]}</p>
+                    </div>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
+                    
+                    <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
+                        <p style="color: #999999; margin: 0;">Best regards,<br>Food Delivery System Team</p>
+                    </div>
+                </div>
+            </div>`,
           },
           {
             type: "sms",
@@ -616,7 +636,6 @@ Thank you for choosing our service! 🚀`,
         console.log("✅ Status update notifications sent successfully");
       } catch (error) {
         console.error("❌ Error sending status update notifications:", error);
-        // Don't fail the order update if notification fails
       }
 
       return res.status(200).json(order);
