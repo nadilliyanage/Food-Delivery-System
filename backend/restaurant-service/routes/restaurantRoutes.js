@@ -14,10 +14,10 @@ const {
   updateRegistrationStatus,
   getApprovedRegistrations,
   getRejectedRegistrations,
-  getRestaurantsByCategory
+  getRestaurantsByCategory,
 } = require("../controllers/restaurantController");
 const authMiddleware = require("../middleware/authMiddleware");
-const { isAdmin } = require('../middleware/isAdmin');
+const { isAdmin } = require("../middleware/isAdmin");
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ router.post("/register", authMiddleware, registerRestaurant);
 // Restaurant owner routes
 router.get("/user/restaurants", authMiddleware, getUserRestaurants);
 router.post("/", authMiddleware, createRestaurant);
-router.put("/:id", authMiddleware, updateRestaurant);
+router.patch("/:id", authMiddleware, updateRestaurant);
 router.delete("/:id", authMiddleware, deleteRestaurant);
 
 // Menu routes
@@ -44,6 +44,6 @@ router.delete("/:id/menu/:menuItemId", authMiddleware, deleteMenuItem);
 router.get("/admin/pending-registrations", isAdmin, getPendingRegistrations);
 router.get("/admin/approved-registrations", isAdmin, getApprovedRegistrations);
 router.get("/admin/rejected-registrations", isAdmin, getRejectedRegistrations);
-router.put("/admin/registration-status", isAdmin, updateRegistrationStatus);
+router.patch("/admin/registration-status", isAdmin, updateRegistrationStatus);
 
 module.exports = router;

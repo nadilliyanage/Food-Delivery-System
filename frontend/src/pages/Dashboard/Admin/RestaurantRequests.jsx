@@ -132,7 +132,7 @@ const RestaurantRequests = () => {
       );
 
       // Update restaurant status
-      await axios.put(
+      await axios.patch(
         "http://localhost:3000/api/restaurants/admin/registration-status",
         {
           restaurantId,

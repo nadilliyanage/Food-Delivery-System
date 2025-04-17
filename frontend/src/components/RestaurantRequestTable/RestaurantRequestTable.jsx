@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 const RestaurantRequestTable = () => {
@@ -149,7 +152,7 @@ const RestaurantRequestTable = () => {
         return;
       }
 
-      await axios.put(
+      await axios.patch(
         `${
           import.meta.env.VITE_API_URL
         }/api/restaurants/admin/registration-status`,
@@ -196,17 +199,19 @@ const RestaurantRequestTable = () => {
     try {
       // Add Sri Lanka to the search query and use Nominatim API
       const response = await axios.get(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Sri Lanka')}&countrycodes=lk&limit=5`,
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query + ", Sri Lanka"
+        )}&countrycodes=lk&limit=5`,
         {
           headers: {
-            'Accept-Language': 'en'
-          }
+            "Accept-Language": "en",
+          },
         }
       );
 
       setSearchResults(response.data);
     } catch (error) {
-      console.error('Error searching location:', error);
+      console.error("Error searching location:", error);
       setSearchResults([]);
     }
   };
@@ -332,13 +337,17 @@ const RestaurantRequestTable = () => {
                 {activeTab === "pending" && (
                   <>
                     <button
-                      onClick={() => handleStatusUpdate(restaurant._id, "approved")}
+                      onClick={() =>
+                        handleStatusUpdate(restaurant._id, "approved")
+                      }
                       className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => handleStatusUpdate(restaurant._id, "rejected")}
+                      onClick={() =>
+                        handleStatusUpdate(restaurant._id, "rejected")
+                      }
                       className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
                     >
                       Reject
@@ -348,13 +357,17 @@ const RestaurantRequestTable = () => {
                 {activeTab === "approved" && (
                   <>
                     <button
-                      onClick={() => handleStatusUpdate(restaurant._id, "pending")}
+                      onClick={() =>
+                        handleStatusUpdate(restaurant._id, "pending")
+                      }
                       className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
                     >
                       Back to Pending
                     </button>
                     <button
-                      onClick={() => handleStatusUpdate(restaurant._id, "rejected")}
+                      onClick={() =>
+                        handleStatusUpdate(restaurant._id, "rejected")
+                      }
                       className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
                     >
                       Decline
@@ -364,13 +377,17 @@ const RestaurantRequestTable = () => {
                 {activeTab === "rejected" && (
                   <>
                     <button
-                      onClick={() => handleStatusUpdate(restaurant._id, "pending")}
+                      onClick={() =>
+                        handleStatusUpdate(restaurant._id, "pending")
+                      }
                       className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
                     >
                       Back to Pending
                     </button>
                     <button
-                      onClick={() => handleStatusUpdate(restaurant._id, "approved")}
+                      onClick={() =>
+                        handleStatusUpdate(restaurant._id, "approved")
+                      }
                       className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
                     >
                       Approve
@@ -489,7 +506,10 @@ const RestaurantRequestTable = () => {
                           onClick={() => {
                             setSelectedLocation({
                               type: "Point",
-                              coordinates: [parseFloat(result.lon), parseFloat(result.lat)]
+                              coordinates: [
+                                parseFloat(result.lon),
+                                parseFloat(result.lat),
+                              ],
                             });
                             setSearchQuery("");
                             setSearchResults([]);
@@ -503,7 +523,10 @@ const RestaurantRequestTable = () => {
                 </div>
 
                 <MapContainer
-                  center={[selectedLocation.coordinates[1], selectedLocation.coordinates[0]]}
+                  center={[
+                    selectedLocation.coordinates[1],
+                    selectedLocation.coordinates[0],
+                  ]}
                   zoom={15}
                   style={{ height: "100%", width: "100%" }}
                 >
@@ -511,10 +534,13 @@ const RestaurantRequestTable = () => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
-                  <Marker position={[selectedLocation.coordinates[1], selectedLocation.coordinates[0]]}>
-                    <Popup>
-                      Restaurant Location
-                    </Popup>
+                  <Marker
+                    position={[
+                      selectedLocation.coordinates[1],
+                      selectedLocation.coordinates[0],
+                    ]}
+                  >
+                    <Popup>Restaurant Location</Popup>
                   </Marker>
                 </MapContainer>
               </div>
@@ -526,4 +552,4 @@ const RestaurantRequestTable = () => {
   );
 };
 
-export default RestaurantRequestTable; 
+export default RestaurantRequestTable;
