@@ -5,6 +5,7 @@ require("dotenv").config();
 // Load API Gateway service URLs from environment variables
 const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
 const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
+const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL;
 
 // ✅ Get All Orders (For Admins and Restaurant Owners)
 const getOrders = async (req, res) => {
@@ -135,9 +136,81 @@ const getOrderById = async (req, res) => {
   }
 };
 
+// Send customer notification
+const sendCustomerNotification = async (order, token) => {
+  try {
+    // Get customer details from auth service
+    const customerResponse = await axios.get(
+      `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const customer = customerResponse.data;
+    console.log("Customer details:", customer);
+
+    // Format phone number
+    let phoneNumber = customer.phone;
+    console.log("Original phone number:", phoneNumber);
+
+    // Remove any spaces or dashes
+    phoneNumber = phoneNumber.replace(/[\s-]/g, "");
+
+    // Format for Sri Lankan numbers
+    if (phoneNumber.startsWith("94")) {
+      // Already in correct format
+    } else if (phoneNumber.startsWith("0")) {
+      phoneNumber = "94" + phoneNumber.substring(1);
+    } else if (!phoneNumber.startsWith("94")) {
+      phoneNumber = "94" + phoneNumber;
+    }
+
+    console.log("Formatted phone number:", phoneNumber);
+
+    // Send notifications to customer
+    const notifications = [
+      {
+        type: "email",
+        email: customer.email,
+        subject: "Order Confirmation",
+        message: `Your order #${order._id} has been placed successfully. Total amount: $${order.totalPrice}. Status: ${order.status}`,
+      },
+      {
+        type: "sms",
+        phone: phoneNumber,
+        message: `Order #${order._id} placed successfully. Amount: $${order.totalPrice}. Status: ${order.status}`,
+      },
+      {
+        type: "whatsapp",
+        phone: phoneNumber,
+        message: `Order #${order._id}:${order.status}`,
+      },
+    ];
+
+    await axios.post(
+      `${NOTIFICATION_SERVICE_URL}/api/notifications`,
+      {
+        userId: order.customer,
+        notifications,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log(`📧 Notifications sent to customer for order: ${order._id}`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error sending customer notifications:", error.message);
+    return false;
+  }
+};
+
 // ✅ Place a New Order (Fetch Restaurant First)
 const placeOrder = async (req, res) => {
   try {
+    console.log("🔍 Starting order placement...");
     const {
       restaurant,
       items,
@@ -149,23 +222,73 @@ const placeOrder = async (req, res) => {
 
     // Validate required fields
     if (!restaurant || !items || !totalPrice || !paymentMethod) {
+      console.error("❌ Missing required fields:", {
+        hasRestaurant: !!restaurant,
+        hasItems: !!items,
+        hasTotalPrice: !!totalPrice,
+        hasPaymentMethod: !!paymentMethod,
+      });
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     // Validate payment method
     if (paymentMethod === "card" && !cardDetails) {
+      console.error("❌ Card payment missing card details");
       return res
         .status(400)
         .json({ message: "Card details required for card payment" });
     }
 
     // ✅ Ensure restaurant exists before placing an order
-    const restaurantResponse = await axios.get(
-      `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurant}`
-    );
-    if (!restaurantResponse.data)
-      return res.status(404).json({ message: "Restaurant not found" });
+    try {
+      console.log("🔍 Verifying restaurant...");
+      const restaurantResponse = await axios.get(
+        `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurant}`
+      );
+      if (!restaurantResponse.data) {
+        console.error("❌ Restaurant not found:", restaurant);
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+      console.log("✅ Restaurant verified");
+    } catch (error) {
+      console.error("❌ Error verifying restaurant:", error);
+      return res.status(500).json({ message: "Error verifying restaurant" });
+    }
 
+    // Get customer details from auth service
+    let customer;
+    try {
+      console.log("🔍 Fetching customer details...");
+      const customerResponse = await axios.get(
+        `${process.env.AUTH_SERVICE_URL}/api/auth/users/${req.user.id}`,
+        {
+          headers: { Authorization: req.headers.authorization },
+        }
+      );
+      customer = customerResponse.data;
+      console.log("✅ Customer details fetched:", customer);
+    } catch (error) {
+      console.error("❌ Error fetching customer details:", error);
+      return res
+        .status(500)
+        .json({ message: "Error fetching customer details" });
+    }
+
+    // Process payment
+    try {
+      console.log("💳 Processing payment...");
+      if (paymentMethod === "card") {
+        // Add your payment processing logic here
+        console.log("✅ Card payment processed");
+      } else {
+        console.log("✅ Cash payment selected");
+      }
+    } catch (error) {
+      console.error("❌ Payment processing failed:", error);
+      return res.status(500).json({ message: "Payment processing failed" });
+    }
+
+    // Create new order
     const newOrder = new Order({
       customer: req.user.id,
       restaurant,
@@ -176,11 +299,109 @@ const placeOrder = async (req, res) => {
       ...(paymentMethod === "card" && { cardDetails }),
     });
 
-    await newOrder.save();
+    try {
+      console.log("💾 Saving order...");
+      await newOrder.save();
+      console.log("✅ Order saved successfully");
+    } catch (error) {
+      console.error("❌ Error saving order:", error);
+      return res.status(500).json({ message: "Error saving order" });
+    }
+
+    // Send notifications to customer
+    try {
+      console.log("📧 Sending order confirmation notifications...");
+
+      if (!NOTIFICATION_SERVICE_URL) {
+        console.error(
+          "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
+        );
+        return res.status(201).json(newOrder);
+      }
+
+      const notifications = [
+        {
+          type: "email",
+          email: customer.email,
+          subject: "Order Confirmation - EatEase",
+          message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+            <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h2 style="color: #333333; margin-bottom: 20px;">Order Confirmation</h2>
+                
+                <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
+                
+                <p style="color: #666666; margin-bottom: 20px;">Thank you for placing your order with us!</p>
+                
+                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                    <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
+                    <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${newOrder._id}</p>
+                    <p style="color: #666666; margin: 5px 0;"><strong>Total Amount:</strong> $${newOrder.totalPrice}</p>
+                    <p style="color: #666666; margin: 5px 0;"><strong>Status:</strong> ${newOrder.status}</p>
+                </div>
+                
+                <p style="color: #666666; margin-bottom: 20px;">We will notify you once your order is confirmed by the restaurant.</p>
+                
+                <p style="color: #666666; margin-bottom: 20px;">Thank you for choosing our service!</p>
+                
+                <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
+                    <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
+                </div>
+            </div>
+        </div>`,
+        },
+        {
+          type: "sms",
+          phone: customer.phone,
+          message: `Order Confirmation: Your order #${newOrder._id} has been placed successfully. Total: $${newOrder.totalPrice}. We'll notify you when the restaurant confirms. Thank you!`,
+        },
+        {
+          type: "whatsapp",
+          phone: customer.phone,
+          message: `🍽️ *Order Confirmation*
+
+Hello ${customer.name},
+
+Your order has been placed successfully!
+
+📋 *Order Details:*
+Order ID: #${newOrder._id}
+Total Amount: $${newOrder.totalPrice}
+Status: *${newOrder.status}*
+
+We'll notify you once the restaurant confirms your order.
+
+Thank you for choosing our service! 🚀`,
+        },
+      ];
+
+      await axios.post(
+        `${NOTIFICATION_SERVICE_URL}/api/notifications`,
+        {
+          userId: newOrder.customer,
+          notifications,
+        },
+        {
+          headers: { Authorization: req.headers.authorization },
+        }
+      );
+
+      console.log("✅ Order confirmation notifications sent successfully");
+    } catch (error) {
+      console.error(
+        "❌ Error sending order confirmation notifications:",
+        error
+      );
+    }
+
     res.status(201).json(newOrder);
   } catch (error) {
     console.error("❌ Error placing order:", error);
-    res.status(500).json({ message: "Error placing order" });
+    console.error("Error stack:", error.stack);
+    res.status(500).json({
+      message: "Error placing order",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
@@ -191,65 +412,124 @@ const updateOrder = async (req, res) => {
     const { status } = req.body;
     const { role, id: userId } = req.user;
 
+    console.log("🔍 Starting order status update...");
+    console.log("Order ID:", id);
+    console.log("New status:", status);
+    console.log("User role:", role);
+
     // Find the order
     const order = await Order.findById(id);
     if (!order) {
+      console.error("❌ Order not found:", id);
       return res.status(404).json({ message: "Order not found" });
     }
 
     // Authorization checks based on role and status
-
-    // Delivery personnel can:
-    // 1. Accept delivery (Out for Delivery -> Delivery Accepted)
-    // 2. Reject delivery (Out for Delivery -> Delivery Rejected)
-    // 3. Mark as delivered (Delivery Accepted -> Delivered)
-
-    order.status = status;
-    await order.save();
-
-    // If order is accepted, create a delivery record
-    if (status === "Delivery Accepted") {
-      try {
-        if (!DELIVERY_SERVICE_URL) {
-          console.error(
-            "DELIVERY_SERVICE_URL is not set in environment variables"
-          );
-          return res.status(200).json(order); // Continue with order update even if delivery record fails
-        }
-
-        await axios.post(
-          `${DELIVERY_SERVICE_URL}/api/deliveries`,
-          {
-            orderId: order._id,
-            driverId: userId,
-          },
-          {
-            headers: { Authorization: req.headers.authorization },
-          }
-        );
-      } catch (error) {
-        console.error("Error creating delivery record:", error.message);
-        // Don't fail the order update if delivery record creation fails
-      }
-    }
-
-    return res.status(200).json(order);
-    if (order.status === "Delivery Accepted" && status === "Delivered") {
-      order.status = status;
-      await order.save();
-      return res.status(200).json(order);
-    } else {
-      return res.status(403).json({
-        message: "Invalid status transition for delivery personnel",
-      });
-    }
     if (role === "restaurant_admin") {
       // Restaurant admin can update to "Preparing" or "Out for Delivery"
       if (["Preparing", "Confirmed", "Out for Delivery"].includes(status)) {
         order.status = status;
         await order.save();
+
+        // Send notification to customer about status update
+        try {
+          console.log("📧 Sending status update notification to customer...");
+
+          if (!NOTIFICATION_SERVICE_URL) {
+            console.error(
+              "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
+            );
+            return res.status(200).json(order);
+          }
+
+          const customerResponse = await axios.get(
+            `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+            {
+              headers: { Authorization: req.headers.authorization },
+            }
+          );
+
+          const customer = customerResponse.data;
+          console.log("Customer details:", customer);
+
+          const statusMessages = {
+            Confirmed: "has been confirmed by the restaurant",
+            Preparing: "is now being prepared",
+            "Out for Delivery": "is on its way to you",
+          };
+
+          const notifications = [
+            {
+              type: "email",
+              email: customer.email,
+              subject: "Order Status Update - EatEase",
+              message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+                <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">Your order status has been updated!</p>
+                    
+                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                        <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
+                        <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
+                        <p style="color: #666666; margin: 5px 0;"><strong>New Status:</strong> ${status}</p>
+                        <p style="color: #666666; margin: 5px 0;">${statusMessages[status]}</p>
+                    </div>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
+                    
+                    <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
+                        <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
+                    </div>
+                </div>
+            </div>`,
+            },
+            {
+              type: "sms",
+              phone: customer.phone,
+              message: `Order Update: Your order #${order._id} ${statusMessages[status]}. We'll notify you of any further updates.`,
+            },
+            {
+              type: "whatsapp",
+              phone: customer.phone,
+              message: `📦 *Order Status Update*
+
+Hello ${customer.name},
+
+Your order status has been updated!
+
+📋 *Order Details:*
+Order ID: #${order._id}
+Status: *${status}*
+${statusMessages[status]}
+
+We'll keep you updated on your order's progress.
+
+Thank you for choosing our service! 🚀`,
+            },
+          ];
+
+          await axios.post(
+            `${NOTIFICATION_SERVICE_URL}/api/notifications`,
+            {
+              userId: order.customer,
+              notifications,
+            },
+            {
+              headers: { Authorization: req.headers.authorization },
+            }
+          );
+
+          console.log("✅ Status update notifications sent successfully");
+        } catch (error) {
+          console.error("❌ Error sending status update notifications:", error);
+        }
+
         return res.status(200).json(order);
       } else {
+        console.error("❌ Invalid status update for restaurant admin:", status);
         return res.status(403).json({
           message:
             "Restaurant admin can only update orders to Preparing or Out for Delivery",
@@ -259,15 +539,120 @@ const updateOrder = async (req, res) => {
       // Admin can update to any status
       order.status = status;
       await order.save();
+
+      // Send notification to customer about status update
+      try {
+        console.log("📧 Sending status update notification to customer...");
+
+        if (!NOTIFICATION_SERVICE_URL) {
+          console.error(
+            "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
+          );
+          return res.status(200).json(order);
+        }
+
+        const customerResponse = await axios.get(
+          `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+          {
+            headers: { Authorization: req.headers.authorization },
+          }
+        );
+
+        const customer = customerResponse.data;
+        console.log("Customer details:", customer);
+
+        const statusMessages = {
+          Confirmed: "has been confirmed by the restaurant",
+          Preparing: "is now being prepared",
+          "Out for Delivery": "is on its way to you",
+          Delivered: "has been delivered successfully",
+          Cancelled: "has been cancelled",
+        };
+
+        const notifications = [
+          {
+            type: "email",
+            email: customer.email,
+            subject: "Order Status Update - EatEase",
+            message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+                <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">Your order status has been updated!</p>
+                    
+                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                        <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
+                        <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
+                        <p style="color: #666666; margin: 5px 0;"><strong>New Status:</strong> ${status}</p>
+                        <p style="color: #666666; margin: 5px 0;">${statusMessages[status]}</p>
+                    </div>
+                    
+                    <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
+                    
+                    <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
+                        <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
+                    </div>
+                </div>
+            </div>`,
+          },
+          {
+            type: "sms",
+            phone: customer.phone,
+            message: `Order Update: Your order #${order._id} ${statusMessages[status]}. We'll notify you of any further updates.`,
+          },
+          {
+            type: "whatsapp",
+            phone: customer.phone,
+            message: `📦 *Order Status Update*
+
+Hello ${customer.name},
+
+Your order status has been updated!
+
+📋 *Order Details:*
+Order ID: #${order._id}
+Status: *${status}*
+${statusMessages[status]}
+
+We'll keep you updated on your order's progress.
+
+Thank you for choosing our service! 🚀`,
+          },
+        ];
+
+        await axios.post(
+          `${NOTIFICATION_SERVICE_URL}/api/notifications`,
+          {
+            userId: order.customer,
+            notifications,
+          },
+          {
+            headers: { Authorization: req.headers.authorization },
+          }
+        );
+
+        console.log("✅ Status update notifications sent successfully");
+      } catch (error) {
+        console.error("❌ Error sending status update notifications:", error);
+      }
+
       return res.status(200).json(order);
     } else {
+      console.error("❌ Unauthorized role for status update:", role);
       return res
         .status(403)
         .json({ message: "Unauthorized to update order status" });
     }
   } catch (error) {
-    console.error("Error updating order:", error);
-    res.status(500).json({ message: "Error updating order" });
+    console.error("❌ Error updating order:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({
+      message: "Error updating order",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
