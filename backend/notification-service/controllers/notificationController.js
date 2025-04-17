@@ -26,7 +26,7 @@ const sendEmail = async (email, subject, message) => {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Food Delivery" <${process.env.EMAIL_USER}>`,
+      from: `"EatEase" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: subject,
       text: message,

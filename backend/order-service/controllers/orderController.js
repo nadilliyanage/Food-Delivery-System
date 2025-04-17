@@ -323,7 +323,7 @@ const placeOrder = async (req, res) => {
         {
           type: "email",
           email: customer.email,
-          subject: "Order Confirmation - Food Delivery System",
+          subject: "Order Confirmation - EatEase",
           message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
             <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 <h2 style="color: #333333; margin-bottom: 20px;">Order Confirmation</h2>
@@ -344,7 +344,7 @@ const placeOrder = async (req, res) => {
                 <p style="color: #666666; margin-bottom: 20px;">Thank you for choosing our service!</p>
                 
                 <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
-                    <p style="color: #999999; margin: 0;">Best regards,<br>Food Delivery System Team</p>
+                    <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
                 </div>
             </div>
         </div>`,
@@ -462,7 +462,7 @@ const updateOrder = async (req, res) => {
             {
               type: "email",
               email: customer.email,
-              subject: "Order Status Update - Food Delivery System",
+              subject: "Order Status Update - EatEase",
               message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
                 <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
@@ -481,7 +481,7 @@ const updateOrder = async (req, res) => {
                     <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
                     
                     <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
-                        <p style="color: #999999; margin: 0;">Best regards,<br>Food Delivery System Team</p>
+                        <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
                     </div>
                 </div>
             </div>`,
@@ -573,7 +573,7 @@ Thank you for choosing our service! 🚀`,
           {
             type: "email",
             email: customer.email,
-            subject: "Order Status Update - Food Delivery System",
+            subject: "Order Status Update - EatEase",
             message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
                 <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
@@ -592,7 +592,7 @@ Thank you for choosing our service! 🚀`,
                     <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
                     
                     <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
-                        <p style="color: #999999; margin: 0;">Best regards,<br>Food Delivery System Team</p>
+                        <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
                     </div>
                 </div>
             </div>`,
