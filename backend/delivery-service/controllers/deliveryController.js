@@ -10,91 +10,63 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 const assignDriver = async (req, res) => {
   try {
     const { orderId, driverId } = req.body;
-    console.log(`🔍 Assigning driver ${driverId} to order ${orderId}`);
+    const userId = req.user.id;
 
-    // ✅ Get Authorization token from request header
-    const authToken = req.headers.authorization;
-    if (!authToken) {
-      return res.status(401).json({ message: "Unauthorized - Missing Token" });
+    console.log("🔍 Assigning driver:", { orderId, driverId, userId });
+
+    // Check if user is authorized to assign drivers
+    if (req.user.role !== "delivery_personnel" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // ✅ Fetch order details from Order Service
-    let orderData;
+    // Verify the driver is the same as the authenticated user
+    if (driverId !== userId) {
+      return res
+        .status(403)
+        .json({ message: "You can only assign yourself as the driver" });
+    }
+
+    // Check if delivery already exists for this order
+    let delivery = await Delivery.findOne({ order: orderId });
+
+    if (delivery) {
+      // If delivery exists, update the driver
+      delivery.driver = driverId;
+      delivery.status = "On the Way";
+      await delivery.save();
+      return res.status(200).json({ delivery });
+    }
+
+    // Get order details from order service
     try {
       const orderResponse = await axios.get(
         `${ORDER_SERVICE_URL}/api/orders/${orderId}`,
-        { headers: { Authorization: authToken } }
+        {
+          headers: { Authorization: req.headers.authorization },
+        }
       );
-      orderData = orderResponse.data;
-      console.log("✅ Order details fetched:", orderData);
 
-      // Check if order is in correct status
-      if (orderData.status !== "Out for Delivery") {
-        return res.status(400).json({
-          message:
-            "Order must be in Out for Delivery status to create delivery record",
-        });
-      }
-    } catch (error) {
-      console.error(
-        "❌ Error fetching order:",
-        error.response?.data || error.message
-      );
-      return res.status(500).json({ message: "Error fetching order" });
-    }
+      const order = orderResponse.data;
 
-    // ✅ Fetch driver details from Auth Service to confirm role
-    let driver;
-    try {
-      const driverResponse = await axios.get(
-        `${AUTH_SERVICE_URL}/api/auth/users/${driverId}`,
-        { headers: { Authorization: authToken } }
-      );
-      driver = driverResponse.data;
-      console.log("✅ Driver details fetched:", driver);
-    } catch (error) {
-      console.error(
-        "❌ Error fetching driver:",
-        error.response?.data || error.message
-      );
-      return res.status(500).json({ message: "Error fetching driver" });
-    }
-
-    // ✅ Check if the user is a valid delivery driver
-    if (!driver || driver.role !== "delivery_personnel") {
-      console.error("❌ Invalid driver role:", driver.role);
-      return res
-        .status(400)
-        .json({ message: "Invalid driver or driver not found" });
-    }
-
-    // Check if delivery record already exists
-    const existingDelivery = await Delivery.findOne({ order: orderId });
-    if (existingDelivery) {
-      return res.status(400).json({
-        message: "Delivery record already exists for this order",
+      // Create new delivery record
+      delivery = new Delivery({
+        order: orderId,
+        driver: driverId,
+        customer: order.customer,
+        status: "On the Way",
+        deliveryTime: null,
       });
+
+      await delivery.save();
+
+      res.status(201).json({ delivery });
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      return res.status(500).json({ message: "Error fetching order details" });
     }
-
-    // ✅ Create a new Delivery record in the database
-    const newDelivery = new Delivery({
-      order: orderData._id,
-      customer: orderData.customer,
-      driver: driver._id,
-      status: "Assigned",
-      deliveryTime: null,
-    });
-
-    await newDelivery.save();
-    console.log("✅ Delivery successfully created:", newDelivery);
-
-    res.status(201).json({
-      message: "Driver assigned and delivery created",
-      delivery: newDelivery,
-    });
   } catch (error) {
-    console.error("❌ Full Error Log:", error);
-    res.status(500).json({ message: "Error processing delivery" });
+    console.error("Error assigning driver:", error);
+    res.status(500).json({ message: "Error assigning driver" });
   }
 };
 
