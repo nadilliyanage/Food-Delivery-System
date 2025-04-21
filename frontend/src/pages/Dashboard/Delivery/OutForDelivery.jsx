@@ -70,13 +70,18 @@ const OutForDelivery = () => {
           );
 
           // Show success message
-          Swal.fire({
+          await Swal.fire({
             title: "Success!",
             text: `Order status updated to "${newStatus}"`,
             icon: "success",
             timer: 1500,
             showConfirmButton: false,
           });
+
+          // If status is "On the Way", navigate to current deliveries
+          if (newStatus === "On the Way") {
+            navigate("/dashboard/current-deliveries");
+          }
         }
       }
     } catch (error) {

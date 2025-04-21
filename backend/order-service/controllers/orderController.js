@@ -538,8 +538,7 @@ Thank you for choosing our service! 🚀`,
     } else if (role === "delivery_personnel") {
       // Delivery personnel can:
       // 1. Accept delivery (Out for Delivery -> On the Way)
-      // 2. Reject delivery (Out for Delivery -> Delivery Rejected)
-      // 3. Mark as delivered (On the Way -> Delivered)
+      // 2. Mark as delivered (On the Way -> Delivered)
       if (order.status === "Out for Delivery" && status === "On the Way") {
         // Create delivery record
         try {
@@ -547,22 +546,52 @@ Thank you for choosing our service! 🚀`,
             console.error(
               "❌ DELIVERY_SERVICE_URL is not set in environment variables"
             );
-            // Continue with status update even if delivery service is not available
-            order.status = status;
-            await order.save();
-            return res.status(200).json(order);
+            return res.status(500).json({
+              message: "Delivery service not configured",
+              details: "DELIVERY_SERVICE_URL is not set",
+            });
           }
 
-          await axios.post(
-            `${DELIVERY_SERVICE_URL}/api/deliveries`,
-            {
-              orderId: order._id,
-              driverId: userId,
-            },
-            {
-              headers: { Authorization: req.headers.authorization },
-            }
-          );
+          console.log("📝 Creating delivery record...");
+          console.log("Order ID:", order._id);
+          console.log("Driver ID:", userId);
+          console.log("Delivery Service URL:", DELIVERY_SERVICE_URL);
+
+          // Create delivery record with correct endpoint
+          const deliveryResponse = await axios
+            .post(
+              `${DELIVERY_SERVICE_URL}/api/deliveries/assign-driver`,
+              {
+                orderId: order._id,
+                driverId: userId,
+              },
+              {
+                headers: { Authorization: req.headers.authorization },
+              }
+            )
+            .catch((error) => {
+              console.error(
+                "❌ Delivery service error response:",
+                error.response?.data
+              );
+              console.error(
+                "❌ Delivery service error status:",
+                error.response?.status
+              );
+              throw error;
+            });
+
+          console.log("✅ Delivery record created:", deliveryResponse.data);
+
+          if (deliveryResponse.status !== 201) {
+            console.error(
+              "❌ Unexpected delivery service response status:",
+              deliveryResponse.status
+            );
+            throw new Error(
+              `Failed to create delivery record: Unexpected status ${deliveryResponse.status}`
+            );
+          }
 
           order.status = status;
           await order.save();
@@ -619,10 +648,16 @@ Your order #${order._id} is now on its way to you!`,
           return res.status(200).json(order);
         } catch (error) {
           console.error("❌ Error creating delivery record:", error);
-          // Continue with status update even if delivery record creation fails
-          order.status = status;
-          await order.save();
-          return res.status(200).json(order);
+          console.error("Error details:", {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            stack: error.stack,
+          });
+          return res.status(500).json({
+            message: "Error creating delivery record",
+            details: error.response?.data || error.message,
+          });
         }
       } else if (order.status === "On the Way" && status === "Delivered") {
         order.status = status;

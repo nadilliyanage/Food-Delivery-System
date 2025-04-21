@@ -29,10 +29,10 @@ const assignDriver = async (req, res) => {
       console.log("✅ Order details fetched:", orderData);
 
       // Check if order is in correct status
-      if (orderData.status !== "Delivery Accepted") {
+      if (orderData.status !== "Out for Delivery") {
         return res.status(400).json({
           message:
-            "Order must be in Delivery Accepted status to create delivery record",
+            "Order must be in Out for Delivery status to create delivery record",
         });
       }
     } catch (error) {
