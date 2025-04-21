@@ -5,6 +5,7 @@ import { FaMapMarkerAlt, FaPhone, FaUser } from "react-icons/fa";
 import { format } from "date-fns";
 import Button from "../../../components/Button/Button";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const OutForDelivery = () => {
   const [orders, setOrders] = useState([]);
@@ -15,7 +16,9 @@ const OutForDelivery = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axiosSecure.get("/api/orders/delivery/out-for-delivery");
+        const response = await axiosSecure.get(
+          "/api/orders/delivery/out-for-delivery"
+        );
         setOrders(response.data);
         setLoading(false);
       } catch (error) {
@@ -36,13 +39,55 @@ const OutForDelivery = () => {
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
-      await axiosSecure.patch(`/api/orders/${orderId}`, { status: newStatus });
-      // Refresh orders after update
-      const response = await axiosSecure.get("/api/orders/delivery/out-for-delivery");
-      setOrders(response.data);
-      navigate("/dashboard/current-deliveries");
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: `Do you want to update the order status to "${newStatus}"?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, update it!",
+        cancelButtonText: "No, cancel!",
+      });
+
+      if (result.isConfirmed) {
+        const response = await axiosSecure.patch(
+          `/api/orders/${orderId}`,
+          { status: newStatus },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          // Update the order in the state
+          setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+              order._id === orderId ? { ...order, status: newStatus } : order
+            )
+          );
+
+          // Show success message
+          Swal.fire({
+            title: "Success!",
+            text: `Order status updated to "${newStatus}"`,
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        }
+      }
     } catch (error) {
       console.error("Error updating order status:", error);
+      // Show error message
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to update order status. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 
@@ -63,7 +108,9 @@ const OutForDelivery = () => {
       {orders.length === 0 ? (
         <div className="text-center mt-10">
           <MdDeliveryDining className="mx-auto text-6xl text-gray-400" />
-          <p className="mt-4 text-xl text-gray-600">No orders available for delivery at the moment.</p>
+          <p className="mt-4 text-xl text-gray-600">
+            No orders available for delivery at the moment.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -73,12 +120,18 @@ const OutForDelivery = () => {
               className="bg-white rounded-lg shadow-md p-6 border border-gray-200"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold">Order #{order._id.slice(-6)}</h3>
-                <span className={`px-3 py-1 rounded-full text-sm ${
-                  order.status === "Out for Delivery" ? "bg-yellow-100 text-yellow-800" :
-                  order.status === "On the Way" ? "bg-blue-100 text-blue-800" :
-                  "bg-gray-100 text-gray-800"
-                }`}>
+                <h3 className="text-xl font-semibold">
+                  Order #{order._id.slice(-6)}
+                </h3>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    order.status === "Out for Delivery"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : order.status === "On the Way"
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
                   {order.status}
                 </span>
               </div>
@@ -99,7 +152,8 @@ const OutForDelivery = () => {
                   <div>
                     <p className="font-medium">Delivery Address:</p>
                     <p className="text-gray-600">
-                      {order.deliveryAddress?.street}, {order.deliveryAddress?.city}
+                      {order.deliveryAddress?.street},{" "}
+                      {order.deliveryAddress?.city}
                     </p>
                     {order.deliveryAddress?.instructions && (
                       <p className="text-gray-500 text-sm mt-1">
@@ -114,7 +168,7 @@ const OutForDelivery = () => {
                     Ordered on: {format(new Date(order.createdAt), "PPp")}
                   </p>
                   <p className="text-lg font-semibold mt-2">
-                  Total: Rs. {(order.totalPrice + 150).toFixed(2)}
+                    Total: Rs. {(order.totalPrice + 150).toFixed(2)}
                   </p>
                 </div>
 
@@ -123,13 +177,17 @@ const OutForDelivery = () => {
                     <>
                       <Button
                         className="bg-green-500 text-white flex-1"
-                        onClick={() => handleUpdateStatus(order._id, "Delivery Accepted")}
+                        onClick={() =>
+                          handleUpdateStatus(order._id, "On the Way")
+                        }
                       >
-                        Accept Delivery
+                        Start Delivery
                       </Button>
                       <Button
                         className="bg-red-500 text-white flex-1"
-                        onClick={() => handleUpdateStatus(order._id, "Delivery Rejected")}
+                        onClick={() =>
+                          handleUpdateStatus(order._id, "Delivery Rejected")
+                        }
                       >
                         Reject Delivery
                       </Button>
@@ -153,4 +211,4 @@ const OutForDelivery = () => {
   );
 };
 
-export default OutForDelivery; 
+export default OutForDelivery;

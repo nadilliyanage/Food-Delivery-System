@@ -242,12 +242,12 @@ const placeOrder = async (req, res) => {
     // ✅ Ensure restaurant exists before placing an order
     try {
       console.log("🔍 Verifying restaurant...");
-    const restaurantResponse = await axios.get(
-      `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurant}`
-    );
+      const restaurantResponse = await axios.get(
+        `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurant}`
+      );
       if (!restaurantResponse.data) {
         console.error("❌ Restaurant not found:", restaurant);
-      return res.status(404).json({ message: "Restaurant not found" });
+        return res.status(404).json({ message: "Restaurant not found" });
       }
       console.log("✅ Restaurant verified");
     } catch (error) {
@@ -301,7 +301,7 @@ const placeOrder = async (req, res) => {
 
     try {
       console.log("💾 Saving order...");
-    await newOrder.save();
+      await newOrder.save();
       console.log("✅ Order saved successfully");
     } catch (error) {
       console.error("❌ Error saving order:", error);
@@ -533,6 +533,154 @@ Thank you for choosing our service! 🚀`,
         return res.status(403).json({
           message:
             "Restaurant admin can only update orders to Preparing or Out for Delivery",
+        });
+      }
+    } else if (role === "delivery_personnel") {
+      // Delivery personnel can:
+      // 1. Accept delivery (Out for Delivery -> On the Way)
+      // 2. Reject delivery (Out for Delivery -> Delivery Rejected)
+      // 3. Mark as delivered (On the Way -> Delivered)
+      if (order.status === "Out for Delivery" && status === "On the Way") {
+        // Create delivery record
+        try {
+          if (!DELIVERY_SERVICE_URL) {
+            console.error(
+              "❌ DELIVERY_SERVICE_URL is not set in environment variables"
+            );
+            // Continue with status update even if delivery service is not available
+            order.status = status;
+            await order.save();
+            return res.status(200).json(order);
+          }
+
+          await axios.post(
+            `${DELIVERY_SERVICE_URL}/api/deliveries`,
+            {
+              orderId: order._id,
+              driverId: userId,
+            },
+            {
+              headers: { Authorization: req.headers.authorization },
+            }
+          );
+
+          order.status = status;
+          await order.save();
+
+          // Send notification to customer
+          try {
+            const customerResponse = await axios.get(
+              `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+              {
+                headers: { Authorization: req.headers.authorization },
+              }
+            );
+
+            const customer = customerResponse.data;
+
+            const notifications = [
+              {
+                type: "email",
+                email: customer.email,
+                subject: "Delivery Update - EatEase",
+                message: `Your order #${order._id} is now on its way to you!`,
+              },
+              {
+                type: "sms",
+                phone: customer.phone,
+                message: `Your order #${order._id} is now on its way to you!`,
+              },
+              {
+                type: "whatsapp",
+                phone: customer.phone,
+                message: `🚚 *Delivery Update*
+
+Your order #${order._id} is now on its way to you!`,
+              },
+            ];
+
+            await axios.post(
+              `${NOTIFICATION_SERVICE_URL}/api/notifications`,
+              {
+                userId: order.customer,
+                notifications,
+              },
+              {
+                headers: { Authorization: req.headers.authorization },
+              }
+            );
+          } catch (error) {
+            console.error(
+              "❌ Error sending delivery acceptance notifications:",
+              error
+            );
+          }
+
+          return res.status(200).json(order);
+        } catch (error) {
+          console.error("❌ Error creating delivery record:", error);
+          // Continue with status update even if delivery record creation fails
+          order.status = status;
+          await order.save();
+          return res.status(200).json(order);
+        }
+      } else if (order.status === "On the Way" && status === "Delivered") {
+        order.status = status;
+        await order.save();
+
+        // Send delivery completion notification
+        try {
+          const customerResponse = await axios.get(
+            `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+            {
+              headers: { Authorization: req.headers.authorization },
+            }
+          );
+
+          const customer = customerResponse.data;
+
+          const notifications = [
+            {
+              type: "email",
+              email: customer.email,
+              subject: "Delivery Completed - EatEase",
+              message: `Your order #${order._id} has been delivered successfully!`,
+            },
+            {
+              type: "sms",
+              phone: customer.phone,
+              message: `Your order #${order._id} has been delivered successfully!`,
+            },
+            {
+              type: "whatsapp",
+              phone: customer.phone,
+              message: `✅ *Delivery Completed*
+
+Your order #${order._id} has been delivered successfully!`,
+            },
+          ];
+
+          await axios.post(
+            `${NOTIFICATION_SERVICE_URL}/api/notifications`,
+            {
+              userId: order.customer,
+              notifications,
+            },
+            {
+              headers: { Authorization: req.headers.authorization },
+            }
+          );
+        } catch (error) {
+          console.error(
+            "❌ Error sending delivery completion notifications:",
+            error
+          );
+        }
+
+        return res.status(200).json(order);
+      } else {
+        return res.status(403).json({
+          message: "Invalid status transition for delivery personnel",
         });
       }
     } else if (role === "admin") {
