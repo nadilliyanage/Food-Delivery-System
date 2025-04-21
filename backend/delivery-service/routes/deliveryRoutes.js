@@ -5,6 +5,7 @@ const {
   getDeliveryById,
   updateDeliveryStatus,
   deleteDelivery,
+  getDeliveryLocation,
 } = require("../controllers/deliveryController");
 const {
   registerDeliveryPersonnel,
@@ -17,27 +18,21 @@ const {
   getUserRegistrations,
 } = require("../controllers/deliveryPersonnelController");
 const authMiddleware = require("../middleware/authMiddleware");
-const { isAdmin } = require('../middleware/isAdmin');
+const { isAdmin } = require("../middleware/isAdmin");
 
 const router = express.Router();
-
-
 
 // Delivery Personnel Registration
 router.post("/register", authMiddleware, registerDeliveryPersonnel);
 
 // Get user's delivery personnel registrations
-router.get("/user/delivery-personnel-registrations", authMiddleware, getUserRegistrations);
+router.get(
+  "/user/delivery-personnel-registrations",
+  authMiddleware,
+  getUserRegistrations
+);
 
 // Delivery Personnel routes
-router.get("/user/deliveries", authMiddleware, getUserDeliveries);
-router.post("/", authMiddleware, assignDriver);
-
-// Profile routes (must come before /:id route)
-router.get('/profile', getProfile);
-router.patch('/profile', updateProfile);
-
-// Admin routes
 router.get("/admin/pending-registrations", isAdmin, getPendingRegistrations);
 router.get("/admin/approved-registrations", isAdmin, getApprovedRegistrations);
 router.get("/admin/rejected-registrations", isAdmin, getRejectedRegistrations);
@@ -45,7 +40,12 @@ router.put("/admin/registration-status", isAdmin, updateRegistrationStatus);
 
 // Delivery routes (must come after specific routes)
 router.get("/:id", authMiddleware, getDeliveryById);
-router.patch("/:id", authMiddleware, updateDeliveryStatus);
+router.get("/user/deliveries", authMiddleware, getUserDeliveries);
+router.post("/assign-driver", authMiddleware, assignDriver);
+router.patch("/:id/status", authMiddleware, updateDeliveryStatus);
 router.delete("/:id", authMiddleware, deleteDelivery);
+
+// New route for getting delivery location
+router.get("/order/:orderId/location", authMiddleware, getDeliveryLocation);
 
 module.exports = router;

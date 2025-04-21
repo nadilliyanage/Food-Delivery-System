@@ -30,8 +30,9 @@ const assignDriver = async (req, res) => {
 
       // Check if order is in correct status
       if (orderData.status !== "Delivery Accepted") {
-        return res.status(400).json({ 
-          message: "Order must be in Delivery Accepted status to create delivery record" 
+        return res.status(400).json({
+          message:
+            "Order must be in Delivery Accepted status to create delivery record",
         });
       }
     } catch (error) {
@@ -70,8 +71,8 @@ const assignDriver = async (req, res) => {
     // Check if delivery record already exists
     const existingDelivery = await Delivery.findOne({ order: orderId });
     if (existingDelivery) {
-      return res.status(400).json({ 
-        message: "Delivery record already exists for this order" 
+      return res.status(400).json({
+        message: "Delivery record already exists for this order",
       });
     }
 
@@ -118,7 +119,7 @@ const getUserDeliveries = async (req, res) => {
 
     res.json({
       deliveries,
-      registrations
+      registrations,
     });
   } catch (error) {
     console.error("❌ Error fetching deliveries:", error);
@@ -202,10 +203,82 @@ const deleteDelivery = async (req, res) => {
   }
 };
 
+// Get delivery location for an order
+const getDeliveryLocation = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.id;
+
+    console.log("🔍 Fetching delivery location for order:", orderId);
+    console.log("👤 User ID:", userId);
+
+    // Find the delivery record for this order
+    const delivery = await Delivery.findOne({ order: orderId })
+      .populate("driver")
+      .lean();
+
+    console.log("📦 Found delivery:", delivery);
+
+    if (!delivery) {
+      console.log("❌ Delivery not found");
+      return res.status(404).json({ message: "Delivery not found" });
+    }
+
+    if (!delivery.driver) {
+      console.log("❌ No driver assigned to this delivery");
+      return res
+        .status(404)
+        .json({ message: "No driver assigned to this delivery" });
+    }
+
+    // Check if the user is authorized to view this delivery
+    const isCustomer = delivery.customer.toString() === userId;
+    const isDriver = delivery.driver._id.toString() === userId;
+
+    console.log("🔐 Authorization check:", { isCustomer, isDriver });
+
+    if (!isCustomer && !isDriver) {
+      console.log("❌ Unauthorized access");
+      return res
+        .status(403)
+        .json({ message: "Not authorized to view this delivery" });
+    }
+
+    // Find the delivery personnel record for the driver
+    const deliveryPersonnel = await DeliveryPersonnel.findOne({
+      user: delivery.driver._id,
+    }).select("currentLocation");
+
+    if (!deliveryPersonnel) {
+      console.log("❌ Delivery personnel record not found");
+      return res
+        .status(404)
+        .json({ message: "Delivery personnel record not found" });
+    }
+
+    // Return the delivery person's location
+    const location = deliveryPersonnel.currentLocation?.coordinates || null;
+    console.log("📍 Delivery location:", location);
+
+    res.json({
+      location,
+      status: delivery.status,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching delivery location:", error);
+    console.error("Stack trace:", error.stack);
+    res.status(500).json({
+      message: "Error fetching delivery location",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   assignDriver,
   getUserDeliveries,
   getDeliveryById,
   updateDeliveryStatus,
   deleteDelivery,
+  getDeliveryLocation,
 };
