@@ -101,6 +101,7 @@ const getOrderById = async (req, res) => {
         `${RESTAURANT_SERVICE_URL}/api/restaurants/${order.restaurant}`
       );
       restaurantDetails = restaurantResponse.data;
+      console.log("📦 Restaurant details:", restaurantDetails);
     } catch (error) {
       console.error("❌ Error fetching restaurant:", error.message);
     }
@@ -124,6 +125,17 @@ const getOrderById = async (req, res) => {
         }
       })
     );
+
+    // Ensure we have the required location data
+    if (!restaurantDetails?.location?.coordinates) {
+      console.error("❌ Restaurant location not found");
+      return res.status(404).json({ message: "Restaurant location not found" });
+    }
+
+    if (!order.deliveryAddress?.longitude || !order.deliveryAddress?.latitude) {
+      console.error("❌ Delivery address not found");
+      return res.status(404).json({ message: "Delivery address not found" });
+    }
 
     res.json({
       ...order.toObject(),

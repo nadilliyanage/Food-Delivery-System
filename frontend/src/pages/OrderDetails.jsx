@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import Scroll from "../hooks/useScroll";
 import DeliveryMap from "../components/DeliveryMap";
+import DeliverySimulation from "../components/DeliverySimulation";
 
 const OrderDetails = () => {
   const { orderId } = useParams();
@@ -19,11 +20,19 @@ const OrderDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deliveryPersonLocation, setDeliveryPersonLocation] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
+    // Get user role from localStorage
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      setUserRole(user.role);
+    }
+
     fetchOrderDetails();
     if (order?.status === "On the Way") {
-      const interval = setInterval(fetchDeliveryPersonLocation, 5000); // Update every 5 seconds
+      // Poll more frequently for smoother animation
+      const interval = setInterval(fetchDeliveryPersonLocation, 1000); // Update every 1 second
       return () => clearInterval(interval);
     }
   }, [orderId, order?.status]);
@@ -67,13 +76,7 @@ const OrderDetails = () => {
       );
 
       if (response.data && response.data.location) {
-        // Ensure coordinates are in the correct format [longitude, latitude]
-        const location = response.data.location;
-        if (location.type === "Point" && Array.isArray(location.coordinates)) {
-          setDeliveryPersonLocation(location.coordinates);
-        } else if (Array.isArray(location)) {
-          setDeliveryPersonLocation(location);
-        }
+        setDeliveryPersonLocation(response.data.location);
       }
     } catch (error) {
       console.error("Error fetching delivery person location:", error);
@@ -187,6 +190,18 @@ const OrderDetails = () => {
                   order.deliveryAddress?.latitude,
                 ]}
               />
+              {/* Add Delivery Simulation component */}
+              {userRole === "delivery_personnel" && (
+                <div className="mt-4">
+                  <DeliverySimulation
+                    orderId={orderId}
+                    onSimulationComplete={() => {
+                      // Refresh the delivery location after simulation
+                      fetchDeliveryPersonLocation();
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
 

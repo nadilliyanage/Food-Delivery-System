@@ -11,6 +11,8 @@ const DeliveryMap = ({
   const [map, setMap] = useState(null);
   const [route, setRoute] = useState(null);
   const [error, setError] = useState(null);
+  const markersRef = useRef([]); // Keep track of all markers
+  const [routePoints, setRoutePoints] = useState(null);
 
   // Debug logging
   useEffect(() => {
@@ -55,9 +57,11 @@ const DeliveryMap = ({
     if (!map || !restaurantLocation || !customerLocation) return;
 
     try {
-      // Clear existing markers and routes
-      const markers = document.querySelectorAll(".tt-marker");
-      markers.forEach((marker) => marker.remove());
+      // Clear all existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
+      // Clear existing route
       if (route) {
         map.removeLayer("route");
         map.removeSource("route");
@@ -65,7 +69,7 @@ const DeliveryMap = ({
 
       // Add markers for locations
       // Restaurant marker
-      new tt.Marker({
+      const restaurantMarker = new tt.Marker({
         element: createMarkerElement(
           "Restaurant",
           "bg-red-500",
@@ -75,14 +79,16 @@ const DeliveryMap = ({
       })
         .setLngLat(restaurantLocation)
         .addTo(map);
+      markersRef.current.push(restaurantMarker);
 
       // Customer marker
-      new tt.Marker({
+      const customerMarker = new tt.Marker({
         element: createMarkerElement("Me", "bg-green-500", customerIcon),
         anchor: "bottom",
       })
         .setLngLat(customerLocation)
         .addTo(map);
+      markersRef.current.push(customerMarker);
 
       // Delivery person marker (if location is available)
       if (
@@ -94,7 +100,7 @@ const DeliveryMap = ({
           "Adding delivery person marker at:",
           deliveryPersonLocation
         );
-        new tt.Marker({
+        const deliveryMarker = new tt.Marker({
           element: createMarkerElement(
             "Delivery Person",
             "bg-blue-500",
@@ -104,6 +110,7 @@ const DeliveryMap = ({
         })
           .setLngLat(deliveryPersonLocation)
           .addTo(map);
+        markersRef.current.push(deliveryMarker);
       }
 
       // Calculate and draw route
@@ -118,32 +125,46 @@ const DeliveryMap = ({
             const routeCoordinates = data.routes[0].legs[0].points.map(
               (point) => [point.longitude, point.latitude]
             );
+            setRoutePoints(routeCoordinates);
 
-            map.addSource("route", {
-              type: "geojson",
-              data: {
+            // Add route source
+            if (map.getSource("route")) {
+              map.getSource("route").setData({
                 type: "Feature",
                 properties: {},
                 geometry: {
                   type: "LineString",
                   coordinates: routeCoordinates,
                 },
-              },
-            });
+              });
+            } else {
+              map.addSource("route", {
+                type: "geojson",
+                data: {
+                  type: "Feature",
+                  properties: {},
+                  geometry: {
+                    type: "LineString",
+                    coordinates: routeCoordinates,
+                  },
+                },
+              });
 
-            map.addLayer({
-              id: "route",
-              type: "line",
-              source: "route",
-              layout: {
-                "line-join": "round",
-                "line-cap": "round",
-              },
-              paint: {
-                "line-color": "#3B82F6",
-                "line-width": 4,
-              },
-            });
+              // Add route layer
+              map.addLayer({
+                id: "route",
+                type: "line",
+                source: "route",
+                layout: {
+                  "line-join": "round",
+                  "line-cap": "round",
+                },
+                paint: {
+                  "line-color": "#3B82F6",
+                  "line-width": 4,
+                },
+              });
+            }
 
             // Fit map to show all points
             const bounds = new tt.LngLatBounds();

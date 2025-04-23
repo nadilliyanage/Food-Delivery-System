@@ -179,70 +179,147 @@ const deleteDelivery = async (req, res) => {
 const getDeliveryLocation = async (req, res) => {
   try {
     const { orderId } = req.params;
+
+    // Get order details to get restaurant and customer locations
+    const orderResponse = await axios.get(
+      `${ORDER_SERVICE_URL}/api/orders/${orderId}`,
+      {
+        headers: { Authorization: req.headers.authorization },
+      }
+    );
+
+    const order = orderResponse.data;
+    const restaurantLocation = order.restaurant.location.coordinates;
+    const customerLocation = [
+      order.deliveryAddress.longitude,
+      order.deliveryAddress.latitude,
+    ];
+
+    // Get route from TomTom Routing API
+    const tomtomApiKey = "UMDEqLx44SlvYeLWgVXryA5GlW5tVW2B";
+    const routeResponse = await axios.get(
+      `https://api.tomtom.com/routing/1/calculateRoute/${restaurantLocation[1]},${restaurantLocation[0]}:${customerLocation[1]},${customerLocation[0]}/json?key=${tomtomApiKey}&routeType=fastest&traffic=true&travelMode=car&language=en-US`
+    );
+
+    if (!routeResponse.data.routes || !routeResponse.data.routes[0]) {
+      throw new Error("Failed to get route from TomTom API");
+    }
+
+    // Get route points
+    const routePoints = routeResponse.data.routes[0].legs[0].points;
+    const numPoints = routePoints.length;
+
+    // Calculate current position based on time with slower movement
+    const time = Date.now();
+    const cycleDuration = 500000;
+    const progress = (time % cycleDuration) / cycleDuration;
+
+    // Use a smoother easing function for more realistic movement
+    const easedProgress =
+      progress < 0.5
+        ? 2 * progress * progress // Ease in
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2; // Ease out
+
+    const currentPointIndex = Math.floor(easedProgress * numPoints);
+    const currentPoint = routePoints[currentPointIndex];
+
+    res.json({
+      location: [currentPoint.longitude, currentPoint.latitude],
+      status: "On the Way",
+      isSimulated: true,
+      route: routePoints.map((point) => [point.longitude, point.latitude]),
+    });
+  } catch (error) {
+    console.error("Error in getDeliveryLocation:", error);
+    res.status(500).json({ message: "Error fetching delivery location" });
+  }
+};
+
+// Simulate delivery person movement along the route
+const simulateDeliveryMovement = async (req, res) => {
+  try {
+    const { orderId } = req.params;
     const userId = req.user.id;
 
-    console.log("🔍 Fetching delivery location for order:", orderId);
-    console.log("👤 User ID:", userId);
-
-    // Find the delivery record for this order
+    // Find the delivery record
     const delivery = await Delivery.findOne({ order: orderId })
       .populate("driver")
       .lean();
 
-    console.log("📦 Found delivery:", delivery);
-
     if (!delivery) {
-      console.log("❌ Delivery not found");
       return res.status(404).json({ message: "Delivery not found" });
     }
 
-    if (!delivery.driver) {
-      console.log("❌ No driver assigned to this delivery");
-      return res
-        .status(404)
-        .json({ message: "No driver assigned to this delivery" });
-    }
-
-    // Check if the user is authorized to view this delivery
-    const isCustomer = delivery.customer.toString() === userId;
-    const isDriver = delivery.driver._id.toString() === userId;
-
-    console.log("🔐 Authorization check:", { isCustomer, isDriver });
-
-    if (!isCustomer && !isDriver) {
-      console.log("❌ Unauthorized access");
+    // Verify the user is the assigned driver
+    if (delivery.driver._id.toString() !== userId) {
       return res
         .status(403)
-        .json({ message: "Not authorized to view this delivery" });
+        .json({ message: "Not authorized to update this delivery" });
     }
 
-    // Find the delivery personnel record for the driver
-    const deliveryPersonnel = await DeliveryPersonnel.findOne({
-      user: delivery.driver._id,
-    }).select("currentLocation");
+    // Get order details to get restaurant and customer locations
+    const orderResponse = await axios.get(
+      `${ORDER_SERVICE_URL}/api/orders/${orderId}`,
+      {
+        headers: { Authorization: req.headers.authorization },
+      }
+    );
 
-    if (!deliveryPersonnel) {
-      console.log("❌ Delivery personnel record not found");
-      return res
-        .status(404)
-        .json({ message: "Delivery personnel record not found" });
+    const order = orderResponse.data;
+    const restaurantLocation = order.restaurant.location.coordinates;
+    const customerLocation = [
+      order.deliveryAddress.longitude,
+      order.deliveryAddress.latitude,
+    ];
+
+    // Get route from TomTom Routing API
+    const tomtomApiKey = "UMDEqLx44SlvYeLWgVXryA5GlW5tVW2B"; // Your TomTom API key
+    const routeResponse = await axios.get(
+      `https://api.tomtom.com/routing/1/calculateRoute/${restaurantLocation[1]},${restaurantLocation[0]}:${customerLocation[1]},${customerLocation[0]}/json?key=${tomtomApiKey}&routeType=fastest&traffic=true&travelMode=car&language=en-US`
+    );
+
+    if (!routeResponse.data.routes || !routeResponse.data.routes[0]) {
+      throw new Error("Failed to get route from TomTom API");
     }
 
-    // Return the delivery person's location
-    const location = deliveryPersonnel.currentLocation?.coordinates || null;
-    console.log("📍 Delivery location:", location);
+    // Get route points
+    const routePoints = routeResponse.data.routes[0].legs[0].points;
+    const numPoints = routePoints.length;
+    const stepSize = Math.max(1, Math.floor(numPoints / 10)); // Take 10 steps along the route
 
-    res.json({
-      location,
-      status: delivery.status,
-    });
+    // Update delivery personnel location with each point
+    for (let i = 0; i < numPoints; i += stepSize) {
+      const point = routePoints[i];
+      await DeliveryPersonnel.findOneAndUpdate(
+        { user: userId },
+        {
+          currentLocation: {
+            type: "Point",
+            coordinates: [point.longitude, point.latitude],
+          },
+        }
+      );
+
+      // Wait for 2 seconds before moving to next point
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
+    // Ensure we reach the final destination
+    const finalPoint = routePoints[routePoints.length - 1];
+    await DeliveryPersonnel.findOneAndUpdate(
+      { user: userId },
+      {
+        currentLocation: {
+          type: "Point",
+          coordinates: [finalPoint.longitude, finalPoint.latitude],
+        },
+      }
+    );
+
+    res.json({ message: "Delivery simulation completed" });
   } catch (error) {
-    console.error("❌ Error fetching delivery location:", error);
-    console.error("Stack trace:", error.stack);
-    res.status(500).json({
-      message: "Error fetching delivery location",
-      error: error.message,
-    });
+    console.error("Error simulating delivery movement:", error);
+    res.status(500).json({ message: "Error simulating delivery movement" });
   }
 };
 
@@ -253,4 +330,5 @@ module.exports = {
   updateDeliveryStatus,
   deleteDelivery,
   getDeliveryLocation,
+  simulateDeliveryMovement,
 };
