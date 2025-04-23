@@ -53,7 +53,7 @@ const assignDriver = async (req, res) => {
         order: orderId,
         driver: driverId,
         customer: order.customer,
-        status: "On the Way",
+        status: "Assigned",
         deliveryTime: null,
       });
 
