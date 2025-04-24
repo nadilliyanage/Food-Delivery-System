@@ -11,6 +11,8 @@ const DeliveryMap = ({
   const [map, setMap] = useState(null);
   const [route, setRoute] = useState(null);
   const [error, setError] = useState(null);
+  const markersRef = useRef([]); // Keep track of all markers
+  const [routePoints, setRoutePoints] = useState(null);
 
   // Debug logging
   useEffect(() => {
@@ -55,9 +57,11 @@ const DeliveryMap = ({
     if (!map || !restaurantLocation || !customerLocation) return;
 
     try {
-      // Clear existing markers and routes
-      const markers = document.querySelectorAll(".tt-marker");
-      markers.forEach((marker) => marker.remove());
+      // Clear all existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
+      // Clear existing route
       if (route) {
         map.removeLayer("route");
         map.removeSource("route");
@@ -65,7 +69,7 @@ const DeliveryMap = ({
 
       // Add markers for locations
       // Restaurant marker
-      new tt.Marker({
+      const restaurantMarker = new tt.Marker({
         element: createMarkerElement(
           "Restaurant",
           "bg-red-500",
@@ -75,14 +79,16 @@ const DeliveryMap = ({
       })
         .setLngLat(restaurantLocation)
         .addTo(map);
+      markersRef.current.push(restaurantMarker);
 
       // Customer marker
-      new tt.Marker({
-        element: createMarkerElement("Customer", "bg-green-500", customerIcon),
+      const customerMarker = new tt.Marker({
+        element: createMarkerElement("Me", "bg-green-500", customerIcon),
         anchor: "bottom",
       })
         .setLngLat(customerLocation)
         .addTo(map);
+      markersRef.current.push(customerMarker);
 
       // Delivery person marker (if location is available)
       if (
@@ -94,7 +100,7 @@ const DeliveryMap = ({
           "Adding delivery person marker at:",
           deliveryPersonLocation
         );
-        new tt.Marker({
+        const deliveryMarker = new tt.Marker({
           element: createMarkerElement(
             "Delivery Person",
             "bg-blue-500",
@@ -104,6 +110,7 @@ const DeliveryMap = ({
         })
           .setLngLat(deliveryPersonLocation)
           .addTo(map);
+        markersRef.current.push(deliveryMarker);
       }
 
       // Calculate and draw route
@@ -118,32 +125,46 @@ const DeliveryMap = ({
             const routeCoordinates = data.routes[0].legs[0].points.map(
               (point) => [point.longitude, point.latitude]
             );
+            setRoutePoints(routeCoordinates);
 
-            map.addSource("route", {
-              type: "geojson",
-              data: {
+            // Add route source
+            if (map.getSource("route")) {
+              map.getSource("route").setData({
                 type: "Feature",
                 properties: {},
                 geometry: {
                   type: "LineString",
                   coordinates: routeCoordinates,
                 },
-              },
-            });
+              });
+            } else {
+              map.addSource("route", {
+                type: "geojson",
+                data: {
+                  type: "Feature",
+                  properties: {},
+                  geometry: {
+                    type: "LineString",
+                    coordinates: routeCoordinates,
+                  },
+                },
+              });
 
-            map.addLayer({
-              id: "route",
-              type: "line",
-              source: "route",
-              layout: {
-                "line-join": "round",
-                "line-cap": "round",
-              },
-              paint: {
-                "line-color": "#3B82F6",
-                "line-width": 4,
-              },
-            });
+              // Add route layer
+              map.addLayer({
+                id: "route",
+                type: "line",
+                source: "route",
+                layout: {
+                  "line-join": "round",
+                  "line-cap": "round",
+                },
+                paint: {
+                  "line-color": "#3B82F6",
+                  "line-width": 4,
+                },
+              });
+            }
 
             // Fit map to show all points
             const bounds = new tt.LngLatBounds();
@@ -171,9 +192,12 @@ const DeliveryMap = ({
 
   // SVG Icons for markers
   const restaurantIcon = `
-    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-    </svg>
+    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <g>
+        <path fill="none" d="M0 0h24v24H0z"/>
+        <path d="M21 2v20h-2v-8h-3V7a5 5 0 0 1 5-5zM9 13.9V22H7v-8.1A5.002 5.002 0 0 1 3 9V3h2v7h2V3h2v7h2V3h2v6a5.002 5.002 0 0 1-4 4.9z"/>
+    </g>
+</svg>
   `;
 
   const customerIcon = `

@@ -186,7 +186,7 @@ const OutForDelivery = () => {
                           handleUpdateStatus(order._id, "On the Way")
                         }
                       >
-                        Start Delivery
+                        Accept Delivery
                       </Button>
                       <Button
                         className="bg-red-500 text-white flex-1"

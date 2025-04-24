@@ -6,6 +6,7 @@ const {
   updateDeliveryStatus,
   deleteDelivery,
   getDeliveryLocation,
+  simulateDeliveryMovement,
 } = require("../controllers/deliveryController");
 const {
   registerDeliveryPersonnel,
@@ -47,5 +48,12 @@ router.delete("/:id", authMiddleware, deleteDelivery);
 
 // New route for getting delivery location
 router.get("/order/:orderId/location", authMiddleware, getDeliveryLocation);
+
+// New route for simulating delivery movement
+router.post(
+  "/order/:orderId/simulate",
+  authMiddleware,
+  simulateDeliveryMovement
+);
 
 module.exports = router;
