@@ -32,7 +32,7 @@ const ManageOrders = () => {
   useEffect(() => {
     // Load pinned restaurants from localStorage
     const loadPinnedRestaurants = () => {
-      const saved = localStorage.getItem('pinnedRestaurants');
+      const saved = localStorage.getItem("pinnedRestaurants");
       if (saved) {
         setPinnedRestaurants(JSON.parse(saved));
       }
@@ -42,25 +42,28 @@ const ManageOrders = () => {
 
     // Add click outside listener for status dropdown
     const handleClickOutside = (event) => {
-      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target)) {
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(event.target)
+      ) {
         setStatusDropdown(null);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const togglePin = (restaurantId) => {
-    setPinnedRestaurants(prev => {
+    setPinnedRestaurants((prev) => {
       const newPinned = prev.includes(restaurantId)
-        ? prev.filter(id => id !== restaurantId)
+        ? prev.filter((id) => id !== restaurantId)
         : [...prev, restaurantId];
-      
+
       // Save to localStorage
-      localStorage.setItem('pinnedRestaurants', JSON.stringify(newPinned));
+      localStorage.setItem("pinnedRestaurants", JSON.stringify(newPinned));
       return newPinned;
     });
   };
@@ -102,7 +105,9 @@ const ManageOrders = () => {
       for (const restaurant of response.data) {
         try {
           const ordersResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/orders/restaurant/${restaurant._id}`,
+            `${import.meta.env.VITE_API_URL}/api/orders/restaurant/${
+              restaurant._id
+            }`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -115,7 +120,9 @@ const ManageOrders = () => {
             ordersResponse.data.map(async (order) => {
               try {
                 const customerResponse = await axios.get(
-                  `${import.meta.env.VITE_API_URL}/api/auth/users/${order.customer}`,
+                  `${import.meta.env.VITE_API_URL}/api/auth/users/${
+                    order.customer
+                  }`,
                   {
                     headers: {
                       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -124,10 +131,13 @@ const ManageOrders = () => {
                 );
                 return {
                   ...order,
-                  customerDetails: customerResponse.data
+                  customerDetails: customerResponse.data,
                 };
               } catch (error) {
-                console.error(`Error fetching customer details for order ${order._id}:`, error);
+                console.error(
+                  `Error fetching customer details for order ${order._id}:`,
+                  error
+                );
                 return order;
               }
             })
@@ -135,7 +145,10 @@ const ManageOrders = () => {
 
           ordersData[restaurant._id] = ordersWithCustomerDetails;
         } catch (err) {
-          console.error(`Error fetching orders for restaurant ${restaurant._id}:`, err);
+          console.error(
+            `Error fetching orders for restaurant ${restaurant._id}:`,
+            err
+          );
           ordersData[restaurant._id] = [];
         }
       }
@@ -174,14 +187,14 @@ const ManageOrders = () => {
     try {
       // Show confirmation dialog
       const result = await Swal.fire({
-        title: 'Confirm Status Update',
+        title: "Confirm Status Update",
         text: `Are you sure you want to change the order status to ${newStatus}?`,
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#000',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, update it!',
-        cancelButtonText: 'Cancel'
+        confirmButtonColor: "#000",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, update it!",
+        cancelButtonText: "Cancel",
       });
 
       // If user confirms, proceed with the update
@@ -200,8 +213,9 @@ const ManageOrders = () => {
         // Update the local state for orders list
         const updatedOrders = { ...orders };
         for (const restaurantId in updatedOrders) {
-          updatedOrders[restaurantId] = updatedOrders[restaurantId].map((order) =>
-            order._id === orderId ? { ...order, status: newStatus } : order
+          updatedOrders[restaurantId] = updatedOrders[restaurantId].map(
+            (order) =>
+              order._id === orderId ? { ...order, status: newStatus } : order
           );
         }
         setOrders(updatedOrders);
@@ -210,7 +224,7 @@ const ManageOrders = () => {
         if (selectedOrder && selectedOrder._id === orderId) {
           setSelectedOrder({
             ...selectedOrder,
-            status: newStatus
+            status: newStatus,
           });
         }
 
@@ -218,20 +232,20 @@ const ManageOrders = () => {
 
         // Show success message
         await Swal.fire({
-          title: 'Updated!',
+          title: "Updated!",
           text: `Order status has been updated to ${newStatus}`,
-          icon: 'success',
-          confirmButtonColor: '#000'
+          icon: "success",
+          confirmButtonColor: "#000",
         });
       }
     } catch (err) {
       console.error("Error updating order status:", err);
       // Show error message
       await Swal.fire({
-        title: 'Error!',
-        text: err.response?.data?.message || 'Failed to update order status',
-        icon: 'error',
-        confirmButtonColor: '#000'
+        title: "Error!",
+        text: err.response?.data?.message || "Failed to update order status",
+        icon: "error",
+        confirmButtonColor: "#000",
       });
     }
   };
@@ -294,9 +308,9 @@ const ManageOrders = () => {
 
   const getFilteredOrders = (restaurantId) => {
     if (!orders[restaurantId]) return [];
-    return selectedStatus === "All" 
+    return selectedStatus === "All"
       ? orders[restaurantId]
-      : orders[restaurantId].filter(order => order.status === selectedStatus);
+      : orders[restaurantId].filter((order) => order.status === selectedStatus);
   };
 
   const handleOrderClick = (order) => {
@@ -331,7 +345,9 @@ const ManageOrders = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="px-6 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Manage Orders by Restaurant</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Manage Your Orders
+          </h1>
           <div className="relative">
             <div className="flex items-center gap-2 border rounded-lg px-4 py-2 bg-white">
               <FaFilter className="text-gray-400 w-4 h-4" />
@@ -366,10 +382,10 @@ const ManageOrders = () => {
             {getSortedRestaurants().map((restaurant) => {
               const filteredOrders = getFilteredOrders(restaurant._id);
               const isPinned = pinnedRestaurants.includes(restaurant._id);
-              
+
               return (
                 <div key={restaurant._id} className="bg-white">
-                  <div 
+                  <div
                     className="px-6 py-4 border-b cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() => toggleRestaurant(restaurant._id)}
                   >
@@ -386,30 +402,42 @@ const ManageOrders = () => {
                         />
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="text-xl font-semibold text-gray-900">{restaurant.name}</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">
+                              {restaurant.name}
+                            </h3>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 togglePin(restaurant._id);
                               }}
                               className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-                                isPinned ? 'text-primary' : 'text-gray-400'
+                                isPinned ? "text-primary" : "text-gray-400"
                               }`}
-                              title={isPinned ? 'Unpin restaurant' : 'Pin restaurant'}
+                              title={
+                                isPinned ? "Unpin restaurant" : "Pin restaurant"
+                              }
                             >
-                              <FaThumbtack className={`w-4 h-4 ${isPinned ? 'rotate-45' : ''}`} />
+                              <FaThumbtack
+                                className={`w-4 h-4 ${
+                                  isPinned ? "rotate-45" : ""
+                                }`}
+                              />
                             </button>
                           </div>
                           <span className="text-green-600 text-sm">
-                            {restaurant.registrationStatus.charAt(0).toUpperCase() + 
-                             restaurant.registrationStatus.slice(1)}
+                            {restaurant.registrationStatus
+                              .charAt(0)
+                              .toUpperCase() +
+                              restaurant.registrationStatus.slice(1)}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-sm">
                           <span className="font-medium text-primary">
-                            {orders[restaurant._id]?.filter(order => order.status === "Pending").length || 0}
+                            {orders[restaurant._id]?.filter(
+                              (order) => order.status === "Pending"
+                            ).length || 0}
                           </span>
                           <span className="text-gray-500"> pending orders</span>
                         </div>
@@ -436,7 +464,7 @@ const ManageOrders = () => {
                       ) : (
                         <div className="divide-y">
                           {filteredOrders.map((order) => (
-                            <div 
+                            <div
                               key={order._id}
                               className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
                               onClick={() => handleOrderClick(order)}
@@ -444,7 +472,7 @@ const ManageOrders = () => {
                               <div className="flex items-center justify-between">
                                 <div className="space-y-1">
                                   <div className="text-sm font-medium text-gray-900">
-                                    {order._id.substring(0, 8)}...
+                                    {order._id.slice(-6).toUpperCase()}
                                   </div>
                                   <div className="text-sm text-gray-500">
                                     {formatDate(order.createdAt)}
@@ -461,39 +489,57 @@ const ManageOrders = () => {
                                   </div>
                                 </div>
                                 <div className="flex items-center space-x-4">
-                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(order.status)}`}>
+                                  <span
+                                    className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(
+                                      order.status
+                                    )}`}
+                                  >
                                     {order.status}
                                   </span>
-                                  {order.status !== "Delivered" && order.status !== "Cancelled" && (
-                                    <div className="relative">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setStatusDropdown(statusDropdown === order._id ? null : order._id);
-                                        }}
-                                        className="text-gray-400 hover:text-gray-600"
-                                      >
-                                        <FaEllipsisV className="w-4 h-4" />
-                                      </button>
-                                      {statusDropdown === order._id && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
-                                          {getNextStatuses(order.status).map((status) => (
-                                            <button
-                                              key={status}
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                updateOrderStatus(order._id, status);
-                                              }}
-                                              className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 
-                                                ${status === "Cancelled" ? "text-red-600" : "text-gray-700"}`}
-                                            >
-                                              {status}
-                                            </button>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
+                                  {order.status !== "Delivered" &&
+                                    order.status !== "Cancelled" && (
+                                      <div className="relative">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setStatusDropdown(
+                                              statusDropdown === order._id
+                                                ? null
+                                                : order._id
+                                            );
+                                          }}
+                                          className="text-gray-400 hover:text-gray-600"
+                                        >
+                                          <FaEllipsisV className="w-4 h-4" />
+                                        </button>
+                                        {statusDropdown === order._id && (
+                                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                                            {getNextStatuses(order.status).map(
+                                              (status) => (
+                                                <button
+                                                  key={status}
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    updateOrderStatus(
+                                                      order._id,
+                                                      status
+                                                    );
+                                                  }}
+                                                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 
+                                                ${
+                                                  status === "Cancelled"
+                                                    ? "text-red-600"
+                                                    : "text-gray-700"
+                                                }`}
+                                                >
+                                                  {status}
+                                                </button>
+                                              )
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             </div>
@@ -522,7 +568,7 @@ const ManageOrders = () => {
                 <FaTimes className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* Order Info */}
               <div className="space-y-4">
@@ -532,39 +578,63 @@ const ManageOrders = () => {
                     <p className="font-medium">{selectedOrder._id}</p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(selectedOrder.status)}`}>
+                    <div
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(
+                        selectedOrder.status
+                      )}`}
+                    >
                       {selectedOrder.status}
                     </div>
-                    {selectedOrder.status !== "Delivered" && selectedOrder.status !== "Cancelled" && (
-                      <div className="relative" ref={statusDropdownRef}>
-                        <button
-                          onClick={() => setStatusDropdown(statusDropdown === selectedOrder._id ? null : selectedOrder._id)}
-                          className="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1"
-                        >
-                          Change Status
-                          <FaChevronDown className={`w-3 h-3 transform transition-transform ${
-                            statusDropdown === selectedOrder._id ? 'rotate-180' : ''
-                          }`} />
-                        </button>
-                        {statusDropdown === selectedOrder._id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
-                            {getNextStatuses(selectedOrder.status).map((status) => (
-                              <button
-                                key={status}
-                                onClick={() => {
-                                  updateOrderStatus(selectedOrder._id, status);
-                                  setStatusDropdown(null);
-                                }}
-                                className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 
-                                  ${status === "Cancelled" ? "text-red-600" : "text-gray-700"}`}
-                              >
-                                {status}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    {selectedOrder.status !== "Delivered" &&
+                      selectedOrder.status !== "Cancelled" && (
+                        <div className="relative" ref={statusDropdownRef}>
+                          <button
+                            onClick={() =>
+                              setStatusDropdown(
+                                statusDropdown === selectedOrder._id
+                                  ? null
+                                  : selectedOrder._id
+                              )
+                            }
+                            className="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1"
+                          >
+                            Change Status
+                            <FaChevronDown
+                              className={`w-3 h-3 transform transition-transform ${
+                                statusDropdown === selectedOrder._id
+                                  ? "rotate-180"
+                                  : ""
+                              }`}
+                            />
+                          </button>
+                          {statusDropdown === selectedOrder._id && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                              {getNextStatuses(selectedOrder.status).map(
+                                (status) => (
+                                  <button
+                                    key={status}
+                                    onClick={() => {
+                                      updateOrderStatus(
+                                        selectedOrder._id,
+                                        status
+                                      );
+                                      setStatusDropdown(null);
+                                    }}
+                                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 
+                                  ${
+                                    status === "Cancelled"
+                                      ? "text-red-600"
+                                      : "text-gray-700"
+                                  }`}
+                                  >
+                                    {status}
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                   </div>
                 </div>
 
@@ -572,49 +642,91 @@ const ManageOrders = () => {
                 <div className="border rounded-lg p-4 bg-gray-50">
                   <h3 className="font-medium mb-3">Order Status Timeline</h3>
                   <div className="flex justify-between items-center">
-                    {["Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"].map((status, index) => (
-                      <div 
+                    {[
+                      "Pending",
+                      "Confirmed",
+                      "Preparing",
+                      "Out for Delivery",
+                      "Delivered",
+                    ].map((status, index) => (
+                      <div
                         key={status}
                         className={`flex flex-col items-center relative ${
-                          index < ["Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"]
-                            .indexOf(selectedOrder.status) + 1 ? 'text-primary' : 'text-gray-400'
+                          index <
+                          [
+                            "Pending",
+                            "Confirmed",
+                            "Preparing",
+                            "Out for Delivery",
+                            "Delivered",
+                          ].indexOf(selectedOrder.status) +
+                            1
+                            ? "text-primary"
+                            : "text-gray-400"
                         }`}
                       >
-                        <div className={`w-4 h-4 rounded-full ${
-                          index < ["Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"]
-                            .indexOf(selectedOrder.status) + 1 ? 'bg-primary' : 'bg-gray-300'
-                        }`}></div>
+                        <div
+                          className={`w-4 h-4 rounded-full ${
+                            index <
+                            [
+                              "Pending",
+                              "Confirmed",
+                              "Preparing",
+                              "Out for Delivery",
+                              "Delivered",
+                            ].indexOf(selectedOrder.status) +
+                              1
+                              ? "bg-primary"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
                         <p className="text-xs mt-1">{status}</p>
                         {index < 4 && (
-                          <div className={`absolute top-2 left-4 w-[calc(100%-1rem)] h-0.5 -z-10 ${
-                            index < ["Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"]
-                              .indexOf(selectedOrder.status) ? 'bg-primary' : 'bg-gray-300'
-                          }`}></div>
+                          <div
+                            className={`absolute top-2 left-4 w-[calc(100%-1rem)] h-0.5 -z-10 ${
+                              index <
+                              [
+                                "Pending",
+                                "Confirmed",
+                                "Preparing",
+                                "Out for Delivery",
+                                "Delivered",
+                              ].indexOf(selectedOrder.status)
+                                ? "bg-primary"
+                                : "bg-gray-300"
+                            }`}
+                          ></div>
                         )}
                       </div>
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
                   <p className="text-sm text-gray-500">Customer</p>
-                  <p className="font-medium">{selectedOrder.customerDetails?.name || "Unknown"}</p>
+                  <p className="font-medium">
+                    {selectedOrder.customerDetails?.name || "Unknown"}
+                  </p>
                 </div>
 
                 <div>
                   <p className="text-sm text-gray-500">Order Date</p>
-                  <p className="font-medium">{formatDate(selectedOrder.createdAt)}</p>
+                  <p className="font-medium">
+                    {formatDate(selectedOrder.createdAt)}
+                  </p>
                 </div>
 
                 {selectedOrder.deliveryAddress && (
                   <div>
                     <p className="text-sm text-gray-500">Delivery Address</p>
                     <p className="font-medium">
-                      {selectedOrder.deliveryAddress.street}, {selectedOrder.deliveryAddress.city}
+                      {selectedOrder.deliveryAddress.street},{" "}
+                      {selectedOrder.deliveryAddress.city}
                     </p>
                     {selectedOrder.deliveryAddress.instructions && (
                       <p className="text-sm text-gray-500 mt-1">
-                        Instructions: {selectedOrder.deliveryAddress.instructions}
+                        Instructions:{" "}
+                        {selectedOrder.deliveryAddress.instructions}
                       </p>
                     )}
                   </div>
@@ -626,10 +738,15 @@ const ManageOrders = () => {
                 <h3 className="font-semibold mb-3">Order Items</h3>
                 <div className="space-y-3">
                   {selectedOrder.items.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center py-2 border-b last:border-b-0"
+                    >
                       <div>
                         <p className="font-medium">{item.menuItem?.name}</p>
-                        <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                        <p className="text-sm text-gray-500">
+                          Quantity: {item.quantity}
+                        </p>
                       </div>
                       <p className="font-medium">
                         ${(item.menuItem?.price * item.quantity).toFixed(2)}
@@ -643,14 +760,18 @@ const ManageOrders = () => {
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center">
                   <p className="font-semibold">Total Amount</p>
-                  <p className="text-xl font-bold">${selectedOrder.totalPrice.toFixed(2)}</p>
+                  <p className="text-xl font-bold">
+                    ${selectedOrder.totalPrice.toFixed(2)}
+                  </p>
                 </div>
               </div>
 
               {/* Payment Info */}
               <div>
                 <p className="text-sm text-gray-500">Payment Method</p>
-                <p className="font-medium capitalize">{selectedOrder.paymentMethod}</p>
+                <p className="font-medium capitalize">
+                  {selectedOrder.paymentMethod}
+                </p>
               </div>
             </div>
           </div>
