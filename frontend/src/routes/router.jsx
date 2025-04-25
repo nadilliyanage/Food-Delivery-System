@@ -40,6 +40,8 @@ import CartDetails from "../pages/Cart/CartDetails";
 import Checkout from "../pages/Checkout/Checkout";
 import OrderDetails from "../pages/OrderDetails";
 import OutForDelivery from "../pages/Dashboard/Delivery/OutForDelivery";
+import RestaurantsPage from "../pages/Restaurants/RestaurantsPage";
+import DashboardRestaurants from "../pages/Dashboard/User/Restaurants";
 
 export const router = createBrowserRouter([
   {
@@ -49,6 +51,10 @@ export const router = createBrowserRouter([
       {
         path: "/",
         element: <Home />,
+      },
+      {
+        path: "/restaurants",
+        element: <RestaurantsPage />,
       },
       {
         path: "/services",
@@ -125,6 +131,10 @@ export const router = createBrowserRouter([
       {
         path: "user-home",
         element: <UserHome />,
+      },
+      {
+        path: "restaurants",
+        element: <DashboardRestaurants />,
       },
       {
         path: "my-orders",

@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "/logo.png"
+import logo from "/logo.png";
 import { NavLink } from "react-router-dom";
 
 const Footer = () => {
@@ -19,11 +19,13 @@ const Footer = () => {
             <div className="col-span-2">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Delicious Food Delivered! 
+                  Delicious Food Delivered!
                 </h2>
 
                 <p className="mt-4 text-gray-500 dark:text-gray-400">
-                  Order your favorite meals from the best restaurants in town. Fast delivery, great prices, and amazing food at your doorstep.
+                  Order your favorite meals from the best restaurants in town.
+                  Fast delivery, great prices, and amazing food at your
+                  doorstep.
                 </p>
               </div>
             </div>
@@ -166,7 +168,9 @@ const Footer = () => {
             </div>
 
             <div className="col-span-2 sm:col-span-1">
-              <p className="font-medium text-gray-900 dark:text-white">Support</p>
+              <p className="font-medium text-gray-900 dark:text-white">
+                Support
+              </p>
 
               <ul className="mt-6 space-y-4 text-sm">
                 <li>
@@ -297,7 +301,7 @@ const Footer = () => {
         <div className="mt-8 border-t border-gray-300 pt-8 dark:border-gray-500">
           <div className="sm:flex sm:justify-between">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              &copy; 2024. FoodDelivery. All rights reserved.
+              &copy; 2025. FoodDelivery. All rights reserved.
             </p>
 
             <ul className="mt-8 flex flex-wrap justify-start gap-4 text-xs sm:mt-0 lg:justify-end">

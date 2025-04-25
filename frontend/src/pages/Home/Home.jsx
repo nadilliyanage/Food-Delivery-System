@@ -18,7 +18,7 @@ import DeliveryPersonnelRequests from "./Admin/DeliveryPersonnelRequests";
 const Home = () => {
   const currentUser = getCurrentUser();
   const userRole = currentUser?.role;
-  const [searchQuery, setSearchQuery] = useState({ term: '', type: 'menu' });
+  const [searchQuery, setSearchQuery] = useState({ term: "", type: "menu" });
 
   const handleSearch = (term, type) => {
     setSearchQuery({ term, type });
@@ -28,9 +28,11 @@ const Home = () => {
 
   const renderCustomerContent = () => (
     <>
-      {shouldShowSearch && <SearchBar onSearch={handleSearch} />}
       <Categories searchQuery={searchQuery} />
-      <Restaurants searchQuery={searchQuery} />
+      <div className="mx-4">
+        {shouldShowSearch && <SearchBar onSearch={handleSearch} />}
+        <Restaurants searchQuery={searchQuery} />
+      </div>
       <JoinWithUsSection />
     </>
   );
