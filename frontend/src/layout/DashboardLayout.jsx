@@ -6,7 +6,7 @@ import logo from "/logo.png";
 import { BiHomeAlt, BiLogInCircle } from "react-icons/bi";
 import { FaUsers, FaUserAlt, FaHistory } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaStore } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Scroll from "../hooks/useScroll";
 import Loader from "../components/Loader/Loader";
@@ -76,6 +76,11 @@ const customerNavItems = [
     to: "/dashboard/user-home",
     icon: <RiDashboardFill className="text-2xl" />,
     label: "Dashboard",
+  },
+  {
+    to: "/dashboard/restaurants",
+    icon: <FaStore className="text-2xl" />,
+    label: "Restaurants",
   },
   {
     to: "/dashboard/my-orders",
