@@ -42,6 +42,7 @@ import OrderDetails from "../pages/OrderDetails";
 import OutForDelivery from "../pages/Dashboard/Delivery/OutForDelivery";
 import RestaurantsPage from "../pages/Restaurants/RestaurantsPage";
 import DashboardRestaurants from "../pages/Dashboard/User/Restaurants";
+import EditRestaurant from "../pages/Dashboard/RestaurantAdmin/EditRestaurant";
 
 export const router = createBrowserRouter([
   {
@@ -202,6 +203,10 @@ export const router = createBrowserRouter([
       {
         path: "restaurant/:restaurantId",
         element: <RestaurantDetails />,
+      },
+      {
+        path: "restaurant/:restaurantId/edit",
+        element: <EditRestaurant />,
       },
       {
         path: "manage-restaurants/:restaurantId/menu/:menuItemId/edit",
