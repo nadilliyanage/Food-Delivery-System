@@ -1,28 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { categories } from '../../../data/CategoryData';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { categories } from "../../../data/CategoryData";
+import RestaurantCard from "../../../components/RestaurantCard/RestaurantCard";
 
 const Categories = ({ searchQuery }) => {
-  const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Ensure searchQuery is always a string
-  const searchQueryString = String(searchQuery || '').toLowerCase();
+  const searchQueryString = String(searchQuery?.term || "").toLowerCase();
 
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/category/${selectedCategory}`)
+        let url = `${import.meta.env.VITE_API_URL}/api/restaurants/`;
+        if (selectedCategory !== "All") {
+          url += `category/${selectedCategory}`;
+        }
+        const response = await axios.get(url);
         setRestaurants(response.data);
       } catch (error) {
-        console.error('Error fetching restaurants:', error);
-        setError('Failed to fetch restaurants. Please try again later.');
+        console.error("Error fetching restaurants:", error);
+        setError("Failed to fetch restaurants. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -31,13 +34,18 @@ const Categories = ({ searchQuery }) => {
     fetchRestaurants();
   }, [selectedCategory]);
 
-  const filteredRestaurants = restaurants.filter(restaurant => {
+  const filteredRestaurants = restaurants.filter((restaurant) => {
     if (!searchQueryString) return true;
-    
-    const name = String(restaurant?.name || '').toLowerCase();
-    const description = String(restaurant?.description || '').toLowerCase();
-    
-    return name.includes(searchQueryString) || description.includes(searchQueryString);
+
+    const name = String(restaurant?.name || "").toLowerCase();
+    const description = String(restaurant?.description || "").toLowerCase();
+    const category = String(restaurant?.category || "").toLowerCase();
+
+    return (
+      name.includes(searchQueryString) ||
+      description.includes(searchQueryString) ||
+      category.includes(searchQueryString)
+    );
   });
 
   return (
@@ -54,24 +62,26 @@ const Categories = ({ searchQuery }) => {
                 onClick={() => setSelectedCategory(category.name)}
               >
                 <div className="transition-transform duration-300 group-hover:scale-125">
-                  {typeof Icon === 'string' ? (
-                    <img 
-                      src={Icon} 
+                  {typeof Icon === "string" ? (
+                    <img
+                      src={Icon}
                       alt={category.name}
                       className="w-16 h-16 object-contain transition-colors duration-300"
                     />
                   ) : (
-                    <Icon 
-                      className="w-16 h-16 transition-colors duration-300" 
+                    <Icon
+                      className="w-16 h-16 transition-colors duration-300"
                       style={{ color: category.color }}
                     />
                   )}
                 </div>
-                <span className={`text-sm font-medium transition-colors text-center ${
-                  selectedCategory === category.name 
-                    ? 'text-primary' 
-                    : 'text-gray-700 dark:text-gray-300 group-hover:text-primary duration-300'
-                }`}>
+                <span
+                  className={`text-sm font-medium transition-colors text-center ${
+                    selectedCategory === category.name
+                      ? "text-primary"
+                      : "text-gray-700 dark:text-gray-300 group-hover:text-primary duration-300"
+                  }`}
+                >
                   {category.name}
                 </span>
               </div>
@@ -79,47 +89,41 @@ const Categories = ({ searchQuery }) => {
           })}
         </div>
       </div>
-      <div className="mt-4">
+
+      <div className="mt-8">
+        <h3 className="text-xl font-semibold mb-4">
+          {selectedCategory === "All"
+            ? "All Restaurants"
+            : `${selectedCategory} Restaurants`}
+        </h3>
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : error ? (
-          <div className="text-center text-red-500 py-4">
-            {error}
-          </div>
-        ) : restaurants.length === 0 ? (
+          <div className="text-center text-red-500 py-4">{error}</div>
+        ) : filteredRestaurants.length === 0 ? (
           <div className="text-center text-gray-500 py-4">
             No restaurants found in this category.
           </div>
         ) : (
-          <div className="relative">
-            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="flex gap-6 pb-4">
-                {restaurants.map((restaurant) => (
-                  <div
-                    key={restaurant._id}
-                    onClick={() => navigate(`/restaurant/${restaurant._id}`)}
-                    className="flex-none w-[300px] bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-                  >
-                    <img
-                      src={restaurant.imageUrl}
-                      alt={restaurant.name}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="p-4">
-                      <h3 className="text-xl font-semibold mb-2">{restaurant.name}</h3>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{restaurant.description}</p>
-                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                        <span>
-                          {restaurant.address?.city || 'Location not available'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredRestaurants.map((restaurant) => (
+              <RestaurantCard
+                key={restaurant._id}
+                restaurant={{
+                  _id: restaurant._id,
+                  name: restaurant.name,
+                  imageUrl: restaurant.imageUrl,
+                  rating: restaurant.rating,
+                  description: restaurant.description,
+                  address: restaurant.address,
+                  deliveryTime: restaurant.deliveryTime,
+                  minOrder: restaurant.minOrder,
+                  deliveryFee: restaurant.deliveryFee,
+                }}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -127,4 +131,4 @@ const Categories = ({ searchQuery }) => {
   );
 };
 
-export default Categories; 
+export default Categories;
