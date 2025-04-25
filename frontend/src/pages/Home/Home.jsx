@@ -28,11 +28,14 @@ const Home = () => {
 
   const renderCustomerContent = () => (
     <>
+      <div className="mx-4 mt-2 -mb-5">
+        {shouldShowSearch && <SearchBar onSearch={handleSearch} />}
+      </div>
       <Categories searchQuery={searchQuery} />
-      <div className="mx-4">
+      {/* <div className="mx-4">
         {shouldShowSearch && <SearchBar onSearch={handleSearch} />}
         <Restaurants searchQuery={searchQuery} />
-      </div>
+      </div> */}
       <JoinWithUsSection />
     </>
   );
