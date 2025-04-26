@@ -86,6 +86,13 @@ const RestaurantRegistration = () => {
       street: "",
       city: "",
     },
+    bankDetails: {
+      bankName: "",
+      accountNumber: "",
+      accountHolderName: "",
+      branchCode: "",
+      branchName: "",
+    },
     businessHours: {
       monday: { open: "", close: "" },
       tuesday: { open: "", close: "" },
@@ -237,6 +244,20 @@ const RestaurantRegistration = () => {
       case "address.city":
         if (!value) error = "City is required";
         break;
+      case "bankDetails.bankName":
+        if (!value) error = "Bank name is required";
+        break;
+
+      case "bankDetails.accountHolderName":
+        if (!value) error = "Account holder name is required";
+        break;
+      case "bankDetails.branchCode":
+        if (!value) error = "Branch code is required";
+        else if (!/^\d{3,}$/.test(value)) error = "Invalid branch code";
+        break;
+      case "bankDetails.branchName":
+        if (!value) error = "Branch name is required";
+        break;
       default:
         break;
     }
@@ -336,6 +357,11 @@ const RestaurantRegistration = () => {
       "email",
       "address.street",
       "address.city",
+      "bankDetails.bankName",
+      "bankDetails.accountNumber",
+      "bankDetails.accountHolderName",
+      "bankDetails.branchCode",
+      "bankDetails.branchName",
     ];
 
     const missingFields = requiredFields.filter((field) => {
@@ -934,6 +960,194 @@ const RestaurantRegistration = () => {
                     ))}
                   </div>
                 )}
+              </motion.div>
+
+              {/* Bank Details Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow duration-300"
+              >
+                <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                  <FiInfo className="mr-2" /> Bank Details
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Bank Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="bankDetails.bankName"
+                      value={formData.bankDetails.bankName}
+                      onChange={handleChange}
+                      onFocus={() => setFocusedField("bankDetails.bankName")}
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${
+                        focusedField === "bankDetails.bankName"
+                          ? "ring-2 ring-blue-500"
+                          : ""
+                      }`}
+                      placeholder="Enter bank name"
+                    />
+                    <AnimatePresence>
+                      {formErrors["bankDetails.bankName"] && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="text-red-500 text-sm mt-1 flex items-center"
+                        >
+                          <FiAlertCircle className="mr-1" />{" "}
+                          {formErrors["bankDetails.bankName"]}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Account Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="bankDetails.accountNumber"
+                      value={formData.bankDetails.accountNumber}
+                      onChange={handleChange}
+                      onFocus={() =>
+                        setFocusedField("bankDetails.accountNumber")
+                      }
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${
+                        focusedField === "bankDetails.accountNumber"
+                          ? "ring-2 ring-blue-500"
+                          : ""
+                      }`}
+                      placeholder="Enter account number"
+                    />
+                    <AnimatePresence>
+                      {formErrors["bankDetails.accountNumber"] && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="text-red-500 text-sm mt-1 flex items-center"
+                        >
+                          <FiAlertCircle className="mr-1" />{" "}
+                          {formErrors["bankDetails.accountNumber"]}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Account Holder Name{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="bankDetails.accountHolderName"
+                      value={formData.bankDetails.accountHolderName}
+                      onChange={handleChange}
+                      onFocus={() =>
+                        setFocusedField("bankDetails.accountHolderName")
+                      }
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${
+                        focusedField === "bankDetails.accountHolderName"
+                          ? "ring-2 ring-blue-500"
+                          : ""
+                      }`}
+                      placeholder="Enter account holder name"
+                    />
+                    <AnimatePresence>
+                      {formErrors["bankDetails.accountHolderName"] && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="text-red-500 text-sm mt-1 flex items-center"
+                        >
+                          <FiAlertCircle className="mr-1" />{" "}
+                          {formErrors["bankDetails.accountHolderName"]}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Branch Code <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="bankDetails.branchCode"
+                      value={formData.bankDetails.branchCode}
+                      onChange={handleChange}
+                      onFocus={() => setFocusedField("bankDetails.branchCode")}
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${
+                        focusedField === "bankDetails.branchCode"
+                          ? "ring-2 ring-blue-500"
+                          : ""
+                      }`}
+                      placeholder="Enter branch code"
+                    />
+                    <AnimatePresence>
+                      {formErrors["bankDetails.branchCode"] && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="text-red-500 text-sm mt-1 flex items-center"
+                        >
+                          <FiAlertCircle className="mr-1" />{" "}
+                          {formErrors["bankDetails.branchCode"]}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="relative md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Branch Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="bankDetails.branchName"
+                      value={formData.bankDetails.branchName}
+                      onChange={handleChange}
+                      onFocus={() => setFocusedField("bankDetails.branchName")}
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${
+                        focusedField === "bankDetails.branchName"
+                          ? "ring-2 ring-blue-500"
+                          : ""
+                      }`}
+                      placeholder="Enter branch name"
+                    />
+                    <AnimatePresence>
+                      {formErrors["bankDetails.branchName"] && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="text-red-500 text-sm mt-1 flex items-center"
+                        >
+                          <FiAlertCircle className="mr-1" />{" "}
+                          {formErrors["bankDetails.branchName"]}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
               </motion.div>
 
               <motion.div
