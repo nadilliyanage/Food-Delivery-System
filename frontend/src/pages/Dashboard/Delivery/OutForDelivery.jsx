@@ -19,7 +19,13 @@ const OutForDelivery = () => {
         const response = await axiosSecure.get(
           "/api/orders/delivery/out-for-delivery"
         );
-        setOrders(response.data);
+
+        // Sort orders by createdAt date in descending order (newest first)
+        const sortedOrders = response.data.sort((a, b) =>
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setOrders(sortedOrders);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching orders:", error);
