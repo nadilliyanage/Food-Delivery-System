@@ -21,7 +21,7 @@ const getUserRestaurants = async (req, res) => {
     // Get user's restaurants with all details, sorted by most recent first
     const restaurants = await Restaurant.find({ owner: userId })
       .sort({ createdAt: -1 })
-      .populate('menu'); // Populate the menu items
+      .populate("menu"); // Populate the menu items
 
     res.status(200).json(restaurants);
   } catch (error) {
@@ -112,7 +112,9 @@ const addMenuItem = async (req, res) => {
 
     // Check if user owns the restaurant
     if (restaurant.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to add menu items to this restaurant" });
+      return res.status(403).json({
+        message: "Not authorized to add menu items to this restaurant",
+      });
     }
 
     const { name, description, price, category, imageUrl } = req.body;
@@ -122,7 +124,7 @@ const addMenuItem = async (req, res) => {
       description,
       price,
       category,
-      imageUrl
+      imageUrl,
     });
 
     await menuItem.save();
@@ -148,7 +150,9 @@ const deleteMenuItem = async (req, res) => {
 
     // Check if user owns the restaurant
     if (restaurant.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to delete menu items from this restaurant" });
+      return res.status(403).json({
+        message: "Not authorized to delete menu items from this restaurant",
+      });
     }
 
     await Menu.findByIdAndDelete(req.params.menuItemId);
@@ -188,12 +192,10 @@ const registerRestaurant = async (req, res) => {
         "Error verifying user:",
         error.response?.data || error.message
       );
-      return res
-        .status(500)
-        .json({
-          message: "Error verifying user",
-          error: error.response?.data || error.message,
-        });
+      return res.status(500).json({
+        message: "Error verifying user",
+        error: error.response?.data || error.message,
+      });
     }
 
     // Check if user has a pending restaurant registration
@@ -205,11 +207,9 @@ const registerRestaurant = async (req, res) => {
 
     if (existingRestaurant) {
       console.log("User already has a pending restaurant registration");
-      return res
-        .status(400)
-        .json({
-          message: "You already have a pending restaurant registration",
-        });
+      return res.status(400).json({
+        message: "You already have a pending restaurant registration",
+      });
     }
     console.log("No pending registration found");
 
@@ -224,12 +224,10 @@ const registerRestaurant = async (req, res) => {
     await restaurant.save();
     console.log("Restaurant saved successfully");
 
-    res
-      .status(201)
-      .json({
-        message: "Restaurant registration submitted successfully",
-        restaurant,
-      });
+    res.status(201).json({
+      message: "Restaurant registration submitted successfully",
+      restaurant,
+    });
   } catch (error) {
     console.error("Error registering restaurant:", error);
     console.error("Error details:", {
@@ -254,12 +252,10 @@ const getPendingRegistrations = async (req, res) => {
     res.json(pendingRestaurants);
   } catch (error) {
     console.error("Error fetching pending registrations:", error);
-    res
-      .status(500)
-      .json({
-        message: "Error fetching pending registrations",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error fetching pending registrations",
+      error: error.message,
+    });
   }
 };
 
@@ -332,12 +328,10 @@ const updateRegistrationStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating registration status:", error);
-    res
-      .status(500)
-      .json({
-        message: "Error updating registration status",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error updating registration status",
+      error: error.message,
+    });
   }
 };
 
@@ -350,12 +344,10 @@ const getApprovedRegistrations = async (req, res) => {
     res.json(approvedRestaurants);
   } catch (error) {
     console.error("Error fetching approved registrations:", error);
-    res
-      .status(500)
-      .json({
-        message: "Error fetching approved registrations",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error fetching approved registrations",
+      error: error.message,
+    });
   }
 };
 
@@ -368,49 +360,52 @@ const getRejectedRegistrations = async (req, res) => {
     res.json(rejectedRestaurants);
   } catch (error) {
     console.error("Error fetching rejected registrations:", error);
-    res
-      .status(500)
-      .json({
-        message: "Error fetching rejected registrations",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error fetching rejected registrations",
+      error: error.message,
+    });
   }
 };
 
 const getRestaurantsByCategory = async (req, res) => {
   try {
     const { category } = req.params;
-    
+
     // If category is 'All', return all restaurants
-    if (category === 'All') {
+    if (category === "All") {
       const restaurants = await Restaurant.find({});
       return res.status(200).json(restaurants);
     }
 
     // Find all menu items in the specified category
-    const menuItems = await Menu.find({ 
+    const menuItems = await Menu.find({
       category: category,
-      isAvailable: true 
-    }).populate('restaurant');
+      isAvailable: true,
+    }).populate("restaurant");
 
     // Get unique restaurants from the menu items
     const restaurants = menuItems.reduce((acc, menuItem) => {
-      if (menuItem.restaurant && !acc.some(r => r._id.toString() === menuItem.restaurant._id.toString())) {
+      if (
+        menuItem.restaurant &&
+        !acc.some(
+          (r) => r._id.toString() === menuItem.restaurant._id.toString()
+        )
+      ) {
         acc.push(menuItem.restaurant);
       }
       return acc;
     }, []);
-    
+
     if (restaurants.length === 0) {
       return res.status(200).json([]); // Return empty array instead of 404
     }
 
     res.status(200).json(restaurants);
   } catch (error) {
-    console.error('Error in getRestaurantsByCategory:', error);
-    res.status(500).json({ 
-      message: "Error fetching restaurants by category", 
-      error: error.message 
+    console.error("Error in getRestaurantsByCategory:", error);
+    res.status(500).json({
+      message: "Error fetching restaurants by category",
+      error: error.message,
     });
   }
 };
