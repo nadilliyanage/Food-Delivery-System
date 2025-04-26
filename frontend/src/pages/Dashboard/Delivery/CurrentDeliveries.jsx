@@ -330,6 +330,26 @@ const CurrentDeliveries = () => {
 
       // Update local state with the response
       const updatedDelivery = response.data;
+      
+      // If marking as delivered, also update the order status
+      if (newStatus === "Delivered") {
+        const delivery = deliveries.find(d => d._id === deliveryId);
+        if (delivery && delivery.order && delivery.order._id) {
+          try {
+            // Update the order status to "Delivered"
+            await axios.patch(
+              `${import.meta.env.VITE_API_URL}/api/orders/${delivery.order._id}`,
+              { status: "Delivered" },
+              config
+            );
+            console.log("Order status updated to Delivered successfully");
+          } catch (orderError) {
+            console.error("Error updating order status:", orderError);
+            // Continue with the delivery status update even if order update fails
+          }
+        }
+      }
+      
       setDeliveries((prevDeliveries) =>
         prevDeliveries.map((delivery) =>
           delivery._id === deliveryId

@@ -19,9 +19,7 @@ const AuthProvider = ({children}) => {
    const signUp = async (userData) => {
       try {
          setLoader(true);
-         console.log("AuthProvider: Starting signup with data:", userData);
          const result = await registerUserFn(userData);
-         console.log("AuthProvider: Registration result:", result);
          
          // Ensure the user data is properly set
          if (result && result.user) {
