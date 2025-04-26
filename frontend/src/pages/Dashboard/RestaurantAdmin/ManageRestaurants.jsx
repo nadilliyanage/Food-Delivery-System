@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getCurrentUser } from '../../../utils/auth';
-import axios from 'axios';
-import Swal from 'sweetalert2';
-import Scroll from '../../../hooks/useScroll';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getCurrentUser } from "../../../utils/auth";
+import axios from "axios";
+import Swal from "sweetalert2";
+import Scroll from "../../../hooks/useScroll";
+import { FaEdit } from "react-icons/fa";
 
 const ManageRestaurants = () => {
   const navigate = useNavigate();
@@ -16,21 +17,24 @@ const ManageRestaurants = () => {
       try {
         const user = getCurrentUser();
         if (!user) {
-          setError('User not authenticated');
+          setError("User not authenticated");
           setLoading(false);
           return;
         }
 
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/restaurants/user/restaurants`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/restaurants/user/restaurants`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           }
-        });
+        );
 
         setRestaurants(response.data);
         setLoading(false);
       } catch (err) {
-        setError(err.response?.data?.message || 'Error fetching restaurants');
+        setError(err.response?.data?.message || "Error fetching restaurants");
         setLoading(false);
       }
     };
@@ -40,19 +44,19 @@ const ManageRestaurants = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'approved':
-        return 'text-green-600';
-      case 'pending':
-        return 'text-yellow-600';
-      case 'rejected':
-        return 'text-red-600';
+      case "approved":
+        return "text-green-600";
+      case "pending":
+        return "text-yellow-600";
+      case "rejected":
+        return "text-red-600";
       default:
-        return 'text-gray-600';
+        return "text-gray-600";
     }
   };
 
   const getDefaultImage = () => {
-    return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80';
+    return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80";
   };
 
   if (loading) {
@@ -76,18 +80,20 @@ const ManageRestaurants = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">My Restaurants</h2>
         <button
-          onClick={() => navigate('/restaurant-registration')}
+          onClick={() => navigate("/restaurant-registration")}
           className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition-colors"
         >
           Register New Restaurant
         </button>
       </div>
-      
+
       {restaurants.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <p className="text-gray-600 mb-4">You haven't registered any restaurants yet.</p>
+          <p className="text-gray-600 mb-4">
+            You haven't registered any restaurants yet.
+          </p>
           <button
-            onClick={() => navigate('/restaurant-registration')}
+            onClick={() => navigate("/restaurant-registration")}
             className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition-colors"
           >
             Register Your First Restaurant
@@ -96,10 +102,12 @@ const ManageRestaurants = () => {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {restaurants.map((restaurant) => (
-            <div 
-              key={restaurant._id} 
-              className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate(`/dashboard/restaurant/${restaurant._id}`)}
+            <div
+              key={restaurant._id}
+              className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative group"
+              onClick={() =>
+                navigate(`/dashboard/restaurant/${restaurant._id}`)
+              }
             >
               <div className="relative h-48 mb-4">
                 <img
@@ -111,15 +119,30 @@ const ManageRestaurants = () => {
                     e.target.src = getDefaultImage();
                   }}
                 />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/dashboard/restaurant/${restaurant._id}/edit`);
+                  }}
+                  className="absolute top-2 right-2 p-2 rounded-full bg-white/90 hover:bg-white text-primary hover:text-primary-dark transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  <FaEdit className="w-4 h-4" />
+                </button>
               </div>
               <h3 className="text-xl font-semibold mb-2">{restaurant.name}</h3>
               <p className="text-gray-600 mb-2">{restaurant.cuisine}</p>
               <div className="flex items-center justify-between">
-                <span className={`font-medium ${getStatusColor(restaurant.registrationStatus)}`}>
-                  {restaurant.registrationStatus.charAt(0).toUpperCase() + restaurant.registrationStatus.slice(1)}
+                <span
+                  className={`font-medium ${getStatusColor(
+                    restaurant.registrationStatus
+                  )}`}
+                >
+                  {restaurant.registrationStatus.charAt(0).toUpperCase() +
+                    restaurant.registrationStatus.slice(1)}
                 </span>
                 <span className="text-sm text-gray-500">
-                  Registered: {new Date(restaurant.createdAt).toLocaleDateString()}
+                  Registered:{" "}
+                  {new Date(restaurant.createdAt).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -130,4 +153,4 @@ const ManageRestaurants = () => {
   );
 };
 
-export default ManageRestaurants; 
+export default ManageRestaurants;

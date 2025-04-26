@@ -113,13 +113,9 @@ const restaurantAdminNavItems = [
   {
     to: "/dashboard/manage-restaurants",
     icon: <MdFoodBank className="text-2xl" />,
-    label: "Manage Restaurants",
+    label: "Manage Restaurants & Menus",
   },
-  {
-    to: "/dashboard/manage-menus",
-    icon: <MdRestaurantMenu className="text-2xl" />,
-    label: "Manage Menus",
-  },
+
   {
     to: "/dashboard/manage-orders",
     icon: <MdDeliveryDining className="text-2xl" />,
