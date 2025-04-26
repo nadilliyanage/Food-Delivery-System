@@ -270,11 +270,16 @@ const CurrentDeliveries = () => {
           })
         );
 
-        setDeliveries(deliveriesWithDetails);
+        // Sort deliveries by createdAt date in descending order (newest first)
+        const sortedDeliveries = deliveriesWithDetails.sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        
+        setDeliveries(sortedDeliveries);
 
         // If there's an active delivery in localStorage, verify it's still valid
         if (activeDelivery) {
-          const currentActiveDelivery = deliveriesWithDetails.find(
+          const currentActiveDelivery = sortedDeliveries.find(
             (d) => d._id === activeDelivery._id && d.status === "On the Way"
           );
           if (!currentActiveDelivery) {
