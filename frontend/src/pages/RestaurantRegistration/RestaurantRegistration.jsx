@@ -247,10 +247,7 @@ const RestaurantRegistration = () => {
       case "bankDetails.bankName":
         if (!value) error = "Bank name is required";
         break;
-      case "bankDetails.accountNumber":
-        if (!value) error = "Account number is required";
-        else if (!/^\d{10,}$/.test(value)) error = "Invalid account number";
-        break;
+
       case "bankDetails.accountHolderName":
         if (!value) error = "Account holder name is required";
         break;
