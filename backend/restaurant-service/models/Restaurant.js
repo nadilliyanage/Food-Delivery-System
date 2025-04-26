@@ -21,6 +21,13 @@ const restaurantSchema = new mongoose.Schema({
     street: { type: String, required: true },
     city: { type: String, required: true },
   },
+  bankDetails: {
+    bankName: { type: String, required: true },
+    accountNumber: { type: String, required: true },
+    accountHolderName: { type: String, required: true },
+    branchCode: { type: String, required: true },
+    branchName: { type: String, required: true },
+  },
   businessHours: {
     monday: {
       open: { type: String, default: "09:00" },

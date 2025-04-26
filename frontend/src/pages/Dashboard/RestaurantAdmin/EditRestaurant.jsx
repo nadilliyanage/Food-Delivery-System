@@ -32,6 +32,13 @@ const EditRestaurant = () => {
     phone: "",
     email: "",
     imageUrl: "",
+    bankDetails: {
+      bankName: "",
+      accountNumber: "",
+      accountHolderName: "",
+      branchCode: "",
+      branchName: "",
+    },
     businessHours: {
       monday: { open: "", close: "" },
       tuesday: { open: "", close: "" },
@@ -64,7 +71,24 @@ const EditRestaurant = () => {
           },
         }
       );
-      setRestaurant(response.data);
+
+      // Log the response data to check bank details
+      console.log("Restaurant data:", response.data);
+
+      // Initialize restaurant data with proper bank details
+      const restaurantData = {
+        ...response.data,
+        bankDetails: {
+          bankName: response.data.bankDetails?.bankName || "",
+          accountNumber: response.data.bankDetails?.accountNumber || "",
+          accountHolderName: response.data.bankDetails?.accountHolderName || "",
+          branchCode: response.data.bankDetails?.branchCode || "",
+          branchName: response.data.bankDetails?.branchName || "",
+        },
+      };
+
+      console.log("Processed restaurant data:", restaurantData);
+      setRestaurant(restaurantData);
 
       // Check if all days have the same hours
       const businessHours = response.data.businessHours;
@@ -212,6 +236,16 @@ const EditRestaurant = () => {
     if (!restaurant.address.city.trim()) errors.city = "City is required";
     if (!restaurant.phone.trim()) errors.phone = "Phone number is required";
     if (!restaurant.email.trim()) errors.email = "Email is required";
+    if (!restaurant.bankDetails.bankName.trim())
+      errors.bankName = "Bank name is required";
+    if (!restaurant.bankDetails.accountNumber.trim())
+      errors.accountNumber = "Account number is required";
+    if (!restaurant.bankDetails.accountHolderName.trim())
+      errors.accountHolderName = "Account holder name is required";
+    if (!restaurant.bankDetails.branchCode.trim())
+      errors.branchCode = "Branch code is required";
+    if (!restaurant.bankDetails.branchName.trim())
+      errors.branchName = "Branch name is required";
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -622,6 +656,193 @@ const EditRestaurant = () => {
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-lg"></div>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Bank Details Section */}
+              <div className="space-y-4 md:col-span-2">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                  Bank Details
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 group">
+                      <span className="flex items-center">
+                        <span className="mr-2">Bank Name</span>
+                        {formErrors.bankName && (
+                          <span className="text-red-500 text-xs animate-fade-in">
+                            *
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={restaurant.bankDetails.bankName}
+                      onChange={(e) => {
+                        setRestaurant({
+                          ...restaurant,
+                          bankDetails: {
+                            ...restaurant.bankDetails,
+                            bankName: e.target.value,
+                          },
+                        });
+                        if (formErrors.bankName)
+                          setFormErrors({ ...formErrors, bankName: "" });
+                      }}
+                      className={`mt-1 block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200
+                        ${
+                          formErrors.bankName
+                            ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                            : "border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        }`}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 group">
+                      <span className="flex items-center">
+                        <span className="mr-2">Account Number</span>
+                        {formErrors.accountNumber && (
+                          <span className="text-red-500 text-xs animate-fade-in">
+                            *
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={restaurant.bankDetails.accountNumber}
+                      onChange={(e) => {
+                        setRestaurant({
+                          ...restaurant,
+                          bankDetails: {
+                            ...restaurant.bankDetails,
+                            accountNumber: e.target.value,
+                          },
+                        });
+                        if (formErrors.accountNumber)
+                          setFormErrors({ ...formErrors, accountNumber: "" });
+                      }}
+                      className={`mt-1 block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200
+                        ${
+                          formErrors.accountNumber
+                            ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                            : "border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        }`}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 group">
+                      <span className="flex items-center">
+                        <span className="mr-2">Account Holder Name</span>
+                        {formErrors.accountHolderName && (
+                          <span className="text-red-500 text-xs animate-fade-in">
+                            *
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={restaurant.bankDetails.accountHolderName}
+                      onChange={(e) => {
+                        setRestaurant({
+                          ...restaurant,
+                          bankDetails: {
+                            ...restaurant.bankDetails,
+                            accountHolderName: e.target.value,
+                          },
+                        });
+                        if (formErrors.accountHolderName)
+                          setFormErrors({
+                            ...formErrors,
+                            accountHolderName: "",
+                          });
+                      }}
+                      className={`mt-1 block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200
+                        ${
+                          formErrors.accountHolderName
+                            ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                            : "border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        }`}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 group">
+                      <span className="flex items-center">
+                        <span className="mr-2">Branch Code</span>
+                        {formErrors.branchCode && (
+                          <span className="text-red-500 text-xs animate-fade-in">
+                            *
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={restaurant.bankDetails.branchCode}
+                      onChange={(e) => {
+                        setRestaurant({
+                          ...restaurant,
+                          bankDetails: {
+                            ...restaurant.bankDetails,
+                            branchCode: e.target.value,
+                          },
+                        });
+                        if (formErrors.branchCode)
+                          setFormErrors({ ...formErrors, branchCode: "" });
+                      }}
+                      className={`mt-1 block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200
+                        ${
+                          formErrors.branchCode
+                            ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                            : "border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        }`}
+                      required
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 group">
+                      <span className="flex items-center">
+                        <span className="mr-2">Branch Name</span>
+                        {formErrors.branchName && (
+                          <span className="text-red-500 text-xs animate-fade-in">
+                            *
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={restaurant.bankDetails.branchName}
+                      onChange={(e) => {
+                        setRestaurant({
+                          ...restaurant,
+                          bankDetails: {
+                            ...restaurant.bankDetails,
+                            branchName: e.target.value,
+                          },
+                        });
+                        if (formErrors.branchName)
+                          setFormErrors({ ...formErrors, branchName: "" });
+                      }}
+                      className={`mt-1 block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200
+                        ${
+                          formErrors.branchName
+                            ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                            : "border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        }`}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
