@@ -312,10 +312,6 @@ const RestaurantRequestTable = () => {
               <h2 className="text-xl font-semibold mb-2">{restaurant.name}</h2>
               <div className="space-y-2 text-gray-600">
                 <p>
-                  <span className="font-medium">Cuisine:</span>{" "}
-                  {restaurant.cuisine}
-                </p>
-                <p>
                   <span className="font-medium">Phone:</span> {restaurant.phone}
                 </p>
                 <p>
