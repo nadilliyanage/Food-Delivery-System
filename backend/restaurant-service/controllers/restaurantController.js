@@ -5,7 +5,10 @@ const axios = require("axios");
 // Get All Restaurants
 const getRestaurants = async (req, res) => {
   try {
-    const restaurants = await Restaurant.find();
+    const restaurants = await Restaurant.find({
+      isActive: true,
+      registrationStatus: "approved",
+    });
     res.json(restaurants);
   } catch (error) {
     console.error("Error fetching restaurants:", error);
@@ -63,15 +66,37 @@ const createRestaurant = async (req, res) => {
 // Update a Restaurant
 const updateRestaurant = async (req, res) => {
   try {
+    const { isActive } = req.body;
+
+    // If isActive is being updated, only update that field
+    if (typeof isActive === "boolean") {
+      const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+        req.params.id,
+        { isActive },
+        { new: true }
+      );
+
+      if (!updatedRestaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      return res.json(updatedRestaurant);
+    }
+
+    // For other updates, update all fields
     const updatedRestaurant = await Restaurant.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
     );
-    if (!updatedRestaurant)
+
+    if (!updatedRestaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
+    }
+
     res.json(updatedRestaurant);
   } catch (error) {
+    console.error("Error updating restaurant:", error);
     res.status(500).json({ message: "Error updating restaurant" });
   }
 };

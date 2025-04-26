@@ -14,12 +14,23 @@ const restaurantSchema = new mongoose.Schema({
     enum: ["pending", "approved", "rejected"],
     default: "pending",
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   description: { type: String, required: true },
   phone: { type: String, required: true },
   email: { type: String, required: true },
   address: {
     street: { type: String, required: true },
     city: { type: String, required: true },
+  },
+  bankDetails: {
+    bankName: { type: String, required: true },
+    accountNumber: { type: String, required: true },
+    accountHolderName: { type: String, required: true },
+    branchCode: { type: String, required: true },
+    branchName: { type: String, required: true },
   },
   businessHours: {
     monday: {
