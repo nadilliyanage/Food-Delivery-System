@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import storage from "../../../config/firebase.init";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { FaArrowLeft } from "react-icons/fa";
+import { FiClock } from "react-icons/fi";
 
 const EditRestaurant = () => {
   const { restaurantId } = useParams();
@@ -16,6 +17,8 @@ const EditRestaurant = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [useUnifiedHours, setUseUnifiedHours] = useState(true);
+  const [unifiedHours, setUnifiedHours] = useState({ open: "", close: "" });
   const [restaurant, setRestaurant] = useState({
     name: "",
     description: "",
@@ -29,6 +32,15 @@ const EditRestaurant = () => {
     phone: "",
     email: "",
     imageUrl: "",
+    businessHours: {
+      monday: { open: "", close: "" },
+      tuesday: { open: "", close: "" },
+      wednesday: { open: "", close: "" },
+      thursday: { open: "", close: "" },
+      friday: { open: "", close: "" },
+      saturday: { open: "", close: "" },
+      sunday: { open: "", close: "" },
+    },
   });
 
   useEffect(() => {
@@ -53,6 +65,28 @@ const EditRestaurant = () => {
         }
       );
       setRestaurant(response.data);
+
+      // Check if all days have the same hours
+      const businessHours = response.data.businessHours;
+      if (businessHours) {
+        const days = Object.keys(businessHours);
+        const firstDay = days[0];
+        const firstHours = businessHours[firstDay];
+        const allSameHours = days.every(
+          (day) =>
+            businessHours[day].open === firstHours.open &&
+            businessHours[day].close === firstHours.close
+        );
+
+        setUseUnifiedHours(allSameHours);
+        if (allSameHours) {
+          setUnifiedHours({
+            open: firstHours.open,
+            close: firstHours.close,
+          });
+        }
+      }
+
       setLoading(false);
     } catch (error) {
       console.error("Error fetching restaurant:", error);
@@ -110,6 +144,62 @@ const EditRestaurant = () => {
     if (file) {
       setImageFile(file);
     }
+  };
+
+  const handleUnifiedHoursChange = (e) => {
+    const { name, value } = e.target;
+    setUnifiedHours((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Update all days with the unified hours
+    if (useUnifiedHours) {
+      const updatedBusinessHours = {};
+      Object.keys(restaurant.businessHours).forEach((day) => {
+        updatedBusinessHours[day] = {
+          ...restaurant.businessHours[day],
+          [name]: value,
+        };
+      });
+      setRestaurant((prev) => ({
+        ...prev,
+        businessHours: updatedBusinessHours,
+      }));
+    }
+  };
+
+  const handleHoursToggle = () => {
+    setUseUnifiedHours(!useUnifiedHours);
+    if (!useUnifiedHours) {
+      // Switching to unified hours - update all days with unified hours
+      const updatedBusinessHours = {};
+      Object.keys(restaurant.businessHours).forEach((day) => {
+        updatedBusinessHours[day] = {
+          open: unifiedHours.open,
+          close: unifiedHours.close,
+        };
+      });
+      setRestaurant((prev) => ({
+        ...prev,
+        businessHours: updatedBusinessHours,
+      }));
+    }
+  };
+
+  const handleBusinessHoursChange = (e) => {
+    const { name, value } = e.target;
+    const [_, day, time] = name.split(".");
+    setRestaurant((prev) => ({
+      ...prev,
+      businessHours: {
+        ...prev.businessHours,
+        [day]: {
+          ...prev.businessHours[day],
+          [time]: value,
+        },
+      },
+    }));
   };
 
   const validateForm = () => {
@@ -533,6 +623,112 @@ const EditRestaurant = () => {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Business Hours Section */}
+              <div className="space-y-4 md:col-span-2">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                  Business Hours
+                </h2>
+
+                {/* Hours Type Toggle */}
+                <div className="mb-6">
+                  <label className="flex items-center cursor-pointer">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={useUnifiedHours}
+                        onChange={handleHoursToggle}
+                      />
+                      <div
+                        className={`block w-14 h-8 rounded-full transition-colors duration-200 ${
+                          useUnifiedHours ? "bg-primary" : "bg-gray-300"
+                        }`}
+                      ></div>
+                      <div
+                        className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-200 ${
+                          useUnifiedHours ? "transform translate-x-6" : ""
+                        }`}
+                      ></div>
+                    </div>
+                    <span className="ml-3 text-sm font-medium text-gray-700">
+                      {useUnifiedHours
+                        ? "Same hours for all days"
+                        : "Custom hours for each day"}
+                    </span>
+                  </label>
+                </div>
+
+                {useUnifiedHours ? (
+                  // Unified Hours Input
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Opening Time (All Days)
+                      </label>
+                      <input
+                        type="time"
+                        name="open"
+                        value={unifiedHours.open}
+                        onChange={handleUnifiedHoursChange}
+                        className="mt-1 block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200 border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Closing Time (All Days)
+                      </label>
+                      <input
+                        type="time"
+                        name="close"
+                        value={unifiedHours.close}
+                        onChange={handleUnifiedHoursChange}
+                        className="mt-1 block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200 border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  // Custom Hours Input
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.keys(restaurant.businessHours).map((day) => (
+                      <div
+                        key={day}
+                        className="space-y-2 p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <label className="block text-sm font-medium text-gray-700 capitalize">
+                          {day}
+                        </label>
+                        <div className="flex gap-4">
+                          <div className="flex-1">
+                            <label className="block text-xs text-gray-500 mb-1">
+                              Opening Time
+                            </label>
+                            <input
+                              type="time"
+                              name={`businessHours.${day}.open`}
+                              value={restaurant.businessHours[day].open}
+                              onChange={handleBusinessHoursChange}
+                              className="block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200 border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs text-gray-500 mb-1">
+                              Closing Time
+                            </label>
+                            <input
+                              type="time"
+                              name={`businessHours.${day}.close`}
+                              value={restaurant.businessHours[day].close}
+                              onChange={handleBusinessHoursChange}
+                              className="block w-full rounded-md border-2 px-4 py-2 shadow-sm transition-all duration-200 border-gray-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
