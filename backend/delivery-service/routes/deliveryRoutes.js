@@ -34,10 +34,26 @@ router.get(
 );
 
 // Delivery Personnel routes
-router.get("/admin/pending-registrations", isAdmin, getPendingRegistrations);
-router.get("/admin/approved-registrations", isAdmin, getApprovedRegistrations);
-router.get("/admin/rejected-registrations", isAdmin, getRejectedRegistrations);
-router.put("/admin/registration-status", isAdmin, updateRegistrationStatus);
+router.get(
+  "/admin/pending-registrations",
+  [authMiddleware, isAdmin],
+  getPendingRegistrations
+);
+router.get(
+  "/admin/approved-registrations",
+  [authMiddleware, isAdmin],
+  getApprovedRegistrations
+);
+router.get(
+  "/admin/rejected-registrations",
+  [authMiddleware, isAdmin],
+  getRejectedRegistrations
+);
+router.put(
+  "/admin/registration-status",
+  [authMiddleware, isAdmin],
+  updateRegistrationStatus
+);
 
 // Delivery routes (must come after specific routes)
 router.get("/:id", authMiddleware, getDeliveryById);

@@ -11,12 +11,21 @@ const authMiddleware = (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
+    console.log("Received token:", token);
 
     const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified;
+    console.log("Decoded token:", verified);
+
+    // Ensure the user object has the correct structure
+    req.user = {
+      id: verified.id,
+      role: verified.role,
+    };
+    console.log("Set user object:", req.user);
 
     next();
   } catch (error) {
+    console.error("Auth middleware error:", error);
     res.status(401).json({ message: "Invalid Token" });
   }
 };

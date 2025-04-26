@@ -22,25 +22,36 @@ const RestaurantRequests = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
+      if (!token) {
+        setError("Authentication token not found. Please log in again.");
+        setLoading(false);
+        return;
+      }
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+
       if (fetchAll) {
         const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
           axios.get(
-            "http://localhost:3000/api/restaurants/admin/pending-registrations",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            `${
+              import.meta.env.VITE_API_URL
+            }/api/restaurants/admin/pending-registrations`,
+            { headers }
           ),
           axios.get(
-            "http://localhost:3000/api/restaurants/admin/approved-registrations",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            `${
+              import.meta.env.VITE_API_URL
+            }/api/restaurants/admin/approved-registrations`,
+            { headers }
           ),
           axios.get(
-            "http://localhost:3000/api/restaurants/admin/rejected-registrations",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            `${
+              import.meta.env.VITE_API_URL
+            }/api/restaurants/admin/rejected-registrations`,
+            { headers }
           ),
         ]);
 
@@ -53,25 +64,27 @@ const RestaurantRequests = () => {
         let endpoint = "";
         switch (activeTab) {
           case "pending":
-            endpoint =
-              "http://localhost:3000/api/restaurants/admin/pending-registrations";
+            endpoint = `${
+              import.meta.env.VITE_API_URL
+            }/api/restaurants/admin/pending-registrations`;
             break;
           case "approved":
-            endpoint =
-              "http://localhost:3000/api/restaurants/admin/approved-registrations";
+            endpoint = `${
+              import.meta.env.VITE_API_URL
+            }/api/restaurants/admin/approved-registrations`;
             break;
           case "rejected":
-            endpoint =
-              "http://localhost:3000/api/restaurants/admin/rejected-registrations";
+            endpoint = `${
+              import.meta.env.VITE_API_URL
+            }/api/restaurants/admin/rejected-registrations`;
             break;
           default:
-            endpoint =
-              "http://localhost:3000/api/restaurants/admin/pending-registrations";
+            endpoint = `${
+              import.meta.env.VITE_API_URL
+            }/api/restaurants/admin/pending-registrations`;
         }
 
-        const response = await axios.get(endpoint, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(endpoint, { headers });
 
         setRestaurants((prev) => ({
           ...prev,
@@ -81,9 +94,21 @@ const RestaurantRequests = () => {
 
       setLoading(false);
     } catch (err) {
-      setError(`Failed to fetch ${fetchAll ? "all" : activeTab} restaurants`);
-      setLoading(false);
       console.error("Error fetching restaurants:", err);
+      if (err.response?.status === 403) {
+        setError(
+          "You don't have permission to access this page. Please ensure you are logged in as an admin."
+        );
+      } else if (err.response?.status === 401) {
+        setError("Your session has expired. Please log in again.");
+      } else {
+        setError(
+          `Failed to fetch ${fetchAll ? "all" : activeTab} restaurants: ${
+            err.message
+          }`
+        );
+      }
+      setLoading(false);
     }
   };
 

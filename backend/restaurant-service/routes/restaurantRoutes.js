@@ -41,9 +41,26 @@ router.post("/:id/menu", authMiddleware, addMenuItem);
 router.delete("/:id/menu/:menuItemId", authMiddleware, deleteMenuItem);
 
 // Admin routes
-router.get("/admin/pending-registrations", isAdmin, getPendingRegistrations);
-router.get("/admin/approved-registrations", isAdmin, getApprovedRegistrations);
-router.get("/admin/rejected-registrations", isAdmin, getRejectedRegistrations);
-router.patch("/admin/registration-status", isAdmin, updateRegistrationStatus);
+// Admin routes - Apply both auth and admin middleware
+router.get(
+  "/admin/pending-registrations",
+  [authMiddleware, isAdmin],
+  getPendingRegistrations
+);
+router.get(
+  "/admin/approved-registrations",
+  [authMiddleware, isAdmin],
+  getApprovedRegistrations
+);
+router.get(
+  "/admin/rejected-registrations",
+  [authMiddleware, isAdmin],
+  getRejectedRegistrations
+);
+router.patch(
+  "/admin/registration-status",
+  [authMiddleware, isAdmin],
+  updateRegistrationStatus
+);
 
 module.exports = router;
