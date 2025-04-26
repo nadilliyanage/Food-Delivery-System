@@ -436,252 +436,61 @@ const updateOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Authorization checks based on role and status
-    if (role === "restaurant_admin") {
-      // Restaurant admin can update to "Preparing" or "Out for Delivery"
-      if (["Preparing", "Confirmed", "Out for Delivery"].includes(status)) {
-        order.status = status;
-        await order.save();
+    // Check if user has authorization to update orders
+    if (!["admin", "restaurant_admin", "delivery_personnel"].includes(role)) {
+      console.error("❌ Unauthorized role for status update:", role);
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to update order status" });
+    }
 
-        // Send notification to customer about status update
-        try {
-          console.log("📧 Sending status update notification to customer...");
-
-          if (!NOTIFICATION_SERVICE_URL) {
-            console.error(
-              "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
-            );
-            return res.status(200).json(order);
-          }
-
-          const customerResponse = await axios.get(
-            `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
-            {
-              headers: { Authorization: req.headers.authorization },
-            }
-          );
-
-          const customer = customerResponse.data;
-          console.log("Customer details:", customer);
-
-          const statusMessages = {
-            Confirmed: "has been confirmed by the restaurant",
-            Preparing: "is now being prepared",
-            "Out for Delivery": "is on its way to you",
-          };
-
-          const notifications = [
-            {
-              type: "email",
-              email: customer.email,
-              subject: "Order Status Update - EatEase",
-              message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-                <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">Your order status has been updated!</p>
-                    
-                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
-                        <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
-                        <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
-                        <p style="color: #666666; margin: 5px 0;"><strong>New Status:</strong> ${status}</p>
-                        <p style="color: #666666; margin: 5px 0;">${statusMessages[status]}</p>
-                    </div>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
-                    
-                    <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
-                        <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
-                    </div>
-                </div>
-            </div>`,
-            },
-            {
-              type: "sms",
-              phone: customer.phone,
-              message: `Order Update: Your order #${order._id} ${statusMessages[status]}. We'll notify you of any further updates.`,
-            },
-            {
-              type: "whatsapp",
-              phone: customer.phone,
-              message: `📦 *Order Status Update*
-
-Hello ${customer.name},
-
-Your order status has been updated!
-
-📋 *Order Details:*
-Order ID: #${order._id}
-Status: *${status}*
-${statusMessages[status]}
-
-We'll keep you updated on your order's progress.
-
-Thank you for choosing our service! 🚀`,
-            },
-          ];
-
-          await axios.post(
-            `${NOTIFICATION_SERVICE_URL}/api/notifications`,
-            {
-              userId: order.customer,
-              notifications,
-            },
-            {
-              headers: { Authorization: req.headers.authorization },
-            }
-          );
-
-          console.log("✅ Status update notifications sent successfully");
-        } catch (error) {
-          console.error("❌ Error sending status update notifications:", error);
+    // Create a delivery record if this is a delivery personnel marking an order as "On the Way"
+    if (role === "delivery_personnel" && status === "Delivery Accepted" && order.status === "Out for Delivery") {
+      try {
+        if (!DELIVERY_SERVICE_URL) {
+          console.error("❌ DELIVERY_SERVICE_URL is not set in environment variables");
+          return res.status(500).json({
+            message: "Delivery service not configured",
+            details: "DELIVERY_SERVICE_URL is not set",
+          });
         }
 
-        return res.status(200).json(order);
-      } else {
-        console.error("❌ Invalid status update for restaurant admin:", status);
-        return res.status(403).json({
-          message:
-            "Restaurant admin can only update orders to Preparing or Out for Delivery",
+        console.log("📝 Creating delivery record...");
+        console.log("Order ID:", order._id);
+        console.log("Driver ID:", userId);
+        console.log("Delivery Service URL:", DELIVERY_SERVICE_URL);
+
+        // Create delivery record with correct endpoint
+        const deliveryResponse = await axios.post(
+          `${DELIVERY_SERVICE_URL}/api/deliveries/assign-driver`,
+          {
+            orderId: order._id,
+            driverId: userId,
+          },
+          {
+            headers: { Authorization: req.headers.authorization },
+          }
+        );
+
+        console.log("✅ Delivery record created:", deliveryResponse.data);
+      } catch (error) {
+        console.error("❌ Error creating delivery record:", error);
+        console.error("Error details:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          stack: error.stack,
+        });
+        return res.status(500).json({
+          message: "Error creating delivery record",
+          details: error.response?.data || error.message,
         });
       }
-    } else if (role === "delivery_personnel") {
-      // Delivery personnel can:
-      // 1. Accept delivery (Out for Delivery -> On the Way)
-      // 2. Mark as delivered (On the Way -> Delivered)
-      if (order.status === "Out for Delivery" && status === "On the Way") {
-        // Create delivery record
-        try {
-          if (!DELIVERY_SERVICE_URL) {
-            console.error(
-              "❌ DELIVERY_SERVICE_URL is not set in environment variables"
-            );
-            return res.status(500).json({
-              message: "Delivery service not configured",
-              details: "DELIVERY_SERVICE_URL is not set",
-            });
-          }
+    }
 
-          console.log("📝 Creating delivery record...");
-          console.log("Order ID:", order._id);
-          console.log("Driver ID:", userId);
-          console.log("Delivery Service URL:", DELIVERY_SERVICE_URL);
-
-          // Create delivery record with correct endpoint
-          const deliveryResponse = await axios.post(
-            `${DELIVERY_SERVICE_URL}/api/deliveries/assign-driver`,
-            {
-              orderId: order._id,
-              driverId: userId,
-            },
-            {
-              headers: { Authorization: req.headers.authorization },
-            }
-          );
-
-          console.log("✅ Delivery record created:", deliveryResponse.data);
-
-          // Update order status
-          order.status = status;
-          await order.save();
-
-          // Send notification to customer
-          try {
-            const customerResponse = await axios.get(
-              `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
-              {
-                headers: { Authorization: req.headers.authorization },
-              }
-            );
-
-            const customer = customerResponse.data;
-
-            const notifications = [
-              {
-                type: "email",
-                email: customer.email,
-                subject: "Delivery Update - EatEase",
-                message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-                  <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                      <h2 style="color: #333333; margin-bottom: 20px;">Delivery Update</h2>
-                      
-                      <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
-                      
-                      <p style="color: #666666; margin-bottom: 20px;">Your order is now on its way to you!</p>
-                      
-                      <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
-                          <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
-                          <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
-                          <p style="color: #666666; margin: 5px 0;"><strong>Status:</strong> On the Way</p>
-                          <p style="color: #666666; margin: 5px 0;">Your order is now being delivered to your location.</p>
-                      </div>
-                      
-                      <p style="color: #666666; margin-bottom: 20px;">We'll notify you once your order has been delivered.</p>
-                      
-                      <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
-                          <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
-                      </div>
-                  </div>
-              </div>`,
-              },
-              {
-                type: "sms",
-                phone: customer.phone,
-                message: `Order Update: Your order #${order._id} is now on its way to you! We'll notify you once it's delivered.`,
-              },
-              {
-                type: "whatsapp",
-                phone: customer.phone,
-                message: `🚚 *Delivery Update*
-
-Hello ${customer.name},
-
-Your order is now on its way to you!
-
-📋 *Order Details:*
-Order ID: #${order._id}
-Status: *On the Way*
-
-Your order is being delivered to your location. We'll notify you once it's been delivered.
-
-Thank you for choosing our service! 🚀`,
-              },
-            ];
-
-            await axios.post(
-              `${NOTIFICATION_SERVICE_URL}/api/notifications`,
-              {
-                userId: order.customer,
-                notifications,
-              },
-              {
-                headers: { Authorization: req.headers.authorization },
-              }
-            );
-          } catch (error) {
-            console.error(
-              "❌ Error sending delivery acceptance notifications:",
-              error
-            );
-          }
-
-          return res.status(200).json(order);
-        } catch (error) {
-          console.error("❌ Error creating delivery record:", error);
-          console.error("Error details:", {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status,
-            stack: error.stack,
-          });
-          return res.status(500).json({
-            message: "Error creating delivery record",
-            details: error.response?.data || error.message,
-          });
-        }
-      } else if (order.status === "On the Way" && status === "Delivered") {
+    // Update delivery status if this is a delivery personnel marking an order as "Delivered"
+    if (role === "delivery_personnel" && status === "Delivered" && order.status === "On the Way") {
+      try {
         // Find the delivery record
         const deliveryResponse = await axios.get(
           `${DELIVERY_SERVICE_URL}/api/deliveries/order/${order._id}`,
@@ -700,173 +509,86 @@ Thank you for choosing our service! 🚀`,
             }
           );
         }
-
-        order.status = status;
-        await order.save();
-
-        // Send delivery completion notification
-        try {
-          const customerResponse = await axios.get(
-            `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
-            {
-              headers: { Authorization: req.headers.authorization },
-            }
-          );
-
-          const customer = customerResponse.data;
-
-          const notifications = [
-            {
-              type: "email",
-              email: customer.email,
-              subject: "Delivery Completed - EatEase",
-              message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-                <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <h2 style="color: #333333; margin-bottom: 20px;">Delivery Completed</h2>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">Your order has been delivered successfully!</p>
-                    
-                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
-                        <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
-                        <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
-                        <p style="color: #666666; margin: 5px 0;"><strong>Status:</strong> Delivered</p>
-                        <p style="color: #666666; margin: 5px 0;">Your order has been successfully delivered to your location.</p>
-                    </div>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">Thank you for choosing our service!</p>
-                    
-                    <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
-                        <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
-                    </div>
-                </div>
-            </div>`,
-            },
-            {
-              type: "sms",
-              phone: customer.phone,
-              message: `Order Update: Your order #${order._id} has been delivered successfully! Thank you for choosing our service.`,
-            },
-            {
-              type: "whatsapp",
-              phone: customer.phone,
-              message: `✅ *Delivery Completed*
-
-Hello ${customer.name},
-
-Your order has been delivered successfully!
-
-📋 *Order Details:*
-Order ID: #${order._id}
-Status: *Delivered*
-
-Thank you for choosing our service! 🚀`,
-            },
-          ];
-
-          await axios.post(
-            `${NOTIFICATION_SERVICE_URL}/api/notifications`,
-            {
-              userId: order.customer,
-              notifications,
-            },
-            {
-              headers: { Authorization: req.headers.authorization },
-            }
-          );
-        } catch (error) {
-          console.error(
-            "❌ Error sending delivery completion notifications:",
-            error
-          );
-        }
-
-        return res.status(200).json(order);
-      } else {
-        return res.status(403).json({
-          message: "Invalid status transition for delivery personnel",
-          details: {
-            currentStatus: order.status,
-            attemptedStatus: status,
-            allowedTransitions: [
-              "Out for Delivery -> On the Way",
-              "On the Way -> Delivered",
-            ],
-          },
-        });
+      } catch (error) {
+        console.error("❌ Error updating delivery record:", error);
       }
-    } else if (role === "admin") {
-      // Admin can update to any status
-      order.status = status;
-      await order.save();
+    }
 
-      // Send notification to customer about status update
-      try {
-        console.log("📧 Sending status update notification to customer...");
+    // Update the order status
+    order.status = status;
+    await order.save();
 
-        if (!NOTIFICATION_SERVICE_URL) {
-          console.error(
-            "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
-          );
-          return res.status(200).json(order);
-        }
+    // Send notification to customer about status update
+    try {
+      console.log("📧 Sending status update notification to customer...");
 
-        const customerResponse = await axios.get(
-          `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
-          {
-            headers: { Authorization: req.headers.authorization },
-          }
+      if (!NOTIFICATION_SERVICE_URL) {
+        console.error(
+          "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
         );
+        return res.status(200).json(order);
+      }
 
-        const customer = customerResponse.data;
-        console.log("Customer details:", customer);
+      const customerResponse = await axios.get(
+        `${process.env.AUTH_SERVICE_URL}/api/auth/users/${order.customer}`,
+        {
+          headers: { Authorization: req.headers.authorization },
+        }
+      );
 
-        const statusMessages = {
-          Confirmed: "has been confirmed by the restaurant",
-          Preparing: "is now being prepared",
-          "Out for Delivery": "is on its way to you",
-          Delivered: "has been delivered successfully",
-          Cancelled: "has been cancelled",
-        };
+      const customer = customerResponse.data;
+      console.log("Customer details:", customer);
 
-        const notifications = [
-          {
-            type: "email",
-            email: customer.email,
-            subject: "Order Status Update - EatEase",
-            message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-                <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">Your order status has been updated!</p>
-                    
-                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
-                        <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
-                        <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
-                        <p style="color: #666666; margin: 5px 0;"><strong>New Status:</strong> ${status}</p>
-                        <p style="color: #666666; margin: 5px 0;">${statusMessages[status]}</p>
-                    </div>
-                    
-                    <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
-                    
-                    <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
-                        <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
-                    </div>
-                </div>
-            </div>`,
-          },
-          {
-            type: "sms",
-            phone: customer.phone,
-            message: `Order Update: Your order #${order._id} ${statusMessages[status]}. We'll notify you of any further updates.`,
-          },
-          {
-            type: "whatsapp",
-            phone: customer.phone,
-            message: `📦 *Order Status Update*
+      const statusMessages = {
+        Confirmed: "has been confirmed by the restaurant",
+        Preparing: "is now being prepared",
+        "Out for Delivery": "is on its way to you",
+        "On the Way": "is now on its way to you",
+        Delivered: "has been delivered successfully",
+        Cancelled: "has been cancelled",
+        Pending: "is now pending",
+      };
+
+      // Default message if status is not in the predefined list
+      const statusMessage = statusMessages[status] || "has been updated";
+
+      const notifications = [
+        {
+          type: "email",
+          email: customer.email,
+          subject: "Order Status Update - EatEase",
+          message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+              <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  <h2 style="color: #333333; margin-bottom: 20px;">Order Status Update</h2>
+                  
+                  <p style="color: #666666; margin-bottom: 20px;">Dear ${customer.name},</p>
+                  
+                  <p style="color: #666666; margin-bottom: 20px;">Your order status has been updated!</p>
+                  
+                  <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                      <h3 style="color: #333333; margin-bottom: 15px;">Order Details</h3>
+                      <p style="color: #666666; margin: 5px 0;"><strong>Order ID:</strong> #${order._id}</p>
+                      <p style="color: #666666; margin: 5px 0;"><strong>New Status:</strong> ${status}</p>
+                      <p style="color: #666666; margin: 5px 0;">Your order ${statusMessage}</p>
+                  </div>
+                  
+                  <p style="color: #666666; margin-bottom: 20px;">We'll keep you updated on your order's progress.</p>
+                  
+                  <div style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 20px;">
+                      <p style="color: #999999; margin: 0;">Best regards,<br>EatEase Team</p>
+                  </div>
+              </div>
+          </div>`,
+        },
+        {
+          type: "sms",
+          phone: customer.phone,
+          message: `Order Update: Your order #${order._id} ${statusMessage}. We'll notify you of any further updates.`,
+        },
+        {
+          type: "whatsapp",
+          phone: customer.phone,
+          message: `📦 *Order Status Update*
 
 Hello ${customer.name},
 
@@ -875,37 +597,31 @@ Your order status has been updated!
 📋 *Order Details:*
 Order ID: #${order._id}
 Status: *${status}*
-${statusMessages[status]}
+Your order ${statusMessage}
 
 We'll keep you updated on your order's progress.
 
 Thank you for choosing our service! 🚀`,
-          },
-        ];
+        },
+      ];
 
-        await axios.post(
-          `${NOTIFICATION_SERVICE_URL}/api/notifications`,
-          {
-            userId: order.customer,
-            notifications,
-          },
-          {
-            headers: { Authorization: req.headers.authorization },
-          }
-        );
+      await axios.post(
+        `${NOTIFICATION_SERVICE_URL}/api/notifications`,
+        {
+          userId: order.customer,
+          notifications,
+        },
+        {
+          headers: { Authorization: req.headers.authorization },
+        }
+      );
 
-        console.log("✅ Status update notifications sent successfully");
-      } catch (error) {
-        console.error("❌ Error sending status update notifications:", error);
-      }
-
-      return res.status(200).json(order);
-    } else {
-      console.error("❌ Unauthorized role for status update:", role);
-      return res
-        .status(403)
-        .json({ message: "Unauthorized to update order status" });
+      console.log("✅ Status update notifications sent successfully");
+    } catch (error) {
+      console.error("❌ Error sending status update notifications:", error);
     }
+
+    return res.status(200).json(order);
   } catch (error) {
     console.error("❌ Error updating order:", error);
     console.error("Error stack:", error.stack);

@@ -19,7 +19,13 @@ const OutForDelivery = () => {
         const response = await axiosSecure.get(
           "/api/orders/delivery/out-for-delivery"
         );
-        setOrders(response.data);
+
+        // Sort orders by createdAt date in descending order (newest first)
+        const sortedOrders = response.data.sort((a, b) =>
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setOrders(sortedOrders);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -78,8 +84,8 @@ const OutForDelivery = () => {
             showConfirmButton: false,
           });
 
-          // If status is "On the Way", navigate to current deliveries
-          if (newStatus === "On the Way") {
+          // If status is "Delivery Accepted", navigate to current deliveries
+          if (newStatus === "Delivery Accepted") {
             navigate("/dashboard/current-deliveries");
           }
         }
@@ -183,7 +189,7 @@ const OutForDelivery = () => {
                       <Button
                         className="bg-green-500 text-white flex-1"
                         onClick={() =>
-                          handleUpdateStatus(order._id, "On the Way")
+                          handleUpdateStatus(order._id, "Delivery Accepted")
                         }
                       >
                         Accept Delivery
