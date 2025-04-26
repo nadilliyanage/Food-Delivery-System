@@ -14,6 +14,10 @@ const restaurantSchema = new mongoose.Schema({
     enum: ["pending", "approved", "rejected"],
     default: "pending",
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   description: { type: String, required: true },
   phone: { type: String, required: true },
   email: { type: String, required: true },
