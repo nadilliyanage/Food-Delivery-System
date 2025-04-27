@@ -12,6 +12,8 @@ import {
 import Scroll from "../hooks/useScroll";
 import DeliveryMap from "../components/DeliveryMap";
 import DeliverySimulation from "../components/DeliverySimulation";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import OrderBillPDF from "./Bills/OrderBillPDF";
 
 const OrderDetails = () => {
   const { orderId } = useParams();
@@ -173,6 +175,27 @@ const OrderDetails = () => {
             >
               {getStatusIcon(order.status)}
               <span>{order.status}</span>
+            </div>
+
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-4">
+                <PDFDownloadLink
+                  document={<OrderBillPDF order={order} />}
+                  fileName={`order_${order._id.slice(-6).toUpperCase()}.pdf`}
+                >
+                  {({ loading }) =>
+                    loading ? (
+                      <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm">
+                        Loading...
+                      </button>
+                    ) : (
+                      <button className="px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-primary-dark transition">
+                        Download Bill
+                      </button>
+                    )
+                  }
+                </PDFDownloadLink>
+              </div>
             </div>
           </div>
 
