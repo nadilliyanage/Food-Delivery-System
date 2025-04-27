@@ -43,6 +43,7 @@ import OutForDelivery from "../pages/Dashboard/Delivery/OutForDelivery";
 import RestaurantsPage from "../pages/Restaurants/RestaurantsPage";
 import DashboardRestaurants from "../pages/Dashboard/User/Restaurants";
 import EditRestaurant from "../pages/Dashboard/RestaurantAdmin/EditRestaurant";
+import Notifications from "../pages/Notifications/Notifications";
 
 export const router = createBrowserRouter([
   {
@@ -112,6 +113,10 @@ export const router = createBrowserRouter([
       {
         path: "order-details/:orderId",
         element: <OrderDetails />,
+      },
+      {
+        path: "notifications",
+        element: <Notifications />,
       },
     ],
   },

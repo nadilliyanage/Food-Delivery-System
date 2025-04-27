@@ -1,8 +1,26 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { FaBars, FaTimes, FaHome, FaCreditCard, FaInfoCircle, FaUtensils, FaEnvelope, FaUser, FaSignOutAlt, FaShoppingCart, FaListAlt, FaStore, FaMotorcycle, FaBox, FaChartBar } from "react-icons/fa";
-import { MdDashboard } from "react-icons/md";
+import {
+  FaBars,
+  FaTimes,
+  FaHome,
+  FaCreditCard,
+  FaInfoCircle,
+  FaUtensils,
+  FaEnvelope,
+  FaUser,
+  FaSignOutAlt,
+  FaShoppingCart,
+  FaListAlt,
+  FaStore,
+  FaMotorcycle,
+  FaBox,
+  FaChartBar,
+  FaBell,
+  FaCheck,
+} from "react-icons/fa";
+import { MdDashboard, MdDoneAll } from "react-icons/md";
 import userImg from "../../assets/farmer.jpg";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../utilities/providers/AuthProvider";
@@ -39,9 +57,7 @@ const restaurantAdminMobileNav = [
   { name: "Restaurant", route: "/manage-restaurant", icon: FaStore },
 ];
 
-const adminMobileNav = [
-  { name: "Home", route: "/", icon: FaHome },
-];
+const adminMobileNav = [{ name: "Home", route: "/", icon: FaHome }];
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -56,7 +72,10 @@ const NavBar = () => {
   const { logout, user } = useContext(AuthContext);
   const { currentUser } = useUser();
   const { cartCount, fetchCartData } = useCart();
-  
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   // Check if user is authenticated (using either context or token)
   const isUserAuthenticated = !!user || isAuthenticated();
 
@@ -66,6 +85,131 @@ const NavBar = () => {
       fetchCartData();
     }
   }, [isUserAuthenticated, fetchCartData]);
+
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/notifications`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      // Filter only notifications and sort by date in descending order
+      const smsNotifications = response.data
+        .filter((n) => n.type === "sms")
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setNotifications(smsNotifications);
+      setUnreadCount(smsNotifications.filter((n) => !n.isRead).length);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  // Mark single notification as read
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/notifications/${notificationId}/read`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        // Update local state with the updated notification from the backend
+        setNotifications((prevNotifications) =>
+          prevNotifications.map((notification) =>
+            notification._id === notificationId
+              ? response.data.notification
+              : notification
+          )
+        );
+
+        // Update unread count
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+
+        // Close dropdown after marking as read
+        setShowNotifications(false);
+      } else {
+        throw new Error(
+          response.data.message || "Failed to mark notification as read"
+        );
+      }
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      Swal.fire({
+        title: "Error!",
+        text:
+          error.response?.data?.message ||
+          "Failed to mark notification as read",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
+  };
+
+  const handleNotificationClick = (e, notificationId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    markNotificationAsRead(notificationId);
+  };
+
+  useEffect(() => {
+    if (isUserAuthenticated) {
+      fetchNotifications();
+      // Poll for new notifications every second
+      const interval = setInterval(fetchNotifications, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isUserAuthenticated]);
+
+  // Mark all notifications as read
+  const markAllNotificationsAsRead = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/notifications/mark-all-read`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        // Update local state with the updated notifications from the backend
+        const smsNotifications = response.data.notifications
+          .filter((n) => n.type === "sms")
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        setNotifications(smsNotifications);
+        setUnreadCount(0);
+        setShowNotifications(false);
+
+        Swal.fire({
+          title: "Success!",
+          text: "All notifications marked as read",
+          icon: "success",
+          confirmButtonText: "OK",
+        });
+      }
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      Swal.fire({
+        title: "Error!",
+        text:
+          error.response?.data?.message ||
+          "Failed to mark all notifications as read",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -123,17 +267,35 @@ const NavBar = () => {
       confirmButtonText: "Yes, Logout me!",
     }).then((result) => {
       if (result.isConfirmed) {
-        logout().then(() => {
-          Swal.fire({
-            title: "Logged Out!",
-            text: "You have been successfully logged out.",
-            icon: "success",
-          });
-          navigate("/");
-        }).catch((error) => console.log(error));
+        logout()
+          .then(() => {
+            Swal.fire({
+              title: "Logged Out!",
+              text: "You have been successfully logged out.",
+              icon: "success",
+            });
+            navigate("/");
+          })
+          .catch((error) => console.log(error));
       }
     });
   };
+
+  const handleNotificationClose = (e) => {
+    if (
+      !e.target.closest(".notification-dropdown") &&
+      !e.target.closest(".notification-bell")
+    ) {
+      setShowNotifications(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("click", handleNotificationClose);
+    return () => {
+      document.removeEventListener("click", handleNotificationClose);
+    };
+  }, []);
 
   return (
     <>
@@ -301,13 +463,15 @@ const NavBar = () => {
                   {isUserAuthenticated && (
                     <li>
                       <NavLink
-                        to={currentUser?.role === 'admin' 
-                          ? '/dashboard/admin-home' 
-                          : currentUser?.role === 'restaurant_admin'
-                          ? '/dashboard/restaurant-admin-home'
-                          : currentUser?.role === 'delivery_personnel'
-                          ? '/dashboard/delivery-home'
-                          : '/dashboard/user-home'}
+                        to={
+                          currentUser?.role === "admin"
+                            ? "/dashboard/admin-home"
+                            : currentUser?.role === "restaurant_admin"
+                            ? "/dashboard/restaurant-admin-home"
+                            : currentUser?.role === "delivery_personnel"
+                            ? "/dashboard/delivery-home"
+                            : "/dashboard/user-home"
+                        }
                         className={({ isActive }) =>
                           `font-bold ${
                             isActive
@@ -349,6 +513,100 @@ const NavBar = () => {
                       </NavLink>
                     </li>
                   )}
+
+                  {isUserAuthenticated && (
+                    <li className="relative">
+                      <button
+                        onClick={() => {
+                          setShowNotifications(!showNotifications);
+                          if (!showNotifications) {
+                            fetchNotifications();
+                          }
+                        }}
+                        className="notification-bell relative p-2 text-gray-600 hover:text-primary transition-colors bg-primary-light rounded-full shadow-sm"
+                      >
+                        <FaBell className="w-5 h-5" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {unreadCount}
+                          </span>
+                        )}
+                      </button>
+
+                      {showNotifications && (
+                        <div className="notification-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50">
+                          <div className="p-4 border-b flex justify-between items-center">
+                            <h3 className="text-lg font-semibold">
+                              Notifications
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              {unreadCount > 0 && (
+                                <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                                  {unreadCount} unread
+                                </span>
+                              )}
+                              {unreadCount > 0 && (
+                                <button
+                                  onClick={markAllNotificationsAsRead}
+                                  className="p-1.5 text-xs bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center"
+                                  title="Mark all as read"
+                                >
+                                  <MdDoneAll className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="max-h-96 overflow-y-auto">
+                            {notifications.length === 0 ? (
+                              <div className="p-4 text-center text-gray-500">
+                                No notifications
+                              </div>
+                            ) : (
+                              notifications.map((notification) => (
+                                <div
+                                  key={notification._id}
+                                  onClick={(e) =>
+                                    !notification.isRead &&
+                                    handleNotificationClick(e, notification._id)
+                                  }
+                                  className={`p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors ${
+                                    !notification.isRead ? "bg-blue-50" : ""
+                                  }`}
+                                >
+                                  <div className="flex items-start">
+                                    <div className="flex-1">
+                                      <p className="text-sm text-gray-800">
+                                        {notification.message}
+                                      </p>
+                                      <p className="text-xs text-gray-500 mt-1">
+                                        {new Date(
+                                          notification.createdAt
+                                        ).toLocaleString()}
+                                      </p>
+                                    </div>
+                                    {!notification.isRead && (
+                                      <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                        New
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                          <div className="p-4 border-t">
+                            <Link
+                              to="/notifications"
+                              className="text-primary hover:text-primary-dark text-sm font-medium"
+                              onClick={() => setShowNotifications(false)}
+                            >
+                              View All Notifications
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </li>
+                  )}
                 </ul>
               </div>
             </div>
@@ -364,15 +622,108 @@ const NavBar = () => {
               EatEase <img src={logo} alt="" className="w-6 h-6" />
             </h1>
           </div>
-          {isUserAuthenticated && (
-            <Link to={`/dashboard/user-profile`}>
-              <img
-                src={currentUser?.photoUrl || userImg}
-                alt="User Avatar"
-                className="w-8 h-8 rounded-full object-cover border-2 border-primary"
-              />
-            </Link>
-          )}
+          <div className="flex items-center gap-3">
+            {isUserAuthenticated && (
+              <>
+                <Link to={`/dashboard/user-profile`}>
+                  <img
+                    src={currentUser?.photoUrl || userImg}
+                    alt="User Avatar"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-primary"
+                  />
+                </Link>
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowNotifications(!showNotifications);
+                      if (!showNotifications) {
+                        fetchNotifications();
+                      }
+                    }}
+                    className="notification-bell relative p-2 text-gray-600 hover:text-primary transition-colors bg-primary-light rounded-full shadow-sm"
+                  >
+                    <FaBell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {showNotifications && (
+                    <div className="notification-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50">
+                      <div className="p-4 border-b flex justify-between items-center">
+                        <h3 className="text-lg font-semibold">Notifications</h3>
+                        <div className="flex items-center gap-2">
+                          {unreadCount > 0 && (
+                            <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                              {unreadCount} unread
+                            </span>
+                          )}
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={markAllNotificationsAsRead}
+                              className="p-1.5 text-xs bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center"
+                              title="Mark all as read"
+                            >
+                              <MdDoneAll className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="max-h-96 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="p-4 text-center text-gray-500">
+                            No notifications
+                          </div>
+                        ) : (
+                          notifications.map((notification) => (
+                            <div
+                              key={notification._id}
+                              onClick={(e) =>
+                                !notification.isRead &&
+                                handleNotificationClick(e, notification._id)
+                              }
+                              className={`p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors ${
+                                !notification.isRead ? "bg-blue-50" : ""
+                              }`}
+                            >
+                              <div className="flex items-start">
+                                <div className="flex-1">
+                                  <p className="text-sm text-gray-800">
+                                    {notification.message}
+                                  </p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {new Date(
+                                      notification.createdAt
+                                    ).toLocaleString()}
+                                  </p>
+                                </div>
+                                {!notification.isRead && (
+                                  <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                    New
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <div className="p-4 border-t">
+                        <Link
+                          to="/notifications"
+                          className="text-primary hover:text-primary-dark text-sm font-medium"
+                          onClick={() => setShowNotifications(false)}
+                        >
+                          View All Notifications
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -381,96 +732,112 @@ const NavBar = () => {
         <div className="flex justify-around items-center h-14">
           {isUserAuthenticated ? (
             <>
-              {currentUser?.role === 'customer' && customerMobileNav.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <NavLink
-                    key={link.route}
-                    to={link.route}
-                    className={({ isActive }) =>
-                      `flex flex-col items-center justify-center w-full h-full relative ${
-                        isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
-                      }`
-                    }
-                  >
-                    <div className="relative">
-                      <Icon className="w-5 h-5" />
-                      {link.route === '/cart' && cartCount > 0 && (
-                        <span className="absolute -top-2.5 -right-3 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                          {cartCount}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs mt-0.5">{link.name}</span>
-                  </NavLink>
-                );
-              })}
-              
-              {currentUser?.role === 'delivery_personnel' && deliveryMobileNav.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <NavLink
-                    key={link.route}
-                    to={link.route}
-                    className={({ isActive }) =>
-                      `flex flex-col items-center justify-center w-full h-full ${
-                        isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
-                      }`
-                    }
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-xs mt-0.5">{link.name}</span>
-                  </NavLink>
-                );
-              })}
-              
-              {currentUser?.role === 'restaurant_admin' && restaurantAdminMobileNav.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <NavLink
-                    key={link.route}
-                    to={link.route}
-                    className={({ isActive }) =>
-                      `flex flex-col items-center justify-center w-full h-full ${
-                        isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
-                      }`
-                    }
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-xs mt-0.5">{link.name}</span>
-                  </NavLink>
-                );
-              })}
+              {currentUser?.role === "customer" &&
+                customerMobileNav.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <NavLink
+                      key={link.route}
+                      to={link.route}
+                      className={({ isActive }) =>
+                        `flex flex-col items-center justify-center w-full h-full relative ${
+                          isActive
+                            ? "text-primary"
+                            : "text-gray-600 dark:text-gray-400"
+                        }`
+                      }
+                    >
+                      <div className="relative">
+                        <Icon className="w-5 h-5" />
+                        {link.route === "/cart" && cartCount > 0 && (
+                          <span className="absolute -top-2.5 -right-3 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                            {cartCount}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs mt-0.5">{link.name}</span>
+                    </NavLink>
+                  );
+                })}
 
-              {currentUser?.role === 'admin' && adminMobileNav.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <NavLink
-                    key={link.route}
-                    to={link.route}
-                    className={({ isActive }) =>
-                      `flex flex-col items-center justify-center w-full h-full ${
-                        isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
-                      }`
-                    }
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-xs mt-0.5">{link.name}</span>
-                  </NavLink>
-                );
-              })}
-              
+              {currentUser?.role === "delivery_personnel" &&
+                deliveryMobileNav.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <NavLink
+                      key={link.route}
+                      to={link.route}
+                      className={({ isActive }) =>
+                        `flex flex-col items-center justify-center w-full h-full ${
+                          isActive
+                            ? "text-primary"
+                            : "text-gray-600 dark:text-gray-400"
+                        }`
+                      }
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-xs mt-0.5">{link.name}</span>
+                    </NavLink>
+                  );
+                })}
+
+              {currentUser?.role === "restaurant_admin" &&
+                restaurantAdminMobileNav.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <NavLink
+                      key={link.route}
+                      to={link.route}
+                      className={({ isActive }) =>
+                        `flex flex-col items-center justify-center w-full h-full ${
+                          isActive
+                            ? "text-primary"
+                            : "text-gray-600 dark:text-gray-400"
+                        }`
+                      }
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-xs mt-0.5">{link.name}</span>
+                    </NavLink>
+                  );
+                })}
+
+              {currentUser?.role === "admin" &&
+                adminMobileNav.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <NavLink
+                      key={link.route}
+                      to={link.route}
+                      className={({ isActive }) =>
+                        `flex flex-col items-center justify-center w-full h-full ${
+                          isActive
+                            ? "text-primary"
+                            : "text-gray-600 dark:text-gray-400"
+                        }`
+                      }
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-xs mt-0.5">{link.name}</span>
+                    </NavLink>
+                  );
+                })}
+
               <NavLink
-                to={currentUser?.role === 'admin' 
-                  ? '/dashboard/admin-home' 
-                  : currentUser?.role === 'restaurant_admin'
-                  ? '/dashboard/restaurant-admin-home'
-                  : currentUser?.role === 'delivery_personnel'
-                  ? '/dashboard/delivery-home'
-                  : '/dashboard/user-home'}
+                to={
+                  currentUser?.role === "admin"
+                    ? "/dashboard/admin-home"
+                    : currentUser?.role === "restaurant_admin"
+                    ? "/dashboard/restaurant-admin-home"
+                    : currentUser?.role === "delivery_personnel"
+                    ? "/dashboard/delivery-home"
+                    : "/dashboard/user-home"
+                }
                 className={({ isActive }) =>
                   `flex flex-col items-center justify-center w-full h-full ${
-                    isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                    isActive
+                      ? "text-primary"
+                      : "text-gray-600 dark:text-gray-400"
                   }`
                 }
               >
@@ -484,7 +851,9 @@ const NavBar = () => {
                 to="/"
                 className={({ isActive }) =>
                   `flex flex-col items-center justify-center w-full h-full ${
-                    isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                    isActive
+                      ? "text-primary"
+                      : "text-gray-600 dark:text-gray-400"
                   }`
                 }
               >
@@ -495,12 +864,16 @@ const NavBar = () => {
                 to={isLogin ? "/register" : "/login"}
                 className={({ isActive }) =>
                   `flex flex-col items-center justify-center w-full h-full ${
-                    isActive ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                    isActive
+                      ? "text-primary"
+                      : "text-gray-600 dark:text-gray-400"
                   }`
                 }
               >
                 <FaUser className="w-5 h-5" />
-                <span className="text-xs mt-0.5">{isLogin ? "Register" : "Login"}</span>
+                <span className="text-xs mt-0.5">
+                  {isLogin ? "Register" : "Login"}
+                </span>
               </NavLink>
             </>
           )}
