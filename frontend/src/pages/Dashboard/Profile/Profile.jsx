@@ -47,14 +47,15 @@ const Profile = () => {
     const fileName = new Date().getTime() + file.name;
     const storageRef = ref(storage, "images/profilePictures/" + fileName);
     const uploadTask = uploadBytesResumable(storageRef, file);
-    
+
     setIsUploading(true);
     setImgUploaded(false);
-  
+
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setImgPerc(Math.round(progress));
       },
       (error) => {
@@ -76,26 +77,31 @@ const Profile = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (isUploading) {
       toast.warning("Please wait until the image finishes uploading.");
       return;
     }
-  
+
     if (!imgUploaded && img) {
-      toast.warning("Please wait until the image is fully uploaded before submitting.");
+      toast.warning(
+        "Please wait until the image is fully uploaded before submitting."
+      );
       return;
     }
-  
+
     try {
-      const response = await axiosSecure.put(`/api/auth/users/${userCredentials._id}`, formData);
-      
+      const response = await axiosSecure.patch(
+        `/api/auth/users/${userCredentials._id}`,
+        formData
+      );
+
       // Update local storage with new user data
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
       // Refetch user data to update the state
       await refetch();
-      
+
       Swal.fire({
         title: "Updated!",
         text: "Your details have been updated successfully.",
@@ -105,7 +111,7 @@ const Profile = () => {
       console.error(err);
       toast.error("Something went wrong while updating!");
     }
-  };  
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -250,8 +256,6 @@ const Profile = () => {
           </div>
         </div>
       </section>
-
-      
 
       <ToastContainer />
     </div>

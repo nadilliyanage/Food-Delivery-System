@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { MdAccessTime, MdLocationOn, MdWork } from 'react-icons/md';
-import Swal from 'sweetalert2';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { MdAccessTime, MdLocationOn, MdWork } from "react-icons/md";
+import Swal from "sweetalert2";
 
 const Availability = () => {
   const [availability, setAvailability] = useState({
     isAvailable: false,
     workingHours: {
-      start: '09:00',
-      end: '17:00'
+      start: "09:00",
+      end: "17:00",
     },
     preferredZones: [],
-    currentLocation: null
+    currentLocation: null,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,42 +22,54 @@ const Availability = () => {
 
   const fetchAvailability = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/deliveries/availability', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:3000/api/deliveries/availability",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setAvailability(response.data);
       setLoading(false);
     } catch (err) {
-      setError('Failed to fetch availability settings');
+      setError("Failed to fetch availability settings");
       setLoading(false);
-      console.error('Error fetching availability:', err);
+      console.error("Error fetching availability:", err);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      await axios.put('http://localhost:3000/api/deliveries/availability', availability, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        "http://localhost:3000/api/deliveries/availability",
+        availability,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: 'Availability settings updated successfully'
+        icon: "success",
+        title: "Success!",
+        text: "Availability settings updated successfully",
       });
     } catch (err) {
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to update availability settings'
+        icon: "error",
+        title: "Error",
+        text: "Failed to update availability settings",
       });
-      console.error('Error updating availability:', err);
+      console.error("Error updating availability:", err);
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Loading...
+      </div>
+    );
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
 
   return (
@@ -74,7 +86,9 @@ const Availability = () => {
               </div>
               <div>
                 <h2 className="text-xl font-semibold">Availability Status</h2>
-                <p className="text-gray-600">Toggle your availability for deliveries</p>
+                <p className="text-gray-600">
+                  Toggle your availability for deliveries
+                </p>
               </div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -82,7 +96,12 @@ const Availability = () => {
                 type="checkbox"
                 className="sr-only peer"
                 checked={availability.isAvailable}
-                onChange={(e) => setAvailability({ ...availability, isAvailable: e.target.checked })}
+                onChange={(e) =>
+                  setAvailability({
+                    ...availability,
+                    isAvailable: e.target.checked,
+                  })
+                }
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
@@ -102,26 +121,40 @@ const Availability = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Start Time
+              </label>
               <input
                 type="time"
                 value={availability.workingHours.start}
-                onChange={(e) => setAvailability({
-                  ...availability,
-                  workingHours: { ...availability.workingHours, start: e.target.value }
-                })}
+                onChange={(e) =>
+                  setAvailability({
+                    ...availability,
+                    workingHours: {
+                      ...availability.workingHours,
+                      start: e.target.value,
+                    },
+                  })
+                }
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:border-primary"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                End Time
+              </label>
               <input
                 type="time"
                 value={availability.workingHours.end}
-                onChange={(e) => setAvailability({
-                  ...availability,
-                  workingHours: { ...availability.workingHours, end: e.target.value }
-                })}
+                onChange={(e) =>
+                  setAvailability({
+                    ...availability,
+                    workingHours: {
+                      ...availability.workingHours,
+                      end: e.target.value,
+                    },
+                  })
+                }
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:border-primary"
               />
             </div>
@@ -135,8 +168,12 @@ const Availability = () => {
               <MdLocationOn className="text-3xl text-purple-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Preferred Delivery Zones</h2>
-              <p className="text-gray-600">Select areas you prefer to deliver in</p>
+              <h2 className="text-xl font-semibold">
+                Preferred Delivery Zones
+              </h2>
+              <p className="text-gray-600">
+                Select areas you prefer to deliver in
+              </p>
             </div>
           </div>
           <div className="space-y-4">
@@ -148,7 +185,10 @@ const Availability = () => {
                   onChange={(e) => {
                     const newZones = [...availability.preferredZones];
                     newZones[index] = e.target.value;
-                    setAvailability({ ...availability, preferredZones: newZones });
+                    setAvailability({
+                      ...availability,
+                      preferredZones: newZones,
+                    });
                   }}
                   className="flex-1 p-2 border rounded focus:ring-2 focus:ring-primary focus:border-primary"
                   placeholder="Enter zone name"
@@ -156,8 +196,13 @@ const Availability = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    const newZones = availability.preferredZones.filter((_, i) => i !== index);
-                    setAvailability({ ...availability, preferredZones: newZones });
+                    const newZones = availability.preferredZones.filter(
+                      (_, i) => i !== index
+                    );
+                    setAvailability({
+                      ...availability,
+                      preferredZones: newZones,
+                    });
                   }}
                   className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                 >
@@ -170,7 +215,7 @@ const Availability = () => {
               onClick={() => {
                 setAvailability({
                   ...availability,
-                  preferredZones: [...availability.preferredZones, '']
+                  preferredZones: [...availability.preferredZones, ""],
                 });
               }}
               className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
@@ -194,4 +239,4 @@ const Availability = () => {
   );
 };
 
-export default Availability; 
+export default Availability;

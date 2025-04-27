@@ -132,7 +132,7 @@ const DeliveryPersonnelManagement = () => {
         return;
       }
 
-      await axios.put(
+      await axios.patch(
         "http://localhost:3000/api/deliveries/admin/registration-status",
         {
           registrationId,

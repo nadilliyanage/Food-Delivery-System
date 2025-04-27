@@ -137,7 +137,7 @@ const AdminHome = () => {
           import.meta.env.VITE_API_URL
         }/api/deliveries/admin/registration-status`,
         {
-          deliveryId,
+          registrationId: deliveryId,
           status,
         },
         {
