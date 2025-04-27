@@ -23,6 +23,21 @@ const DeliveryHome = () => {
           </div>
         </Link>
 
+        {/* Available Deliveries */}
+        <Link to="/dashboard/out-for-delivery" className="block">
+          <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 p-3 rounded-full">
+                <MdDirectionsBike className="text-3xl text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Available Deliveries</h2>
+                <p className="text-gray-600">View available deliveries for you</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
         {/* Delivery History Card */}
         <Link to="/dashboard/delivery-history" className="block">
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
@@ -38,20 +53,7 @@ const DeliveryHome = () => {
           </div>
         </Link>
 
-        {/* Available Deliveries */}
-        <Link to="/dashboard/out-for-delivery" className="block">
-          <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <MdDirectionsBike className="text-3xl text-primary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold">Available Deliveries</h2>
-                <p className="text-gray-600">View available deliveries for you</p>
-              </div>
-            </div>
-          </div>
-        </Link>
+        
       </div>
     </div>
   );
