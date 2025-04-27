@@ -4,11 +4,19 @@ import { getCurrentUser } from "../../../utils/auth";
 import axios from "axios";
 import Swal from "sweetalert2";
 import Scroll from "../../../hooks/useScroll";
-import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrash,
+  FaToggleOn,
+  FaToggleOff,
+  FaSearch,
+} from "react-icons/fa";
 
 const ManageRestaurants = () => {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -32,6 +40,7 @@ const ManageRestaurants = () => {
         );
 
         setRestaurants(response.data);
+        setFilteredRestaurants(response.data);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || "Error fetching restaurants");
@@ -41,6 +50,13 @@ const ManageRestaurants = () => {
 
     fetchRestaurants();
   }, []);
+
+  useEffect(() => {
+    const filtered = restaurants.filter((restaurant) =>
+      (restaurant.name?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+    );
+    setFilteredRestaurants(filtered);
+  }, [searchQuery, restaurants]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -175,21 +191,38 @@ const ManageRestaurants = () => {
         </button>
       </div>
 
-      {restaurants.length === 0 ? (
+      <div className="relative mb-6">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <FaSearch className="text-gray-400" />
+        </div>
+        <input
+          type="text"
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
+          placeholder="Search restaurants by name"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {filteredRestaurants.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
           <p className="text-gray-600 mb-4">
-            You haven't registered any restaurants yet.
+            {searchQuery
+              ? "No restaurants found matching your search."
+              : "You haven't registered any restaurants yet."}
           </p>
-          <button
-            onClick={() => navigate("/restaurant-registration")}
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition-colors"
-          >
-            Register Your First Restaurant
-          </button>
+          {!searchQuery && (
+            <button
+              onClick={() => navigate("/restaurant-registration")}
+              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition-colors"
+            >
+              Register Your First Restaurant
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {restaurants.map((restaurant) => (
+          {filteredRestaurants.map((restaurant) => (
             <div
               key={restaurant._id}
               className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative group cursor-pointer"
