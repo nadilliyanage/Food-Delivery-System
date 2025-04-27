@@ -31,7 +31,7 @@ const AdminDashboard = () => {
   const handleStatusUpdate = async (restaurantId, status) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
+      await axios.patch(
         `http://localhost:5000/api/restaurants/admin/registration-status/${restaurantId}`,
         { status },
         { headers: { Authorization: `Bearer ${token}` } }

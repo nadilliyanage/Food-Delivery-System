@@ -32,7 +32,8 @@ const UpdateUser = () => {
 
   useEffect(() => {
     // Fetch user data when component mounts
-    axiosSecure.get(`/api/auth/users/${id}`)
+    axiosSecure
+      .get(`/api/auth/users/${id}`)
       .then((res) => {
         const user = res.data;
         setUserData(user);
@@ -95,9 +96,9 @@ const UpdateUser = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     console.log("Changing", name, "to", value);
-    
+
     // Update form data directly
-    setFormData(prevData => {
+    setFormData((prevData) => {
       const newData = { ...prevData, [name]: value };
       console.log("Updated form data:", newData);
       return newData;
@@ -112,11 +113,11 @@ const UpdateUser = () => {
       phone: formData.phone,
       address: formData.address,
       photoUrl: formData.photoUrl,
-      role: formData.role
+      role: formData.role,
     };
     // Send update request
     axiosSecure
-      .put(`/api/auth/users/${id}`, updateData)
+      .patch(`/api/auth/users/${id}`, updateData)
       .then((res) => {
         Swal.fire({
           title: "Updated!",

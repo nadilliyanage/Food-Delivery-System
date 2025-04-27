@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { XMarkIcon, PlusIcon, MinusIcon, GiftIcon } from '@heroicons/react/24/outline';
-import axios from 'axios';
-import Scroll from '../../hooks/useScroll';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  XMarkIcon,
+  PlusIcon,
+  MinusIcon,
+  GiftIcon,
+} from "@heroicons/react/24/outline";
+import axios from "axios";
+import Scroll from "../../hooks/useScroll";
 
 const CartDetails = () => {
   const { restaurantId } = useParams();
@@ -10,7 +15,7 @@ const CartDetails = () => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState("");
   const [requestUtensils, setRequestUtensils] = useState(false);
 
   useEffect(() => {
@@ -19,19 +24,24 @@ const CartDetails = () => {
 
   const fetchCart = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        navigate('/login');
+        navigate("/login");
         return;
       }
 
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cart`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/cart`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      const userCart = response.data.find(c => c.restaurantId === restaurantId);
+      const userCart = response.data.find(
+        (c) => c.restaurantId === restaurantId
+      );
       if (!userCart) {
-        setError('Cart not found');
+        setError("Cart not found");
         setLoading(false);
         return;
       }
@@ -39,28 +49,28 @@ const CartDetails = () => {
       setCart(userCart);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching cart:', err);
-      setError('Failed to fetch cart details');
+      console.error("Error fetching cart:", err);
+      setError("Failed to fetch cart details");
       setLoading(false);
     }
   };
 
   const updateQuantity = async (menuItemId, newQuantity) => {
     try {
-      await axios.put(
+      await axios.patch(
         `${import.meta.env.VITE_API_URL}/api/cart/update`,
         {
           menuItemId,
           quantity: newQuantity,
-          restaurantId
+          restaurantId,
         },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
       fetchCart();
     } catch (err) {
-      console.error('Error updating quantity:', err);
+      console.error("Error updating quantity:", err);
     }
   };
 
@@ -69,12 +79,15 @@ const CartDetails = () => {
   };
 
   const calculateSubtotal = () => {
-    return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart.items.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
   };
 
   const calculateDeliveryFee = () => {
     // You can implement your delivery fee logic here
-    return 150.00; // Example fixed delivery fee
+    return 150.0; // Example fixed delivery fee
   };
 
   const calculateTotal = () => {
@@ -95,10 +108,7 @@ const CartDetails = () => {
     return (
       <div className="text-center py-8 text-red-500">
         <p>{error}</p>
-        <button
-          onClick={() => navigate('/cart')}
-          className="mt-4 text-black"
-        >
+        <button onClick={() => navigate("/cart")} className="mt-4 text-black">
           Return to Cart
         </button>
       </div>
@@ -116,7 +126,7 @@ const CartDetails = () => {
           </button>
           <h1 className="text-2xl font-bold">{cart.restaurantName}</h1>
         </div>
-        <button 
+        <button
           onClick={() => navigate(`/restaurant/${restaurantId}`)}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
         >
@@ -139,7 +149,9 @@ const CartDetails = () => {
               <div className="mt-2 flex items-center justify-between">
                 <div className="inline-flex items-center bg-gray-100 rounded-full">
                   <button
-                    onClick={() => updateQuantity(item.menuItemId, item.quantity - 1)}
+                    onClick={() =>
+                      updateQuantity(item.menuItemId, item.quantity - 1)
+                    }
                     className="p-2"
                     disabled={item.quantity <= 1}
                   >
@@ -147,7 +159,9 @@ const CartDetails = () => {
                   </button>
                   <span className="px-4">{item.quantity}</span>
                   <button
-                    onClick={() => updateQuantity(item.menuItemId, item.quantity + 1)}
+                    onClick={() =>
+                      updateQuantity(item.menuItemId, item.quantity + 1)
+                    }
                     className="p-2"
                   >
                     <PlusIcon className="h-5 w-5" />
@@ -164,8 +178,8 @@ const CartDetails = () => {
 
       {/* Additional Options */}
       <div className="px-4 space-y-4 border-t py-4">
-        <button 
-          onClick={() => navigate('/cart/note')}
+        <button
+          onClick={() => navigate("/cart/note")}
           className="flex items-center justify-between w-full py-2"
         >
           <div className="flex items-center gap-3">
@@ -205,4 +219,4 @@ const CartDetails = () => {
   );
 };
 
-export default CartDetails; 
+export default CartDetails;
