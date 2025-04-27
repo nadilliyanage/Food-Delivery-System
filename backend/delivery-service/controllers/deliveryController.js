@@ -14,16 +14,29 @@ const assignDriver = async (req, res) => {
 
     console.log("🔍 Assigning driver:", { orderId, driverId, userId });
 
-    // Check if user is authorized to assign drivers
+    // Check if user is authorized to assign drivers - user must have delivery_personnel role
     if (req.user.role !== "delivery_personnel" && req.user.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
+      return res.status(403).json({ 
+        message: "Unauthorized, only delivery personnel can accept deliveries",
+        userRole: req.user.role 
+      });
     }
 
-    // Verify the driver is the same as the authenticated user
-    if (driverId !== userId) {
-      return res
-        .status(403)
-        .json({ message: "You can only assign yourself as the driver" });
+    // More flexible validation - allow driverId to be either the user ID or the delivery personnel ID
+    // This allows the frontend to send either value
+    if (driverId !== userId && req.user.role !== "admin") {
+      // Check if the driver is registered as a delivery personnel
+      const personnel = await DeliveryPersonnel.findOne({ user: userId });
+      if (!personnel || personnel.registrationStatus !== "approved") {
+        return res.status(403).json({ 
+          message: "You must be an approved delivery person to accept orders",
+          userId: userId,
+          driverId: driverId
+        });
+      }
+      
+      // Use the authenticated user's ID as the driver
+      console.log(`Driver ID mismatch, using authenticated user ID (${userId}) instead of ${driverId}`);
     }
 
     // Check if delivery already exists for this order
@@ -31,7 +44,7 @@ const assignDriver = async (req, res) => {
 
     if (delivery) {
       // If delivery exists, update the driver
-      delivery.driver = driverId;
+      delivery.driver = userId; // Always use the authenticated user's ID for security
       delivery.status = "On the Way";
       await delivery.save();
       return res.status(200).json({ delivery });
@@ -51,7 +64,7 @@ const assignDriver = async (req, res) => {
       // Create new delivery record
       delivery = new Delivery({
         order: orderId,
-        driver: driverId,
+        driver: userId, // Always use the authenticated user's ID for security
         customer: order.customer,
         status: "Assigned",
         deliveryTime: null,

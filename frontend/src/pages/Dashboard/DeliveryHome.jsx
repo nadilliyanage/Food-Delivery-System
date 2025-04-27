@@ -23,6 +23,21 @@ const DeliveryHome = () => {
           </div>
         </Link>
 
+        {/* Available Deliveries */}
+        <Link to="/dashboard/out-for-delivery" className="block">
+          <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 p-3 rounded-full">
+                <MdDirectionsBike className="text-3xl text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Available Deliveries</h2>
+                <p className="text-gray-600">View available deliveries for you</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
         {/* Delivery History Card */}
         <Link to="/dashboard/delivery-history" className="block">
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
@@ -32,26 +47,13 @@ const DeliveryHome = () => {
               </div>
               <div>
                 <h2 className="text-xl font-semibold">Delivery History</h2>
-                <p className="text-gray-600">View your past deliveries and earnings</p>
+                <p className="text-gray-600">View your past deliveries</p>
               </div>
             </div>
           </div>
         </Link>
 
-        {/* Profile & Settings Card */}
-        <Link to="/dashboard/delivery-profile" className="block">
-          <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <MdDirectionsBike className="text-3xl text-primary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold">Profile & Settings</h2>
-                <p className="text-gray-600">Update your delivery profile and preferences</p>
-              </div>
-            </div>
-          </div>
-        </Link>
+        
       </div>
     </div>
   );
