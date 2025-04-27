@@ -11,7 +11,15 @@ const paymentSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  amount: { type: Number, required: true },
+  originalOrderAmount: {
+    type: Number,
+    required: true,
+  },
+  deliveryFee: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   currency: { type: String, required: true, default: "USD" },
   status: {
     type: String,
