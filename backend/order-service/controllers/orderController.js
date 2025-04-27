@@ -101,7 +101,6 @@ const getOrderById = async (req, res) => {
         `${RESTAURANT_SERVICE_URL}/api/restaurants/${order.restaurant}`
       );
       restaurantDetails = restaurantResponse.data;
-      console.log("📦 Restaurant details:", restaurantDetails);
     } catch (error) {
       console.error("❌ Error fetching restaurant:", error.message);
     }
