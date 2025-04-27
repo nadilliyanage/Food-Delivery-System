@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useUser from "../hooks/useUser";
 import logo from "/logo.png";
-import { BiHomeAlt, BiLogInCircle } from "react-icons/bi";
+import { BiCart, BiHomeAlt, BiLogInCircle } from "react-icons/bi";
 import { FaUsers, FaUserAlt, FaHistory } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
 import { FaBars, FaTimes, FaStore } from "react-icons/fa";
@@ -83,25 +83,15 @@ const customerNavItems = [
     label: "Restaurants",
   },
   {
+    to: "/cart",
+    icon: <BiCart className="text-2xl" />,
+    label: "Cart",
+  },
+  {
     to: "/dashboard/my-orders",
     icon: <MdFoodBank className="text-2xl" />,
     label: "My Orders",
-  },
-  {
-    to: "/dashboard/order-history",
-    icon: <FaHistory className="text-2xl" />,
-    label: "Order History",
-  },
-  {
-    to: "/dashboard/track-delivery",
-    icon: <MdDeliveryDining className="text-2xl" />,
-    label: "Track Delivery",
-  },
-  {
-    to: "/dashboard/my-payments",
-    icon: <MdPayments className="text-2xl" />,
-    label: "Payment History",
-  },
+  }
 ];
 
 const restaurantAdminNavItems = [
@@ -148,16 +138,6 @@ const deliveryPersonnelNavItems = [
     to: "/dashboard/delivery-profile",
     icon: <FaUserAlt className="text-2xl" />,
     label: "Profile & Settings",
-  },
-  {
-    to: "/dashboard/earnings",
-    icon: <MdPayments className="text-2xl" />,
-    label: "My Earnings",
-  },
-  {
-    to: "/dashboard/availability",
-    icon: <AiFillSchedule className="text-2xl" />,
-    label: "Availability",
   },
 ];
 
