@@ -30,8 +30,8 @@ const customerMobileNav = [
 
 const deliveryMobileNav = [
   { name: "Home", route: "/", icon: FaHome },
-  { name: "Pick Orders", route: "/pick-orders", icon: FaBox },
-  { name: "Deliveries", route: "/deliveries", icon: FaMotorcycle },
+  { name: "Pick Orders", route: "/dashboard/out-for-delivery", icon: FaBox },
+  { name: "Deliveries", route: "/dashboard/current-deliveries", icon: FaMotorcycle },
 ];
 
 const restaurantAdminMobileNav = [
