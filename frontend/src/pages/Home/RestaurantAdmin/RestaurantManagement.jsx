@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { getCurrentUser } from "../../../utils/auth";
 import axios from "axios";
-import { FiClock, FiMapPin, FiPhone } from "react-icons/fi";
+import { FiClock, FiMapPin, FiPhone, FiSearch } from "react-icons/fi";
 
 const RestaurantManagement = () => {
   const [restaurants, setRestaurants] = useState([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -28,6 +30,7 @@ const RestaurantManagement = () => {
         );
 
         setRestaurants(response.data);
+        setFilteredRestaurants(response.data);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || "Error fetching restaurants");
@@ -37,6 +40,22 @@ const RestaurantManagement = () => {
 
     fetchRestaurants();
   }, []);
+
+  useEffect(() => {
+    const filtered = restaurants.filter(
+      (restaurant) =>
+        (restaurant.name?.toLowerCase() || "").includes(
+          searchQuery.toLowerCase()
+        ) ||
+        (restaurant.description?.toLowerCase() || "").includes(
+          searchQuery.toLowerCase()
+        ) ||
+        (restaurant.address?.city?.toLowerCase() || "").includes(
+          searchQuery.toLowerCase()
+        )
+    );
+    setFilteredRestaurants(filtered);
+  }, [searchQuery, restaurants]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -93,13 +112,29 @@ const RestaurantManagement = () => {
   return (
     <div className="restaurant-management-container p-4">
       <h2 className="text-2xl font-bold mb-6">My Restaurants</h2>
-      {restaurants.length === 0 ? (
+
+      <div className="relative mb-6">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <FiSearch className="text-gray-400" />
+        </div>
+        <input
+          type="text"
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
+          placeholder="Search restaurants by name, description, or city..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {filteredRestaurants.length === 0 ? (
         <p className="text-gray-600">
-          You haven't registered any restaurants yet.
+          {searchQuery
+            ? "No restaurants found matching your search."
+            : "You haven't registered any restaurants yet."}
         </p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {restaurants.map((restaurant) => (
+          {filteredRestaurants.map((restaurant) => (
             <div
               key={restaurant._id}
               className="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
