@@ -1,6 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import useAxiosSecure from '../../../hooks/useAxiosSecure';
-import { FaMotorcycle, FaCheckCircle, FaClock, FaExclamationCircle } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import useAxiosSecure from "../../../hooks/useAxiosSecure";
+import {
+  FaMotorcycle,
+  FaCheckCircle,
+  FaClock,
+  FaExclamationCircle,
+} from "react-icons/fa";
 
 const DeliveryPersonnelHome = () => {
   const [deliveries, setDeliveries] = useState([]);
@@ -10,10 +15,10 @@ const DeliveryPersonnelHome = () => {
   useEffect(() => {
     const fetchDeliveries = async () => {
       try {
-        const response = await axiosSecure.get('/api/deliveries');
+        const response = await axiosSecure.get("/api/deliveries");
         setDeliveries(response.data);
       } catch (error) {
-        console.error('Error fetching deliveries:', error);
+        console.error("Error fetching deliveries:", error);
       } finally {
         setLoading(false);
       }
@@ -24,27 +29,37 @@ const DeliveryPersonnelHome = () => {
 
   const handleStatusUpdate = async (deliveryId, newStatus) => {
     try {
-      await axiosSecure.put(`/api/deliveries/${deliveryId}`, { status: newStatus });
+      await axiosSecure.patch(`/api/deliveries/${deliveryId}`, {
+        status: newStatus,
+      });
       // Refresh deliveries after status update
-      const response = await axiosSecure.get('/api/deliveries');
+      const response = await axiosSecure.get("/api/deliveries");
       setDeliveries(response.data);
     } catch (error) {
-      console.error('Error updating delivery status:', error);
+      console.error("Error updating delivery status:", error);
     }
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
   }
 
-  const pendingDeliveries = deliveries.filter(d => d.status === 'Assigned');
-  const activeDeliveries = deliveries.filter(d => d.status === 'Out for Delivery');
-  const completedDeliveries = deliveries.filter(d => d.status === 'Delivered');
+  const pendingDeliveries = deliveries.filter((d) => d.status === "Assigned");
+  const activeDeliveries = deliveries.filter(
+    (d) => d.status === "Out for Delivery"
+  );
+  const completedDeliveries = deliveries.filter(
+    (d) => d.status === "Delivered"
+  );
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Delivery Dashboard</h1>
-      
+
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
@@ -56,7 +71,7 @@ const DeliveryPersonnelHome = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center">
             <FaMotorcycle className="text-blue-500 text-2xl mr-3" />
@@ -66,7 +81,7 @@ const DeliveryPersonnelHome = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center">
             <FaCheckCircle className="text-green-500 text-2xl mr-3" />
@@ -85,17 +100,29 @@ const DeliveryPersonnelHome = () => {
           <table className="min-w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Order ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {pendingDeliveries.map((delivery) => (
                 <tr key={delivery._id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{delivery.order}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{delivery.customer}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {delivery.order}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {delivery.customer}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                       {delivery.status}
@@ -103,7 +130,9 @@ const DeliveryPersonnelHome = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
-                      onClick={() => handleStatusUpdate(delivery._id, 'Out for Delivery')}
+                      onClick={() =>
+                        handleStatusUpdate(delivery._id, "Out for Delivery")
+                      }
                       className="text-blue-600 hover:text-blue-900"
                     >
                       Start Delivery
@@ -123,17 +152,29 @@ const DeliveryPersonnelHome = () => {
           <table className="min-w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Order ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {activeDeliveries.map((delivery) => (
                 <tr key={delivery._id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{delivery.order}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{delivery.customer}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {delivery.order}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {delivery.customer}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                       {delivery.status}
@@ -141,7 +182,9 @@ const DeliveryPersonnelHome = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
-                      onClick={() => handleStatusUpdate(delivery._id, 'Delivered')}
+                      onClick={() =>
+                        handleStatusUpdate(delivery._id, "Delivered")
+                      }
                       className="text-green-600 hover:text-green-900"
                     >
                       Mark as Delivered
@@ -157,4 +200,4 @@ const DeliveryPersonnelHome = () => {
   );
 };
 
-export default DeliveryPersonnelHome; 
+export default DeliveryPersonnelHome;

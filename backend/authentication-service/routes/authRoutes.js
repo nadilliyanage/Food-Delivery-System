@@ -20,7 +20,7 @@ router.post("/login", login);
 router.get("/users/:id", authMiddleware, getUserById);
 router.get("/user/:email", getUserByEmail);
 router.get("/users", authMiddleware, getAllUsers);
-router.put("/users/:id", authMiddleware, updateUser);
+router.patch("/users/:id", authMiddleware, updateUser);
 router.delete("/users/:id", authMiddleware, deleteUser);
 
 module.exports = router;

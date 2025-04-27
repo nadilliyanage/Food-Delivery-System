@@ -49,7 +49,7 @@ router.get(
   [authMiddleware, isAdmin],
   getRejectedRegistrations
 );
-router.put(
+router.patch(
   "/admin/registration-status",
   [authMiddleware, isAdmin],
   updateRegistrationStatus

@@ -326,7 +326,7 @@ const updateRegistrationStatus = async (req, res) => {
     // If approved, update user role to restaurant_admin
     if (status === "approved") {
       try {
-        await axios.put(
+        await axios.patch(
           `http://localhost:3000/api/auth/users/${restaurant.owner}`,
           { role: "restaurant_admin" },
           {
@@ -353,7 +353,7 @@ const updateRegistrationStatus = async (req, res) => {
 
         // Only change role to customer if there are no other approved restaurants
         if (otherApprovedRestaurants.length === 0) {
-          await axios.put(
+          await axios.patch(
             `http://localhost:3000/api/auth/users/${restaurant.owner}`,
             { role: "customer" },
             {
