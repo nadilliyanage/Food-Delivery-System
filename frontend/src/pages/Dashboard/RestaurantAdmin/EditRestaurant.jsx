@@ -258,15 +258,44 @@ const EditRestaurant = () => {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
+      console.log("Sending update data:", restaurant);
+
+      // Ensure all required fields are present
+      const updateData = {
+        name: restaurant.name,
+        description: restaurant.description,
+        phone: restaurant.phone,
+        email: restaurant.email,
+        address: {
+          street: restaurant.address.street,
+          city: restaurant.address.city,
+          state: restaurant.address.state,
+          zipCode: restaurant.address.zipCode,
+          country: restaurant.address.country,
+        },
+        bankDetails: {
+          bankName: restaurant.bankDetails.bankName,
+          accountNumber: restaurant.bankDetails.accountNumber,
+          accountHolderName: restaurant.bankDetails.accountHolderName,
+          branchCode: restaurant.bankDetails.branchCode,
+          branchName: restaurant.bankDetails.branchName,
+        },
+        businessHours: restaurant.businessHours,
+        imageUrl: restaurant.imageUrl,
+      };
+
       const response = await axios.patch(
         `${import.meta.env.VITE_API_URL}/api/restaurants/${restaurantId}`,
-        restaurant,
+        updateData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
+
+      console.log("Update response:", response.data);
 
       if (response.data) {
         await Swal.fire({
@@ -280,9 +309,12 @@ const EditRestaurant = () => {
       }
     } catch (error) {
       console.error("Error updating restaurant:", error);
+      console.error("Error details:", error.response?.data);
       Swal.fire({
         title: "Error!",
-        text: "Failed to update restaurant. Please try again.",
+        text:
+          error.response?.data?.message ||
+          "Failed to update restaurant. Please try again.",
         icon: "error",
       });
     } finally {

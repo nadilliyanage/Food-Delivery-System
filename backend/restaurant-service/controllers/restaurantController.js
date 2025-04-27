@@ -67,6 +67,7 @@ const createRestaurant = async (req, res) => {
 const updateRestaurant = async (req, res) => {
   try {
     const { isActive } = req.body;
+    console.log("Update request received:", req.body);
 
     // If isActive is being updated, only update that field
     if (typeof isActive === "boolean") {
@@ -77,27 +78,48 @@ const updateRestaurant = async (req, res) => {
       );
 
       if (!updatedRestaurant) {
+        console.log("Restaurant not found for isActive update");
         return res.status(404).json({ message: "Restaurant not found" });
       }
 
+      console.log("Restaurant isActive updated successfully");
       return res.json(updatedRestaurant);
     }
 
-    // For other updates, update all fields
-    const updatedRestaurant = await Restaurant.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
-    if (!updatedRestaurant) {
+    // For other updates, validate the data first
+    const restaurant = await Restaurant.findById(req.params.id);
+    if (!restaurant) {
+      console.log("Restaurant not found for full update");
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
+    // Check if user owns the restaurant
+    if (restaurant.owner.toString() !== req.user.id) {
+      console.log("Unauthorized update attempt");
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this restaurant" });
+    }
+
+    // Update the restaurant with validated data
+    const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+        context: "query",
+      }
+    );
+
+    console.log("Restaurant updated successfully:", updatedRestaurant);
     res.json(updatedRestaurant);
   } catch (error) {
     console.error("Error updating restaurant:", error);
-    res.status(500).json({ message: "Error updating restaurant" });
+    res.status(500).json({
+      message: "Error updating restaurant",
+      error: error.message,
+    });
   }
 };
 
