@@ -49,7 +49,11 @@ const customerMobileNav = [
 const deliveryMobileNav = [
   { name: "Home", route: "/", icon: FaHome },
   { name: "Pick Orders", route: "/dashboard/out-for-delivery", icon: FaBox },
-  { name: "Deliveries", route: "/dashboard/current-deliveries", icon: FaMotorcycle },
+  {
+    name: "Deliveries",
+    route: "/dashboard/current-deliveries",
+    icon: FaMotorcycle,
+  },
 ];
 
 const restaurantAdminMobileNav = [
