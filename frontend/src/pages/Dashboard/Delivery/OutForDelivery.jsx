@@ -6,6 +6,7 @@ import { format, isValid } from "date-fns";
 import Button from "../../../components/Button/Button";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 const OutForDelivery = () => {
   const [orders, setOrders] = useState([]);
@@ -71,69 +72,102 @@ const OutForDelivery = () => {
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
+      // Show confirmation dialog based on status
+      const confirmTitle = newStatus === "On the Way" ? "Accept Delivery?" : "Reject Delivery?";
+      const confirmText = newStatus === "On the Way" 
+        ? "Are you sure you want to accept this delivery? You will be responsible for delivering this order."
+        : "Are you sure you want to reject this delivery? The order will be available for other drivers.";
+      const confirmIcon = "question";
+      
       const result = await Swal.fire({
-        title: "Are you sure?",
-        text: `Do you want to update the order status to "${newStatus}"?`,
-        icon: "question",
+        title: confirmTitle,
+        text: confirmText,
+        icon: confirmIcon,
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, update it!",
-        cancelButtonText: "No, cancel!",
+        confirmButtonColor: newStatus === "On the Way" ? "#22C55E" : "#EF4444",
+        cancelButtonColor: "#64748B",
+        confirmButtonText: "Yes, proceed",
+        cancelButtonText: "Cancel"
       });
+      
+      if (!result.isConfirmed) {
+        return; // User cancelled the action
+      }
 
-      if (result.isConfirmed) {
-        const response = await axiosSecure.patch(
-          `/api/orders/${orderId}`,
-          { status: newStatus },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+      // Get auth token
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+      
+      // For "On the Way" status, first create the delivery record
+      if (newStatus === "On the Way") {
+        try {
+          const userId = localStorage.getItem("userId");
+          
+          // Create delivery record first with explicit token
+          await axios.post(
+            `${import.meta.env.VITE_API_URL}/api/deliveries/assign-driver`,
+            { 
+              orderId: orderId,
+              driverId: userId
             },
-          }
-        );
-
-        if (response.status === 200) {
-          // Update the order in the state
-          setOrders((prevOrders) =>
-            prevOrders.map((order) =>
-              order._id === orderId ? { ...order, status: newStatus } : order
-            )
-          );
-
-          // If status is "On the Way", create a delivery record
-          if (newStatus === "On the Way") {
-            try {
-              await axiosSecure.post(
-                `/api/deliveries/assign-driver`,
-                { 
-                  orderId: orderId,
-                  driverId: localStorage.getItem("userId") // Assuming userId is stored in localStorage
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                  },
-                }
-              );
-            } catch (deliveryError) {
-              console.error("Error creating delivery record:", deliveryError);
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
             }
-          }
-
-          // Show success message
-          await Swal.fire({
-            title: "Success!",
-            text: `Order status updated to "${newStatus}"`,
-            icon: "success",
-            timer: 1500,
+          );
+          
+          console.log("Delivery record created successfully");
+        } catch (deliveryError) {
+          console.error("Error creating delivery record:", deliveryError);
+          
+          // Show error message but continue with status update
+          Swal.fire({
+            title: "Warning",
+            text: "Delivery assignment had an issue, but order status will be updated.",
+            icon: "warning",
+            timer: 3000,
             showConfirmButton: false,
           });
+        }
+      }
 
-          // If status is "On the Way", navigate to current deliveries
-          if (newStatus === "On the Way") {
-            navigate("/dashboard/current-deliveries");
+      // Now update the order status with explicit token
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/orders/${orderId}`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
+        }
+      );
+
+      if (response.status === 200) {
+        // Update the order in the state
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === orderId ? { ...order, status: newStatus } : order
+          )
+        );
+
+        // Show success message
+        await Swal.fire({
+          title: "Success!",
+          text: newStatus === "On the Way" 
+            ? "You have accepted the delivery. Navigating to current deliveries."
+            : "You have rejected the delivery.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        // If status is "On the Way", navigate to current deliveries
+        if (newStatus === "On the Way") {
+          navigate("/dashboard/current-deliveries");
         }
       }
     } catch (error) {
@@ -141,7 +175,7 @@ const OutForDelivery = () => {
       // Show error message
       Swal.fire({
         title: "Error!",
-        text: "Failed to update order status. Please try again.",
+        text: `Failed to update order status: ${error.response?.data?.message || error.message}`,
         icon: "error",
         confirmButtonText: "OK",
       });

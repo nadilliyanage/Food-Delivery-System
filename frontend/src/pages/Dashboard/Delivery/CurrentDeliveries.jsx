@@ -300,6 +300,28 @@ const CurrentDeliveries = () => {
 
   const handleUpdateStatus = async (deliveryId, newStatus) => {
     try {
+      // Show confirmation dialog based on status
+      const confirmTitle = newStatus === "On the Way" ? "Start Delivery?" : "Mark as Delivered?";
+      const confirmText = newStatus === "On the Way" 
+        ? "Are you sure you want to start this delivery? You will need to enable location services."
+        : "Are you sure this delivery has been completed successfully?";
+      const confirmIcon = "question";
+      
+      const result = await Swal.fire({
+        title: confirmTitle,
+        text: confirmText,
+        icon: confirmIcon,
+        showCancelButton: true,
+        confirmButtonColor: newStatus === "On the Way" ? "#EAB308" : "#22C55E",
+        cancelButtonColor: "#64748B",
+        confirmButtonText: "Yes, proceed",
+        cancelButtonText: "Cancel"
+      });
+      
+      if (!result.isConfirmed) {
+        return; // User cancelled the action
+      }
+      
       const token = localStorage.getItem("token");
       const config = {
         headers: { Authorization: `Bearer ${token}` },
@@ -371,6 +393,9 @@ const CurrentDeliveries = () => {
         title: "Success",
         text: `Delivery status updated to ${newStatus}`,
         confirmButtonColor: "#000",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
       });
     } catch (error) {
       console.error("Error updating delivery status:", error);
