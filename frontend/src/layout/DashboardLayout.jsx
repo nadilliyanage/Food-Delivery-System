@@ -134,11 +134,7 @@ const deliveryPersonnelNavItems = [
     icon: <FaHistory className="text-2xl" />,
     label: "Delivery History",
   },
-  {
-    to: "/dashboard/delivery-profile",
-    icon: <FaUserAlt className="text-2xl" />,
-    label: "Profile & Settings",
-  },
+  
 ];
 
 const lastMenuItems = [
