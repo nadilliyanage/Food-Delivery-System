@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
 import { MdDeliveryDining } from "react-icons/md";
 import { FaMapMarkerAlt, FaPhone, FaUser } from "react-icons/fa";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import Button from "../../../components/Button/Button";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -20,8 +20,34 @@ const OutForDelivery = () => {
           "/api/orders/delivery/out-for-delivery"
         );
 
+        // Fetch customer details for each order
+        const ordersWithDetails = await Promise.all(
+          response.data.map(async (order) => {
+            try {
+              // Fetch customer details
+              const customerResponse = await axiosSecure.get(
+                `/api/auth/users/${order.customer}`
+              );
+              
+              // Fetch restaurant details
+              const restaurantResponse = await axiosSecure.get(
+                `/api/restaurants/${order.restaurant}`
+              );
+
+              return {
+                ...order,
+                customer: customerResponse.data,
+                restaurantDetails: restaurantResponse.data
+              };
+            } catch (error) {
+              console.error("Error fetching order details:", error);
+              return order;
+            }
+          })
+        );
+
         // Sort orders by createdAt date in descending order (newest first)
-        const sortedOrders = response.data.sort((a, b) =>
+        const sortedOrders = ordersWithDetails.sort((a, b) =>
           new Date(b.createdAt) - new Date(a.createdAt)
         );
 
@@ -75,6 +101,26 @@ const OutForDelivery = () => {
             )
           );
 
+          // If status is "On the Way", create a delivery record
+          if (newStatus === "On the Way") {
+            try {
+              await axiosSecure.post(
+                `/api/deliveries/assign-driver`,
+                { 
+                  orderId: orderId,
+                  driverId: localStorage.getItem("userId") // Assuming userId is stored in localStorage
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                }
+              );
+            } catch (deliveryError) {
+              console.error("Error creating delivery record:", deliveryError);
+            }
+          }
+
           // Show success message
           await Swal.fire({
             title: "Success!",
@@ -84,8 +130,8 @@ const OutForDelivery = () => {
             showConfirmButton: false,
           });
 
-          // If status is "Delivery Accepted", navigate to current deliveries
-          if (newStatus === "Delivery Accepted") {
+          // If status is "On the Way", navigate to current deliveries
+          if (newStatus === "On the Way") {
             navigate("/dashboard/current-deliveries");
           }
         }
@@ -100,6 +146,12 @@ const OutForDelivery = () => {
         confirmButtonText: "OK",
       });
     }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not available";
+    const date = new Date(dateString);
+    return isValid(date) ? format(date, "PPp") : "Invalid date";
   };
 
   if (loading) {
@@ -124,7 +176,7 @@ const OutForDelivery = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-6">
           {orders.map((order) => (
             <div
               key={order._id}
@@ -148,23 +200,40 @@ const OutForDelivery = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <FaUser className="text-gray-500" />
-                  <span>{order.customer?.name}</span>
+                {/* Customer Details Section */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-700 mb-2">Customer Details:</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <FaUser className="text-gray-500" />
+                      <span>{order.customer?.name || "N/A"}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <FaPhone className="text-gray-500" />
+                      <span>{order.customer?.phone || "N/A"}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <FaPhone className="text-gray-500" />
-                  <span>{order.customer?.phone}</span>
+                {/* Restaurant Details Section */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-700 mb-2">Restaurant:</h4>
+                  <p>{order.restaurantDetails?.name || "N/A"}</p>
+                  <p className="text-sm text-gray-500">
+                    {order.restaurantDetails?.address?.street || "N/A"}, 
+                    {order.restaurantDetails?.address?.city || ""}
+                  </p>
                 </div>
 
+                {/* Delivery Address Section */}
                 <div className="flex items-start gap-2">
                   <FaMapMarkerAlt className="text-gray-500 mt-1" />
                   <div>
                     <p className="font-medium">Delivery Address:</p>
                     <p className="text-gray-600">
-                      {order.deliveryAddress?.street},{" "}
-                      {order.deliveryAddress?.city}
+                      {order.deliveryAddress?.street || "N/A"},{" "}
+                      {order.deliveryAddress?.city || "N/A"}
                     </p>
                     {order.deliveryAddress?.instructions && (
                       <p className="text-gray-500 text-sm mt-1">
@@ -174,12 +243,16 @@ const OutForDelivery = () => {
                   </div>
                 </div>
 
+                {/* Order Details Section */}
                 <div className="border-t pt-4">
                   <p className="text-sm text-gray-500">
-                    Ordered on: {format(new Date(order.createdAt), "PPp")}
+                    Ordered on: {formatDate(order.createdAt)}
                   </p>
                   <p className="text-lg font-semibold mt-2">
-                    Total: Rs. {(order.totalPrice + 150).toFixed(2)}
+                    Total: Rs. {(order.totalPrice).toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Payment Method: {order.paymentMethod || "N/A"}
                   </p>
                 </div>
 
@@ -189,7 +262,7 @@ const OutForDelivery = () => {
                       <Button
                         className="bg-green-500 text-white flex-1"
                         onClick={() =>
-                          handleUpdateStatus(order._id, "Delivery Accepted")
+                          handleUpdateStatus(order._id, "On the Way")
                         }
                       >
                         Accept Delivery
@@ -197,7 +270,7 @@ const OutForDelivery = () => {
                       <Button
                         className="bg-red-500 text-white flex-1"
                         onClick={() =>
-                          handleUpdateStatus(order._id, "Delivery Rejected")
+                          handleUpdateStatus(order._id, "Rejected")
                         }
                       >
                         Reject Delivery
