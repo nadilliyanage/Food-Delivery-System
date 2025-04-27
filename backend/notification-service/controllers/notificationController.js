@@ -254,7 +254,9 @@ const sendNotification = async (req, res) => {
 // ✅ Get Notifications for a User
 const getUserNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ userId: req.user.id });
+    const notifications = await Notification.find({ userId: req.user.id }).sort(
+      { createdAt: -1 }
+    );
     res.json(notifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -262,4 +264,127 @@ const getUserNotifications = async (req, res) => {
   }
 };
 
-module.exports = { sendNotification, getUserNotifications };
+// Mark Notification as Read
+const markNotificationAsRead = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const userId = req.user.id;
+
+    // Find the notification and verify it belongs to the user
+    const notification = await Notification.findOne({
+      _id: notificationId,
+      userId: userId,
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found or unauthorized",
+      });
+    }
+
+    // Update the notification
+    const updatedNotification = await Notification.findByIdAndUpdate(
+      notificationId,
+      {
+        $set: {
+          isRead: true,
+          readAt: new Date(),
+        },
+      },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      message: "Notification marked as read",
+      notification: updatedNotification,
+    });
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error marking notification as read",
+      error: error.message,
+    });
+  }
+};
+
+// Mark All Notifications as Read
+const markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Update all unread notifications for the user
+    const result = await Notification.updateMany(
+      { userId: userId, isRead: false },
+      {
+        $set: {
+          isRead: true,
+          readAt: new Date(),
+        },
+      }
+    );
+
+    // Fetch the updated notifications
+    const updatedNotifications = await Notification.find({ userId: userId });
+
+    res.json({
+      success: true,
+      message: "All notifications marked as read",
+      modifiedCount: result.modifiedCount,
+      notifications: updatedNotifications,
+    });
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error marking all notifications as read",
+      error: error.message,
+    });
+  }
+};
+
+// Delete Notification
+const deleteNotification = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const userId = req.user.id;
+
+    // Find the notification and verify it belongs to the user
+    const notification = await Notification.findOne({
+      _id: notificationId,
+      userId: userId,
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found or unauthorized",
+      });
+    }
+
+    // Delete the notification
+    await Notification.findByIdAndDelete(notificationId);
+
+    res.json({
+      success: true,
+      message: "Notification deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting notification",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  sendNotification,
+  getUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+};
