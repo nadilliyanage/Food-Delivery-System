@@ -7,6 +7,9 @@ import Scroll from '../../hooks/useScroll';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import StripePaymentForm from './StripePaymentForm';
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,7 +19,10 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// LocationMarker component to handle map clicks and location updates
+// Initialize Stripe with your publishable key
+const stripePromise = loadStripe('pk_test_51RGXpNPsJKAfjT1phdn4uzwTtwytI7Pi6VYXhiPRe7e5FoweB1fJsj2vtwstkHqtoFvRhP3eKKt6sS3ZjT9ldIsF00GCMBjXMY');
+
+// LocationMarker component
 function LocationMarker({ position, setPosition, setDeliveryAddress }) {
   const map = useMapEvents({
     click: async (e) => {
@@ -24,7 +30,6 @@ function LocationMarker({ position, setPosition, setDeliveryAddress }) {
       setPosition([lat, lng]);
       
       try {
-        // Reverse geocoding using OpenStreetMap Nominatim
         const response = await axios.get(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
         );
@@ -38,7 +43,6 @@ function LocationMarker({ position, setPosition, setDeliveryAddress }) {
           longitude: lng
         }));
 
-        // Center map on selected location
         map.flyTo([lat, lng], map.getZoom());
       } catch (error) {
         console.error('Error getting location details:', error);
@@ -46,7 +50,6 @@ function LocationMarker({ position, setPosition, setDeliveryAddress }) {
     },
   });
 
-  // Update map center when position changes
   useEffect(() => {
     if (position) {
       map.flyTo(position, map.getZoom());
@@ -56,11 +59,13 @@ function LocationMarker({ position, setPosition, setDeliveryAddress }) {
   return position ? <Marker position={position} /> : null;
 }
 
+// Main Checkout Component
 const Checkout = () => {
   const { restaurantId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState(null);
+  const [orderId, setOrderId] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('card');
   const [deliveryAddress, setDeliveryAddress] = useState({
     street: '',
@@ -70,15 +75,10 @@ const Checkout = () => {
     longitude: null
   });
   const [locationLoading, setLocationLoading] = useState(false);
-  const [cardDetails, setCardDetails] = useState({
-    number: '',
-    expiry: '',
-    cvc: '',
-    name: ''
-  });
   const [position, setPosition] = useState(null);
-  const [mapCenter, setMapCenter] = useState([6.927079, 79.861244]); // Default center (Colombo)
+  const [mapCenter, setMapCenter] = useState([6.927079, 79.861244]);
   const [mapZoom, setMapZoom] = useState(13);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
 
   useEffect(() => {
     fetchCartDetails();
@@ -93,18 +93,37 @@ const Checkout = () => {
       }
 
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cart`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`
+        }
       });
 
       const selectedCart = response.data.find(c => c.restaurantId === restaurantId);
       if (!selectedCart) {
         throw new Error('Cart not found');
       }
+
+      const orderId = response.data[0]._id;
+      setOrderId(orderId);
       
       setCart(selectedCart);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching cart:', error);
+
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received:', error.request);
+      } else {
+        // Something happened in setting up the request
+        console.error('Request setup error:', error.message);
+      }
+
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -131,12 +150,9 @@ const Checkout = () => {
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
-            
-            // Update position and map will automatically center
             setPosition([latitude, longitude]);
             setMapZoom(16);
             
-            // Use reverse geocoding to get address details
             const response = await axios.get(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
             );
@@ -183,26 +199,29 @@ const Checkout = () => {
     }
   };
 
-  const handleCardDetailsChange = (e) => {
-    const { name, value } = e.target;
-    setCardDetails(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handlePaymentSuccess = () => {
+    setPaymentCompleted(true);
+    setTimeout(() => {
+      navigate('/my-orders');
+    }, 2000);
   };
 
-  const handlePayment = async () => {
+  const placeOrder = async () => {
     try {
       setLoading(true);
       
-      // Validate inputs
-      if (selectedPaymentMethod === 'card') {
-        if (!cardDetails.number || !cardDetails.expiry || !cardDetails.cvc || !cardDetails.name) {
-          throw new Error('Please fill in all card details');
-        }
+      // Validate delivery address
+      if (!deliveryAddress.street || !deliveryAddress.city || !position) {
+        throw new Error('Please complete your delivery address');
       }
 
-      // Create order with the correct format expected by backend
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      // Create order data
       const orderData = {
         restaurant: restaurantId,
         items: cart.items.map(item => ({
@@ -214,32 +233,37 @@ const Checkout = () => {
           street: deliveryAddress.street,
           city: deliveryAddress.city,
           instructions: deliveryAddress.instructions,
-          latitude: deliveryAddress.latitude,
-          longitude: deliveryAddress.longitude
+          latitude: position[0],
+          longitude: position[1]
         },
-        paymentMethod: selectedPaymentMethod,
-        ...(selectedPaymentMethod === 'card' && { cardDetails })
+        paymentMethod: selectedPaymentMethod
       };
 
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      
+
+      // For cash on delivery, just complete the order
+      if (selectedPaymentMethod === 'cash') {
+        // Create the order
+      const orderResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/orders`,
         orderData,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+        { headers }
       );
 
-      if (response.data) {
-        // Clear the cart after successful order placement
+      const orderId = orderResponse.data._id;
+      setOrderId(orderId);
+      
+        // Clear cart
         await axios.delete(
           `${import.meta.env.VITE_API_URL}/api/cart/clear/${restaurantId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
+          { headers }
         );
 
-        // Show success message
         await Swal.fire({
           icon: 'success',
           title: 'Order Placed Successfully!',
@@ -247,26 +271,54 @@ const Checkout = () => {
           confirmButtonColor: '#000'
         });
         
-        // Navigate to orders page
         navigate('/my-orders');
+        return;
       }
+
+      // For card payments, return the order ID to be used in StripePaymentForm
+      // For card payments - return orderId to be handled by StripePaymentForm
+    if (selectedPaymentMethod === 'card') {
+      const orderResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/orders`,
+        orderData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      return orderResponse.data._id;
+    }
+
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('Order placement error:', error);
       Swal.fire({
         icon: 'error',
-        title: 'Payment Failed',
+        title: 'Order Failed',
         text: error.message || 'Something went wrong. Please try again.',
         confirmButtonColor: '#000'
       });
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
+  if (loading && !cart) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (paymentCompleted) {
+    return (
+      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
+        <div className="text-center">
+          <svg className="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <h2 className="mt-2 text-lg font-medium text-gray-900">Payment Successful!</h2>
+          <p className="mt-1 text-gray-500">Your order is being processed. Redirecting to order details...</p>
+        </div>
       </div>
     );
   }
@@ -346,6 +398,7 @@ const Checkout = () => {
               value={deliveryAddress.street}
               onChange={handleAddressChange}
               className="w-full p-2 border rounded-lg"
+              required
             />
             <input
               type="text"
@@ -354,6 +407,7 @@ const Checkout = () => {
               value={deliveryAddress.city}
               onChange={handleAddressChange}
               className="w-full p-2 border rounded-lg"
+              required
             />
             <textarea
               name="instructions"
@@ -371,6 +425,7 @@ const Checkout = () => {
           <h2 className="text-lg font-semibold mb-4">Payment Method</h2>
           <div className="space-y-3">
             <button
+              type="button"
               onClick={() => setSelectedPaymentMethod('card')}
               className={`w-full p-3 rounded-lg border flex items-center gap-3 ${
                 selectedPaymentMethod === 'card' ? 'border-black bg-gray-50' : ''
@@ -380,6 +435,7 @@ const Checkout = () => {
               <span>Credit/Debit Card</span>
             </button>
             <button
+              type="button"
               onClick={() => setSelectedPaymentMethod('cash')}
               className={`w-full p-3 rounded-lg border flex items-center gap-3 ${
                 selectedPaymentMethod === 'cash' ? 'border-black bg-gray-50' : ''
@@ -390,44 +446,25 @@ const Checkout = () => {
             </button>
           </div>
 
-          {/* Card Details */}
-          {selectedPaymentMethod === 'card' && (
-            <div className="mt-4 space-y-4">
-              <input
-                type="text"
-                name="number"
-                placeholder="Card Number"
-                value={cardDetails.number}
-                onChange={handleCardDetailsChange}
-                className="w-full p-2 border rounded-lg"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="expiry"
-                  placeholder="MM/YY"
-                  value={cardDetails.expiry}
-                  onChange={handleCardDetailsChange}
-                  className="p-2 border rounded-lg"
-                />
-                <input
-                  type="text"
-                  name="cvc"
-                  placeholder="CVC"
-                  value={cardDetails.cvc}
-                  onChange={handleCardDetailsChange}
-                  className="p-2 border rounded-lg"
-                />
-              </div>
-              <input
-                type="text"
-                name="name"
-                placeholder="Name on Card"
-                value={cardDetails.name}
-                onChange={handleCardDetailsChange}
-                className="w-full p-2 border rounded-lg"
-              />
-            </div>
+          {selectedPaymentMethod === 'card' ? (
+            <Elements stripe={stripePromise}>
+            <StripePaymentForm 
+              orderId={orderId} 
+              totalAmount={cart.totalAmount + 150}
+              restaurantId={restaurantId} 
+              onPaymentSuccess={handlePaymentSuccess}
+              loading={loading}
+              setLoading={setLoading}
+            />
+          </Elements>
+          ) : (
+            <button
+              onClick={placeOrder}
+              disabled={loading}
+              className="w-full bg-primary text-white py-4 rounded-lg font-medium disabled:bg-gray-400 mt-4"
+            >
+              {loading ? 'Processing...' : 'Place Order'}
+            </button>
           )}
         </div>
 
@@ -449,18 +486,9 @@ const Checkout = () => {
             </div>
           </div>
         </div>
-
-        {/* Place Order Button */}
-        <button
-          onClick={handlePayment}
-          disabled={loading}
-          className="w-full bg-primary text-white py-4 rounded-lg font-medium disabled:bg-gray-400"
-        >
-          {loading ? 'Processing...' : `Pay LKR ${(cart.totalAmount + 150).toFixed(2)}`}
-        </button>
       </div>
     </div>
   );
 };
 
-export default Checkout; 
+export default Checkout;
