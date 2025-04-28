@@ -97,7 +97,7 @@ const MyOrders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-14 lg:pt-20">
+    <div className="min-h-screen bg-gray-50 lg:pt-14">
       <Scroll />
       <div className="max-w-4xl mx-auto p-4">
         <div className="flex items-center justify-between mb-6">
