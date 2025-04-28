@@ -4,7 +4,7 @@ import {
   XMarkIcon,
   PlusIcon,
   MinusIcon,
-  GiftIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import axios from "axios";
 import Scroll from "../../hooks/useScroll";
@@ -74,6 +74,20 @@ const CartDetails = () => {
     }
   };
 
+  const removeItem = async (menuItemId) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/cart/remove/${restaurantId}/${menuItemId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      fetchCart();
+    } catch (err) {
+      console.error("Error removing item:", err);
+    }
+  };
+
   const calculateItemTotal = (price, quantity) => {
     return price * quantity;
   };
@@ -137,7 +151,13 @@ const CartDetails = () => {
       {/* Cart Items */}
       <div className="px-4 py-6 space-y-6">
         {cart.items.map((item) => (
-          <div key={item.menuItemId} className="flex gap-4">
+          <div key={item.menuItemId} className="flex gap-4 relative">
+            <button
+              onClick={() => removeItem(item.menuItemId)}
+              className="absolute top-0 right-0 p-2 text-red-500 hover:text-red-700"
+            >
+              <TrashIcon className="h-5 w-5" />
+            </button>
             <img
               src={item.imageUrl}
               alt={item.name}
@@ -167,7 +187,7 @@ const CartDetails = () => {
                     <PlusIcon className="h-5 w-5" />
                   </button>
                 </div>
-                <p className="font-semibold">
+                <p className="font-semibold mr-2">
                   LKR {calculateItemTotal(item.price, item.quantity).toFixed(2)}
                 </p>
               </div>

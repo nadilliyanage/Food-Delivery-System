@@ -50,10 +50,13 @@ function LocationMarker({ position, setPosition, setDeliveryAddress }) {
         );
 
         const address = response.data.address;
+        const street = address.road || address.street || "";
+        const city = address.city || address.town || "";
+        
         setDeliveryAddress((prev) => ({
           ...prev,
-          street: address.road || address.street || "",
-          city: address.city || address.town || "",
+          street,
+          city,
           latitude: lat,
           longitude: lng,
         }));
@@ -61,6 +64,14 @@ function LocationMarker({ position, setPosition, setDeliveryAddress }) {
         map.flyTo([lat, lng], map.getZoom());
       } catch (error) {
         console.error("Error getting location details:", error);
+        // Set position but leave address fields empty
+        setDeliveryAddress((prev) => ({
+          ...prev,
+          street: "",
+          city: "",
+          latitude: lat,
+          longitude: lng,
+        }));
       }
     },
   });
@@ -423,24 +434,28 @@ const Checkout = () => {
           </p>
 
           <div className="space-y-4">
-            <input
-              type="text"
-              name="street"
-              placeholder="Street Address"
-              value={deliveryAddress.street}
-              onChange={handleAddressChange}
-              className="w-full p-2 border rounded-lg"
-              required
-            />
-            <input
-              type="text"
-              name="city"
-              placeholder="City"
-              value={deliveryAddress.city}
-              onChange={handleAddressChange}
-              className="w-full p-2 border rounded-lg"
-              required
-            />
+            {deliveryAddress.street && (
+              <input
+                type="text"
+                name="street"
+                placeholder="Street Address"
+                value={deliveryAddress.street}
+                onChange={handleAddressChange}
+                className="w-full p-2 border rounded-lg"
+                required
+              />
+            )}
+            {deliveryAddress.city && (
+              <input
+                type="text"
+                name="city"
+                placeholder="City"
+                value={deliveryAddress.city}
+                onChange={handleAddressChange}
+                className="w-full p-2 border rounded-lg"
+                required
+              />
+            )}
             <textarea
               name="instructions"
               placeholder="Delivery Instructions (Optional)"

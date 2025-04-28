@@ -9,7 +9,7 @@ const Promotion = () => {
         className="h-[180px] md:h-[500px] lg:h-[600px] bg-cover bg-center w-full"
         style={{ backgroundImage: `url(${bgImg})` }}
       >
-        <div className="h-full flex flex-col justify-center px-4 md:px-20 text-white bg-gradient-to-r from-black/70 to-transparent">
+        <div className="h-full flex flex-col justify-center px-4 md:px-20 text-white bg-gradient-to-r from-black/70 to-black/40">
           <div className="md:max-w-xl">
             <h3 className="text-xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4">
               50% OFF Your First Order
