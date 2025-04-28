@@ -73,8 +73,8 @@ const OutForDelivery = () => {
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
       // Show confirmation dialog based on status
-      const confirmTitle = newStatus === "On the Way" ? "Accept Delivery?" : "Reject Delivery?";
-      const confirmText = newStatus === "On the Way" 
+      const confirmTitle = newStatus === "Delivery Accepted" ? "Accept Delivery?" : "Reject Delivery?";
+      const confirmText = newStatus === "Delivery Accepted" 
         ? "Are you sure you want to accept this delivery? You will be responsible for delivering this order."
         : "Are you sure you want to reject this delivery? The order will be available for other drivers.";
       const confirmIcon = "question";
@@ -84,7 +84,7 @@ const OutForDelivery = () => {
         text: confirmText,
         icon: confirmIcon,
         showCancelButton: true,
-        confirmButtonColor: newStatus === "On the Way" ? "#22C55E" : "#EF4444",
+        confirmButtonColor: newStatus === "Delivery Accepted" ? "#22C55E" : "#EF4444",
         cancelButtonColor: "#64748B",
         confirmButtonText: "Yes, proceed",
         cancelButtonText: "Cancel"
