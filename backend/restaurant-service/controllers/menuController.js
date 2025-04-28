@@ -1,7 +1,7 @@
 const Menu = require("../models/Menu");
 const Restaurant = require("../models/Restaurant");
 
-// ✅ Get All Menu Items
+//  Get All Menu Items
 const getAllMenus = async (req, res) => {
   try {
     const menus = await Menu.find();
@@ -12,7 +12,7 @@ const getAllMenus = async (req, res) => {
   }
 };
 
-// ✅ Get Menu Items by Restaurant (Only if owned by the user)
+//  Get Menu Items by Restaurant (Only if owned by the user)
 const getMenusByRestaurant = async (req, res) => {
   try {
     const restaurant = await Restaurant.findOne({
@@ -32,7 +32,7 @@ const getMenusByRestaurant = async (req, res) => {
   }
 };
 
-// ✅ Get a Single Menu Item by ID
+//  Get a Single Menu Item by ID
 const getMenuById = async (req, res) => {
   try {
     const menu = await Menu.findById(req.params.id);
@@ -44,7 +44,7 @@ const getMenuById = async (req, res) => {
   }
 };
 
-// ✅ Add a Menu Item (Only if owned by the user)
+//  Add a Menu Item (Only if owned by the user)
 const addMenuItem = async (req, res) => {
   try {
     const restaurant = await Restaurant.findOne({
@@ -77,7 +77,7 @@ const addMenuItem = async (req, res) => {
   }
 };
 
-// ✅ Update a Menu Item (Only if owned by the user)
+//  Update a Menu Item (Only if owned by the user)
 const updateMenuItem = async (req, res) => {
   try {
     const updatedMenuItem = await Menu.findByIdAndUpdate(
@@ -94,7 +94,7 @@ const updateMenuItem = async (req, res) => {
   }
 };
 
-// ✅ Delete a Menu Item (Only if owned by the user)
+//  Delete a Menu Item (Only if owned by the user)
 const deleteMenuItem = async (req, res) => {
   try {
     const menuItem = await Menu.findById(req.params.id);

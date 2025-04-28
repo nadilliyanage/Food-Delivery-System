@@ -11,7 +11,7 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //     const { orderId } = req.body;
 //     const userId = req.user.id;
 
-//     // ✅ Get Authorization Token from Header
+//     //  Get Authorization Token from Header
 //     const authToken = req.headers.authorization;
 
 //     // 1. Get cart total from order-service
@@ -25,7 +25,7 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //           },
 //         }
 //       );
-      
+
 //       if (cartResponse.data && cartResponse.data.length > 0) {
 //         // Sum all cart totals (in case user has carts from multiple restaurants)
 //         cartTotal = cartResponse.data.reduce(
@@ -49,7 +49,7 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //     //       },
 //     //     }
 //     //   );
-      
+
 //     //   if (deliveryResponse.data && deliveryResponse.data.deliveryFee) {
 //     //     deliveryFee = deliveryResponse.data.deliveryFee;
 //     //   } else {
@@ -68,7 +68,7 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //     const totalAmount = cartTotal + deliveryFee;
 //     const amountInCents = Math.round(totalAmount * 100); // Convert to cents
 
-//     // ✅ Create Payment Intent in Stripe
+//     //  Create Payment Intent in Stripe
 //     const paymentIntent = await stripe.paymentIntents.create({
 //       amount: amountInCents,
 //       currency: "lkr",
@@ -79,7 +79,7 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //       },
 //     });
 
-//     // ✅ Save Payment in Database
+//     //  Save Payment in Database
 //     const payment = new Payment({
 //       orderId,
 //       customer: userId,
@@ -106,7 +106,6 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //   }
 // };
 
-
 const createPayment = async (req, res) => {
   try {
     const { orderId } = req.body;
@@ -121,11 +120,10 @@ const createPayment = async (req, res) => {
     // 1. Get cart total from order-service
     let cartTotal = 0;
     try {
-      const cartResponse = await axios.get(
-        `${ORDER_SERVICE_URL}/api/cart/`,
-        { headers: { Authorization: authToken } }
-      );
-      
+      const cartResponse = await axios.get(`${ORDER_SERVICE_URL}/api/cart/`, {
+        headers: { Authorization: authToken },
+      });
+
       if (cartResponse.data && cartResponse.data.length > 0) {
         cartTotal = cartResponse.data.reduce(
           (total, cart) => total + cart.totalAmount,
@@ -134,10 +132,12 @@ const createPayment = async (req, res) => {
       }
     } catch (error) {
       console.error("Error fetching cart total:", error.message);
-      return res.status(500).json({ message: "Error fetching cart information" });
+      return res
+        .status(500)
+        .json({ message: "Error fetching cart information" });
     }
 
-    const deliveryFee = 150.00; // Fixed delivery fee in LKR
+    const deliveryFee = 150.0; // Fixed delivery fee in LKR
     const totalAmount = cartTotal + deliveryFee;
     const amountInCents = Math.round(totalAmount * 100); // Convert to cents
 
@@ -179,16 +179,16 @@ const createPayment = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating payment:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Payment processing failed",
-      error: error.message 
+      error: error.message,
     });
   }
 };
 
 // Add webhook handler for Stripe events
 const handleStripeWebhook = async (req, res) => {
-  const sig = req.headers['stripe-signature'];
+  const sig = req.headers["stripe-signature"];
   let event;
 
   try {
@@ -204,11 +204,11 @@ const handleStripeWebhook = async (req, res) => {
 
   // Handle the event
   switch (event.type) {
-    case 'payment_intent.succeeded':
+    case "payment_intent.succeeded":
       const paymentIntent = event.data.object;
       await handlePaymentSuccess(paymentIntent);
       break;
-    case 'payment_intent.payment_failed':
+    case "payment_intent.payment_failed":
       const paymentFailed = event.data.object;
       await handlePaymentFailure(paymentFailed);
       break;
@@ -294,5 +294,5 @@ module.exports = {
   createPayment,
   checkPaymentStatus,
   refundPayment,
-  handleStripeWebhook
+  handleStripeWebhook,
 };

@@ -6,7 +6,7 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("✅ Auth Service Connected to MongoDB");
+    console.log(" Auth Service Connected to MongoDB");
   } catch (error) {
     console.error("❌ MongoDB Connection Error:", error);
     process.exit(1);

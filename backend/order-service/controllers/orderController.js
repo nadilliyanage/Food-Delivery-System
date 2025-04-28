@@ -7,7 +7,7 @@ const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
 const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL;
 
-// ✅ Get All Orders (For Admins and Restaurant Owners)
+//  Get All Orders (For Admins and Restaurant Owners)
 const getOrders = async (req, res) => {
   try {
     const userRole = req.user.role;
@@ -18,10 +18,10 @@ const getOrders = async (req, res) => {
     let orders;
 
     if (userRole === "admin") {
-      // ✅ Admins can see all orders
+      //  Admins can see all orders
       orders = await Order.find();
     } else if (userRole === "restaurant_admin") {
-      // ✅ Restaurant owners can only see orders for their restaurant
+      //  Restaurant owners can only see orders for their restaurant
       orders = await Order.find({ restaurant: userId });
     } else {
       return res.status(403).json({ message: "Access denied" });
@@ -34,7 +34,7 @@ const getOrders = async (req, res) => {
   }
 };
 
-// ✅ Get All Orders for the Logged-in User
+//  Get All Orders for the Logged-in User
 const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -82,13 +82,13 @@ const getUserOrders = async (req, res) => {
   }
 };
 
-// ✅ Get a Specific Order by ID
+//  Get a Specific Order by ID
 const getOrderById = async (req, res) => {
   try {
     const userId = req.user.id;
     const userRole = req.user.role;
 
-    // ✅ Allow Admins and Delivery Personnel to Fetch Any Order
+    //  Allow Admins and Delivery Personnel to Fetch Any Order
     const order = await Order.findOne({
       _id: req.params.id,
     });
@@ -218,7 +218,7 @@ const sendCustomerNotification = async (order, token) => {
   }
 };
 
-// ✅ Place a New Order (Fetch Restaurant First)
+//  Place a New Order (Fetch Restaurant First)
 const placeOrder = async (req, res) => {
   try {
     console.log("🔍 Starting order placement...");
@@ -250,7 +250,7 @@ const placeOrder = async (req, res) => {
         .json({ message: "Card details required for card payment" });
     }
 
-    // ✅ Ensure restaurant exists before placing an order
+    //  Ensure restaurant exists before placing an order
     try {
       console.log("🔍 Verifying restaurant...");
       const restaurantResponse = await axios.get(
@@ -260,7 +260,7 @@ const placeOrder = async (req, res) => {
         console.error("❌ Restaurant not found:", restaurant);
         return res.status(404).json({ message: "Restaurant not found" });
       }
-      console.log("✅ Restaurant verified");
+      console.log(" Restaurant verified");
     } catch (error) {
       console.error("❌ Error verifying restaurant:", error);
       return res.status(500).json({ message: "Error verifying restaurant" });
@@ -277,7 +277,7 @@ const placeOrder = async (req, res) => {
         }
       );
       customer = customerResponse.data;
-      console.log("✅ Customer details fetched:", customer);
+      console.log(" Customer details fetched:", customer);
     } catch (error) {
       console.error("❌ Error fetching customer details:", error);
       return res
@@ -290,9 +290,9 @@ const placeOrder = async (req, res) => {
       console.log("💳 Processing payment...");
       if (paymentMethod === "card") {
         // Add your payment processing logic here
-        console.log("✅ Card payment processed");
+        console.log(" Card payment processed");
       } else {
-        console.log("✅ Cash payment selected");
+        console.log(" Cash payment selected");
       }
     } catch (error) {
       console.error("❌ Payment processing failed:", error);
@@ -313,7 +313,7 @@ const placeOrder = async (req, res) => {
     try {
       console.log("💾 Saving order...");
       await newOrder.save();
-      console.log("✅ Order saved successfully");
+      console.log(" Order saved successfully");
     } catch (error) {
       console.error("❌ Error saving order:", error);
       return res.status(500).json({ message: "Error saving order" });
@@ -381,7 +381,7 @@ Status: *${newOrder.status}*
 
 We'll notify you once the restaurant confirms your order.
 
-Thank you for choosing our service! 🚀`,
+Thank you for choosing our service! `,
         },
       ];
 
@@ -396,7 +396,7 @@ Thank you for choosing our service! 🚀`,
         }
       );
 
-      console.log("✅ Order confirmation notifications sent successfully");
+      console.log(" Order confirmation notifications sent successfully");
     } catch (error) {
       console.error(
         "❌ Error sending order confirmation notifications:",
@@ -444,10 +444,16 @@ const updateOrder = async (req, res) => {
     }
 
     // Create a delivery record if this is a delivery personnel marking an order as "On the Way"
-    if (role === "delivery_personnel" && status === "Delivery Accepted" && order.status === "Out for Delivery") {
+    if (
+      role === "delivery_personnel" &&
+      status === "Delivery Accepted" &&
+      order.status === "Out for Delivery"
+    ) {
       try {
         if (!DELIVERY_SERVICE_URL) {
-          console.error("❌ DELIVERY_SERVICE_URL is not set in environment variables");
+          console.error(
+            "❌ DELIVERY_SERVICE_URL is not set in environment variables"
+          );
           return res.status(500).json({
             message: "Delivery service not configured",
             details: "DELIVERY_SERVICE_URL is not set",
@@ -471,7 +477,7 @@ const updateOrder = async (req, res) => {
           }
         );
 
-        console.log("✅ Delivery record created:", deliveryResponse.data);
+        console.log(" Delivery record created:", deliveryResponse.data);
       } catch (error) {
         console.error("❌ Error creating delivery record:", error);
         console.error("Error details:", {
@@ -488,7 +494,11 @@ const updateOrder = async (req, res) => {
     }
 
     // Update delivery status if this is a delivery personnel marking an order as "Delivered"
-    if (role === "delivery_personnel" && status === "Delivered" && order.status === "On the Way") {
+    if (
+      role === "delivery_personnel" &&
+      status === "Delivered" &&
+      order.status === "On the Way"
+    ) {
       try {
         // Find the delivery record
         const deliveryResponse = await axios.get(
@@ -600,7 +610,7 @@ Your order ${statusMessage}
 
 We'll keep you updated on your order's progress.
 
-Thank you for choosing our service! 🚀`,
+Thank you for choosing our service! `,
         },
       ];
 
@@ -615,7 +625,7 @@ Thank you for choosing our service! 🚀`,
         }
       );
 
-      console.log("✅ Status update notifications sent successfully");
+      console.log(" Status update notifications sent successfully");
     } catch (error) {
       console.error("❌ Error sending status update notifications:", error);
     }
@@ -632,7 +642,7 @@ Thank you for choosing our service! 🚀`,
   }
 };
 
-// ✅ Cancel an Order (Only if Status is `Pending`)
+//  Cancel an Order (Only if Status is `Pending`)
 const cancelOrder = async (req, res) => {
   try {
     const cancelledOrder = await Order.findOneAndUpdate(
@@ -653,7 +663,7 @@ const cancelOrder = async (req, res) => {
   }
 };
 
-// ✅ Track Order Status
+//  Track Order Status
 const trackOrderStatus = async (req, res) => {
   try {
     const order = await Order.findOne({

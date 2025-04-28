@@ -14,5 +14,5 @@ app.use(cors());
 app.use("/api/payment", paymentRouter);
 
 app.listen(process.env.PORT, () =>
-  console.log(`🚀 Payment Service running on port ${process.env.PORT}`)
+  console.log(` Payment Service running on port ${process.env.PORT}`)
 );

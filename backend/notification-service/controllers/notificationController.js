@@ -251,7 +251,7 @@ const sendNotification = async (req, res) => {
   }
 };
 
-// ✅ Get Notifications for a User
+//  Get Notifications for a User
 const getUserNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.user.id }).sort(

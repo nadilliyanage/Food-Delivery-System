@@ -2,7 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// ✅ Register a New User
+//  Register a New User
 const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -14,12 +14,16 @@ const register = async (req, res) => {
 
     // Validate password
     if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters long" });
     }
 
     // Ensure `role` is valid
     if (
-      !["customer", "restaurant_admin", "delivery_personnel", "admin"].includes(role)
+      !["customer", "restaurant_admin", "delivery_personnel", "admin"].includes(
+        role
+      )
     ) {
       return res.status(400).json({ message: "Invalid role specified" });
     }
@@ -44,7 +48,7 @@ const register = async (req, res) => {
       phone: req.body.phone,
       photoUrl: req.body.photoUrl,
       latitude: req.body.latitude,
-      longitude: req.body.longitude
+      longitude: req.body.longitude,
     };
 
     const result = await User.create(userData);
@@ -67,7 +71,7 @@ const register = async (req, res) => {
         phone: result.phone,
         photoUrl: result.photoUrl,
         latitude: result.latitude,
-        longitude: result.longitude
+        longitude: result.longitude,
       },
       token,
     });
@@ -77,7 +81,7 @@ const register = async (req, res) => {
   }
 };
 
-// ✅ Login User and Generate JWT Token
+//  Login User and Generate JWT Token
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -90,7 +94,7 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
         hasPassword: !!user.password,
-        passwordLength: user.password ? user.password.length : 0
+        passwordLength: user.password ? user.password.length : 0,
       });
     }
 
@@ -111,8 +115,8 @@ const login = async (req, res) => {
       process.env.JWT_SECRET
     );
 
-    res.json({ 
-      token, 
+    res.json({
+      token,
       user: {
         _id: user._id,
         name: user.name,
@@ -122,8 +126,8 @@ const login = async (req, res) => {
         phone: user.phone,
         photoUrl: user.photoUrl,
         latitude: user.latitude,
-        longitude: user.longitude
-      }
+        longitude: user.longitude,
+      },
     });
   } catch (error) {
     console.error("❌ Error during login:", error);
@@ -131,7 +135,7 @@ const login = async (req, res) => {
   }
 };
 
-// ✅ Get User by ID
+//  Get User by ID
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
@@ -144,7 +148,7 @@ const getUserById = async (req, res) => {
   }
 };
 
-// ✅ Get User by Email
+//  Get User by Email
 const getUserByEmail = async (req, res) => {
   try {
     const email = req.params.email || req.query.email;
@@ -164,7 +168,7 @@ const getUserByEmail = async (req, res) => {
   }
 };
 
-// ✅ Get All Users (Admin Only)
+//  Get All Users (Admin Only)
 const getAllUsers = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -179,7 +183,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// ✅ Update User
+//  Update User
 const updateUser = async (req, res) => {
   try {
     const { name, email, role, address, phone, photoUrl } = req.body;
@@ -200,7 +204,7 @@ const updateUser = async (req, res) => {
   }
 };
 
-// ✅ Delete User
+//  Delete User
 const deleteUser = async (req, res) => {
   try {
     const deletedUser = await User.findByIdAndDelete(req.params.id);

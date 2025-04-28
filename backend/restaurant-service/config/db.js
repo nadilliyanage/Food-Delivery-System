@@ -6,7 +6,7 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("✅ Restaurant Service Connected to MongoDB");
+    console.log(" Restaurant Service Connected to MongoDB");
   } catch (error) {
     console.error("❌ MongoDB Connection Error:", error);
     process.exit(1);
