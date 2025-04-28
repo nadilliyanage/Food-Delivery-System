@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: restaurant-service
-  labels:
-    app: restaurant-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: restaurant-service
@@ -16,12 +14,17 @@ spec:
     spec:
       containers:
       - name: restaurant-service
-        image: food-delivery/restaurant-service:latest
+        image: food-delivery-restaurant-service:latest
+        imagePullPolicy: Never
         ports:
-        - containerPort: 3000
+        - containerPort: 3006
         env:
         - name: NODE_ENV
-          value: "production"
+          value: "development"
+        - name: PORT
+          value: "3006"
+        - name: MONGO_URI
+          value: "mongodb://mongodb:27017/restaurants"
 ---
 apiVersion: v1
 kind: Service
@@ -31,7 +34,6 @@ spec:
   selector:
     app: restaurant-service
   ports:
-    - protocol: TCP
-      port: 3003
-      targetPort: 3000
+  - port: 3006
+    targetPort: 3006
   type: ClusterIP 
