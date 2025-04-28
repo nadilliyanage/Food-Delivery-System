@@ -7,7 +7,7 @@ const getAllMenus = async (req, res) => {
     const menus = await Menu.find();
     res.json(menus);
   } catch (error) {
-    console.error("❌ Error fetching menus:", error);
+    console.error("Error fetching menus:", error);
     res.status(500).json({ message: "Error fetching menus" });
   }
 };
@@ -27,7 +27,7 @@ const getMenusByRestaurant = async (req, res) => {
     const menus = await Menu.find({ restaurant: req.params.restaurantId });
     res.json(menus);
   } catch (error) {
-    console.error("❌ Error fetching menu items:", error);
+    console.error("Error fetching menu items:", error);
     res.status(500).json({ message: "Error fetching menu items" });
   }
 };
@@ -39,7 +39,7 @@ const getMenuById = async (req, res) => {
     if (!menu) return res.status(404).json({ message: "Menu item not found" });
     res.json(menu);
   } catch (error) {
-    console.error("❌ Error fetching menu item:", error);
+    console.error("Error fetching menu item:", error);
     res.status(500).json({ message: "Error fetching menu item" });
   }
 };
@@ -72,7 +72,7 @@ const addMenuItem = async (req, res) => {
 
     res.status(201).json(newMenuItem);
   } catch (error) {
-    console.error("❌ Error adding menu item:", error);
+    console.error("Error adding menu item:", error);
     res.status(500).json({ message: "Error adding menu item" });
   }
 };
@@ -89,7 +89,7 @@ const updateMenuItem = async (req, res) => {
       return res.status(404).json({ message: "Menu item not found" });
     res.json(updatedMenuItem);
   } catch (error) {
-    console.error("❌ Error updating menu item:", error);
+    console.error("Error updating menu item:", error);
     res.status(500).json({ message: "Error updating menu item" });
   }
 };
@@ -108,7 +108,7 @@ const deleteMenuItem = async (req, res) => {
 
     res.json({ message: "Menu item deleted successfully" });
   } catch (error) {
-    console.error("❌ Error deleting menu item:", error);
+    console.error("Error deleting menu item:", error);
     res.status(500).json({ message: "Error deleting menu item" });
   }
 };

@@ -29,7 +29,7 @@ const getOrders = async (req, res) => {
 
     res.json(orders);
   } catch (error) {
-    console.error("❌ Error fetching orders:", error);
+    console.error("Error fetching orders:", error);
     res.status(500).json({ message: "Error fetching orders" });
   }
 };
@@ -67,7 +67,7 @@ const getUserOrders = async (req, res) => {
           };
         } catch (error) {
           console.error(
-            "❌ Error fetching restaurant/menu details:",
+            "Error fetching restaurant/menu details:",
             error.message
           );
           return order;
@@ -77,7 +77,7 @@ const getUserOrders = async (req, res) => {
 
     res.json(ordersWithDetails);
   } catch (error) {
-    console.error("❌ Error fetching user orders:", error);
+    console.error("Error fetching user orders:", error);
     res.status(500).json({ message: "Error fetching orders" });
   }
 };
@@ -102,7 +102,7 @@ const getOrderById = async (req, res) => {
       );
       restaurantDetails = restaurantResponse.data;
     } catch (error) {
-      console.error("❌ Error fetching restaurant:", error.message);
+      console.error("Error fetching restaurant:", error.message);
     }
 
     const detailedItems = await Promise.all(
@@ -117,7 +117,7 @@ const getOrderById = async (req, res) => {
           };
         } catch (error) {
           console.error(
-            `❌ Error fetching menu item ${item.menuItem}:`,
+            `Error fetching menu item ${item.menuItem}:`,
             error.message
           );
           return { menuItem: null, quantity: item.quantity };
@@ -127,12 +127,12 @@ const getOrderById = async (req, res) => {
 
     // Ensure we have the required location data
     if (!restaurantDetails?.location?.coordinates) {
-      console.error("❌ Restaurant location not found");
+      console.error("Restaurant location not found");
       return res.status(404).json({ message: "Restaurant location not found" });
     }
 
     if (!order.deliveryAddress?.longitude || !order.deliveryAddress?.latitude) {
-      console.error("❌ Delivery address not found");
+      console.error("Delivery address not found");
       return res.status(404).json({ message: "Delivery address not found" });
     }
 
@@ -142,7 +142,7 @@ const getOrderById = async (req, res) => {
       items: detailedItems,
     });
   } catch (error) {
-    console.error("❌ Error fetching order:", error.message);
+    console.error("Error fetching order:", error.message);
     res.status(500).json({ message: "Error fetching order" });
   }
 };
@@ -213,7 +213,7 @@ const sendCustomerNotification = async (order, token) => {
     console.log(`📧 Notifications sent to customer for order: ${order._id}`);
     return true;
   } catch (error) {
-    console.error("❌ Error sending customer notifications:", error.message);
+    console.error("Error sending customer notifications:", error.message);
     return false;
   }
 };
@@ -233,7 +233,7 @@ const placeOrder = async (req, res) => {
 
     // Validate required fields
     if (!restaurant || !items || !totalPrice || !paymentMethod) {
-      console.error("❌ Missing required fields:", {
+      console.error("Missing required fields:", {
         hasRestaurant: !!restaurant,
         hasItems: !!items,
         hasTotalPrice: !!totalPrice,
@@ -244,7 +244,7 @@ const placeOrder = async (req, res) => {
 
     // Validate payment method
     if (paymentMethod === "card" && !cardDetails) {
-      console.error("❌ Card payment missing card details");
+      console.error("Card payment missing card details");
       return res
         .status(400)
         .json({ message: "Card details required for card payment" });
@@ -257,12 +257,12 @@ const placeOrder = async (req, res) => {
         `${RESTAURANT_SERVICE_URL}/api/restaurants/${restaurant}`
       );
       if (!restaurantResponse.data) {
-        console.error("❌ Restaurant not found:", restaurant);
+        console.error("Restaurant not found:", restaurant);
         return res.status(404).json({ message: "Restaurant not found" });
       }
       console.log(" Restaurant verified");
     } catch (error) {
-      console.error("❌ Error verifying restaurant:", error);
+      console.error("Error verifying restaurant:", error);
       return res.status(500).json({ message: "Error verifying restaurant" });
     }
 
@@ -279,7 +279,7 @@ const placeOrder = async (req, res) => {
       customer = customerResponse.data;
       console.log(" Customer details fetched:", customer);
     } catch (error) {
-      console.error("❌ Error fetching customer details:", error);
+      console.error("Error fetching customer details:", error);
       return res
         .status(500)
         .json({ message: "Error fetching customer details" });
@@ -295,7 +295,7 @@ const placeOrder = async (req, res) => {
         console.log(" Cash payment selected");
       }
     } catch (error) {
-      console.error("❌ Payment processing failed:", error);
+      console.error("Payment processing failed:", error);
       return res.status(500).json({ message: "Payment processing failed" });
     }
 
@@ -315,7 +315,7 @@ const placeOrder = async (req, res) => {
       await newOrder.save();
       console.log(" Order saved successfully");
     } catch (error) {
-      console.error("❌ Error saving order:", error);
+      console.error("Error saving order:", error);
       return res.status(500).json({ message: "Error saving order" });
     }
 
@@ -325,7 +325,7 @@ const placeOrder = async (req, res) => {
 
       if (!NOTIFICATION_SERVICE_URL) {
         console.error(
-          "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
+          "NOTIFICATION_SERVICE_URL is not set in environment variables"
         );
         return res.status(201).json(newOrder);
       }
@@ -398,15 +398,12 @@ Thank you for choosing our service! `,
 
       console.log(" Order confirmation notifications sent successfully");
     } catch (error) {
-      console.error(
-        "❌ Error sending order confirmation notifications:",
-        error
-      );
+      console.error("Error sending order confirmation notifications:", error);
     }
 
     res.status(201).json(newOrder);
   } catch (error) {
-    console.error("❌ Error placing order:", error);
+    console.error("Error placing order:", error);
     console.error("Error stack:", error.stack);
     res.status(500).json({
       message: "Error placing order",
@@ -431,13 +428,13 @@ const updateOrder = async (req, res) => {
     // Find the order
     const order = await Order.findById(id);
     if (!order) {
-      console.error("❌ Order not found:", id);
+      console.error("Order not found:", id);
       return res.status(404).json({ message: "Order not found" });
     }
 
     // Check if user has authorization to update orders
     if (!["admin", "restaurant_admin", "delivery_personnel"].includes(role)) {
-      console.error("❌ Unauthorized role for status update:", role);
+      console.error("Unauthorized role for status update:", role);
       return res
         .status(403)
         .json({ message: "Unauthorized to update order status" });
@@ -452,7 +449,7 @@ const updateOrder = async (req, res) => {
       try {
         if (!DELIVERY_SERVICE_URL) {
           console.error(
-            "❌ DELIVERY_SERVICE_URL is not set in environment variables"
+            "DELIVERY_SERVICE_URL is not set in environment variables"
           );
           return res.status(500).json({
             message: "Delivery service not configured",
@@ -479,7 +476,7 @@ const updateOrder = async (req, res) => {
 
         console.log(" Delivery record created:", deliveryResponse.data);
       } catch (error) {
-        console.error("❌ Error creating delivery record:", error);
+        console.error("Error creating delivery record:", error);
         console.error("Error details:", {
           message: error.message,
           response: error.response?.data,
@@ -519,7 +516,7 @@ const updateOrder = async (req, res) => {
           );
         }
       } catch (error) {
-        console.error("❌ Error updating delivery record:", error);
+        console.error("Error updating delivery record:", error);
       }
     }
 
@@ -533,7 +530,7 @@ const updateOrder = async (req, res) => {
 
       if (!NOTIFICATION_SERVICE_URL) {
         console.error(
-          "❌ NOTIFICATION_SERVICE_URL is not set in environment variables"
+          "NOTIFICATION_SERVICE_URL is not set in environment variables"
         );
         return res.status(200).json(order);
       }
@@ -627,12 +624,12 @@ Thank you for choosing our service! `,
 
       console.log(" Status update notifications sent successfully");
     } catch (error) {
-      console.error("❌ Error sending status update notifications:", error);
+      console.error("Error sending status update notifications:", error);
     }
 
     return res.status(200).json(order);
   } catch (error) {
-    console.error("❌ Error updating order:", error);
+    console.error("Error updating order:", error);
     console.error("Error stack:", error.stack);
     res.status(500).json({
       message: "Error updating order",
@@ -658,7 +655,7 @@ const cancelOrder = async (req, res) => {
 
     res.json(cancelledOrder);
   } catch (error) {
-    console.error("❌ Error cancelling order:", error);
+    console.error("Error cancelling order:", error);
     res.status(500).json({ message: "Error cancelling order" });
   }
 };
@@ -675,7 +672,7 @@ const trackOrderStatus = async (req, res) => {
 
     res.json({ status: order.status });
   } catch (error) {
-    console.error("❌ Error tracking order:", error);
+    console.error("Error tracking order:", error);
     res.status(500).json({ message: "Error tracking order" });
   }
 };

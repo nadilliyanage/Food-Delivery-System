@@ -109,7 +109,7 @@ const getUserDeliveries = async (req, res) => {
       registrations,
     });
   } catch (error) {
-    console.error("❌ Error fetching deliveries:", error);
+    console.error("Error fetching deliveries:", error);
     res.status(500).json({ message: "Error fetching deliveries" });
   }
 };
@@ -124,7 +124,7 @@ const getDeliveryById = async (req, res) => {
 
     res.json(delivery);
   } catch (error) {
-    console.error("❌ Error fetching delivery:", error);
+    console.error("Error fetching delivery:", error);
     res.status(500).json({ message: "Error fetching delivery" });
   }
 };
@@ -161,13 +161,13 @@ const updateDeliveryStatus = async (req, res) => {
         { headers: { Authorization: authToken } }
       );
     } catch (error) {
-      console.error("❌ Error updating order status:", error);
+      console.error("Error updating order status:", error);
       // Continue with the response even if order update fails
     }
 
     res.json(updatedDelivery);
   } catch (error) {
-    console.error("❌ Error updating delivery status:", error);
+    console.error("Error updating delivery status:", error);
     res.status(500).json({ message: "Error updating delivery status" });
   }
 };
@@ -185,7 +185,7 @@ const deleteDelivery = async (req, res) => {
 
     res.json({ message: "Delivery deleted successfully" });
   } catch (error) {
-    console.error("❌ Error deleting delivery:", error);
+    console.error("Error deleting delivery:", error);
     res.status(500).json({ message: "Error deleting delivery" });
   }
 };

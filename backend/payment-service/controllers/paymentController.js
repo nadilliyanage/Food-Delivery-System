@@ -34,7 +34,7 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //         );
 //       }
 //     } catch (error) {
-//       console.error("❌ Error fetching cart total:", error.message);
+//       console.error("Error fetching cart total:", error.message);
 //       return res.status(500).json({ message: "Error fetching cart information" });
 //     }
 
@@ -57,7 +57,7 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //     //     deliveryFee = 5.00;
 //     //   }
 //     // } catch (error) {
-//     //   console.error("❌ Error fetching delivery fee, using default:", error.message);
+//     //   console.error("Error fetching delivery fee, using default:", error.message);
 //     //   // Use default delivery fee if error occurs
 //     //   deliveryFee = 5.00;
 //     // }
@@ -101,7 +101,7 @@ const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL;
 //       deliveryFee: deliveryFee.toFixed(2),
 //     });
 //   } catch (error) {
-//     console.error("❌ Error creating payment:", error);
+//     console.error("Error creating payment:", error);
 //     res.status(500).json({ message: "Payment processing failed" });
 //   }
 // };
@@ -263,7 +263,7 @@ const checkPaymentStatus = async (req, res) => {
 
     res.json(payment);
   } catch (error) {
-    console.error("❌ Error checking payment status:", error);
+    console.error("Error checking payment status:", error);
     res.status(500).json({ message: "Payment status check failed" });
   }
 };
@@ -285,7 +285,7 @@ const refundPayment = async (req, res) => {
     await payment.save();
     res.json({ message: "Refund successful", payment });
   } catch (error) {
-    console.error("❌ Error refunding payment:", error);
+    console.error("Error refunding payment:", error);
     res.status(500).json({ message: "Refund processing failed" });
   }
 };
