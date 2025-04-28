@@ -14,5 +14,5 @@ app.use(cors());
 app.use("/api/notifications", notificationRoutes);
 
 app.listen(process.env.PORT, () => {
-  console.log(`🚀 Notification Service running on port ${process.env.PORT}`);
+  console.log(`Notification Service running on port ${process.env.PORT}`);
 });

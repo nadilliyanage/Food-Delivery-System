@@ -1,0 +1,74 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: ../Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - auth-service
+      - restaurant-service
+      - order-service
+      - payment-service
+      - delivery-service
+      - menu-service
+      - notification-service
+
+  auth-service:
+    build:
+      context: ./backend/authentication-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - JWT_SECRET=your_jwt_secret
+
+  restaurant-service:
+    build:
+      context: ./backend/restaurant-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=development
+
+  order-service:
+    build:
+      context: ./backend/order-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=development
+
+  payment-service:
+    build:
+      context: ./backend/payment-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "3005:3000"
+    environment:
+      - NODE_ENV=development
+
+  delivery-service:
+    build:
+      context: ./backend/delivery-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "3004:3000"
+    environment:
+      - NODE_ENV=development
+
+  notification-service:
+    build:
+      context: ./backend/notification-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "3006:3000"
+    environment:
+      - NODE_ENV=development

@@ -6,7 +6,7 @@ require("dotenv").config();
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL;
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
-// ✅ Assign a Driver to an Order & Create a Delivery Entry
+//  Assign a Driver to an Order & Create a Delivery Entry
 const assignDriver = async (req, res) => {
   try {
     const { orderId, driverId } = req.body;
@@ -16,9 +16,9 @@ const assignDriver = async (req, res) => {
 
     // Check if user is authorized to assign drivers - user must have delivery_personnel role
     if (req.user.role !== "delivery_personnel" && req.user.role !== "admin") {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "Unauthorized, only delivery personnel can accept deliveries",
-        userRole: req.user.role 
+        userRole: req.user.role,
       });
     }
 
@@ -28,15 +28,17 @@ const assignDriver = async (req, res) => {
       // Check if the driver is registered as a delivery personnel
       const personnel = await DeliveryPersonnel.findOne({ user: userId });
       if (!personnel || personnel.registrationStatus !== "approved") {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: "You must be an approved delivery person to accept orders",
           userId: userId,
-          driverId: driverId
+          driverId: driverId,
         });
       }
-      
+
       // Use the authenticated user's ID as the driver
-      console.log(`Driver ID mismatch, using authenticated user ID (${userId}) instead of ${driverId}`);
+      console.log(
+        `Driver ID mismatch, using authenticated user ID (${userId}) instead of ${driverId}`
+      );
     }
 
     // Check if delivery already exists for this order
@@ -83,13 +85,13 @@ const assignDriver = async (req, res) => {
   }
 };
 
-// ✅ Get All Deliveries for a Specific User (Customer or Driver)
+//  Get All Deliveries for a Specific User (Customer or Driver)
 const getUserDeliveries = async (req, res) => {
   try {
     const userId = req.user.id;
     const userRole = req.user.role;
 
-    // ✅ If the user is a customer, fetch their orders
+    //  If the user is a customer, fetch their orders
     let deliveries;
     if (userRole === "customer") {
       deliveries = await Delivery.find({ customer: userId });
@@ -107,12 +109,12 @@ const getUserDeliveries = async (req, res) => {
       registrations,
     });
   } catch (error) {
-    console.error("❌ Error fetching deliveries:", error);
+    console.error("Error fetching deliveries:", error);
     res.status(500).json({ message: "Error fetching deliveries" });
   }
 };
 
-// ✅ Get Delivery by ID (For Tracking)
+//  Get Delivery by ID (For Tracking)
 const getDeliveryById = async (req, res) => {
   try {
     const delivery = await Delivery.findOne({ _id: req.params.id });
@@ -122,19 +124,19 @@ const getDeliveryById = async (req, res) => {
 
     res.json(delivery);
   } catch (error) {
-    console.error("❌ Error fetching delivery:", error);
+    console.error("Error fetching delivery:", error);
     res.status(500).json({ message: "Error fetching delivery" });
   }
 };
 
-// ✅ Update Delivery Status (Only by Assigned Driver)
+//  Update Delivery Status (Only by Assigned Driver)
 const updateDeliveryStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const userId = req.user.id;
     const userRole = req.user.role;
 
-    // ✅ Ensure only assigned drivers can update delivery status
+    //  Ensure only assigned drivers can update delivery status
     if (userRole !== "delivery_personnel") {
       return res.status(403).json({
         message: "Access denied - Only drivers can update delivery status",
@@ -159,18 +161,18 @@ const updateDeliveryStatus = async (req, res) => {
         { headers: { Authorization: authToken } }
       );
     } catch (error) {
-      console.error("❌ Error updating order status:", error);
+      console.error("Error updating order status:", error);
       // Continue with the response even if order update fails
     }
 
     res.json(updatedDelivery);
   } catch (error) {
-    console.error("❌ Error updating delivery status:", error);
+    console.error("Error updating delivery status:", error);
     res.status(500).json({ message: "Error updating delivery status" });
   }
 };
 
-// ✅ Delete a Delivery (Admin Only)
+//  Delete a Delivery (Admin Only)
 const deleteDelivery = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -183,7 +185,7 @@ const deleteDelivery = async (req, res) => {
 
     res.json({ message: "Delivery deleted successfully" });
   } catch (error) {
-    console.error("❌ Error deleting delivery:", error);
+    console.error("Error deleting delivery:", error);
     res.status(500).json({ message: "Error deleting delivery" });
   }
 };

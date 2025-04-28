@@ -12,11 +12,11 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// ✅ Public Routes
+//  Public Routes
 router.post("/register", register);
 router.post("/login", login);
 
-// ✅ Protected Routes
+//  Protected Routes
 router.get("/users/:id", authMiddleware, getUserById);
 router.get("/user/:email", getUserByEmail);
 router.get("/users", authMiddleware, getAllUsers);

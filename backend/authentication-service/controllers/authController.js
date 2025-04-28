@@ -2,7 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// ✅ Register a New User
+//  Register a New User
 const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -14,12 +14,16 @@ const register = async (req, res) => {
 
     // Validate password
     if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters long" });
     }
 
     // Ensure `role` is valid
     if (
-      !["customer", "restaurant_admin", "delivery_personnel", "admin"].includes(role)
+      !["customer", "restaurant_admin", "delivery_personnel", "admin"].includes(
+        role
+      )
     ) {
       return res.status(400).json({ message: "Invalid role specified" });
     }
@@ -44,7 +48,7 @@ const register = async (req, res) => {
       phone: req.body.phone,
       photoUrl: req.body.photoUrl,
       latitude: req.body.latitude,
-      longitude: req.body.longitude
+      longitude: req.body.longitude,
     };
 
     const result = await User.create(userData);
@@ -67,17 +71,17 @@ const register = async (req, res) => {
         phone: result.phone,
         photoUrl: result.photoUrl,
         latitude: result.latitude,
-        longitude: result.longitude
+        longitude: result.longitude,
       },
       token,
     });
   } catch (error) {
-    console.error("❌ Error registering user:", error);
+    console.error("Error registering user:", error);
     res.status(500).json({ message: "Error registering user" });
   }
 };
 
-// ✅ Login User and Generate JWT Token
+//  Login User and Generate JWT Token
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -90,7 +94,7 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
         hasPassword: !!user.password,
-        passwordLength: user.password ? user.password.length : 0
+        passwordLength: user.password ? user.password.length : 0,
       });
     }
 
@@ -111,8 +115,8 @@ const login = async (req, res) => {
       process.env.JWT_SECRET
     );
 
-    res.json({ 
-      token, 
+    res.json({
+      token,
       user: {
         _id: user._id,
         name: user.name,
@@ -122,16 +126,16 @@ const login = async (req, res) => {
         phone: user.phone,
         photoUrl: user.photoUrl,
         latitude: user.latitude,
-        longitude: user.longitude
-      }
+        longitude: user.longitude,
+      },
     });
   } catch (error) {
-    console.error("❌ Error during login:", error);
+    console.error("Error during login:", error);
     res.status(500).json({ message: "Login failed" });
   }
 };
 
-// ✅ Get User by ID
+//  Get User by ID
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
@@ -139,12 +143,12 @@ const getUserById = async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error("❌ Error fetching user:", error);
+    console.error("Error fetching user:", error);
     res.status(500).json({ message: "Error fetching user" });
   }
 };
 
-// ✅ Get User by Email
+//  Get User by Email
 const getUserByEmail = async (req, res) => {
   try {
     const email = req.params.email || req.query.email;
@@ -159,12 +163,12 @@ const getUserByEmail = async (req, res) => {
       res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
-    console.error("❌ Error fetching user:", error);
+    console.error("Error fetching user:", error);
     res.status(500).json({ message: "Error fetching user" });
   }
 };
 
-// ✅ Get All Users (Admin Only)
+//  Get All Users (Admin Only)
 const getAllUsers = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -174,12 +178,12 @@ const getAllUsers = async (req, res) => {
     const users = await User.find().select("-password");
     res.json(users);
   } catch (error) {
-    console.error("❌ Error fetching users:", error);
+    console.error("Error fetching users:", error);
     res.status(500).json({ message: "Error fetching users" });
   }
 };
 
-// ✅ Update User
+//  Update User
 const updateUser = async (req, res) => {
   try {
     const { name, email, role, address, phone, photoUrl } = req.body;
@@ -195,12 +199,12 @@ const updateUser = async (req, res) => {
 
     res.json({ message: "User updated successfully", user: updatedUser });
   } catch (error) {
-    console.error("❌ Error updating user:", error);
+    console.error("Error updating user:", error);
     res.status(500).json({ message: "Error updating user" });
   }
 };
 
-// ✅ Delete User
+//  Delete User
 const deleteUser = async (req, res) => {
   try {
     const deletedUser = await User.findByIdAndDelete(req.params.id);
@@ -209,7 +213,7 @@ const deleteUser = async (req, res) => {
 
     res.json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error("❌ Error deleting user:", error);
+    console.error("Error deleting user:", error);
     res.status(500).json({ message: "Error deleting user" });
   }
 };

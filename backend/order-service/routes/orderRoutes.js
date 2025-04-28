@@ -31,7 +31,7 @@ router.patch("/:id", authMiddleware, updateOrder);
 // Cancel order
 router.delete("/:id", authMiddleware, cancelOrder);
 
-// ✅ Delivery Personnel Route: Fetch Order by ID
+//  Delivery Personnel Route: Fetch Order by ID
 router.get("/:id/delivery", authMiddleware, getOrderById);
 
 // Get restaurant orders
