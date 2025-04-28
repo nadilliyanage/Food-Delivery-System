@@ -165,8 +165,8 @@ const OutForDelivery = () => {
           showConfirmButton: false,
         });
 
-        // If status is "On the Way", navigate to current deliveries
-        if (newStatus === "On the Way") {
+        // If status is "Delivery Accepted", navigate to current deliveries
+        if (newStatus === "Delivery Accepted") {
           navigate("/dashboard/current-deliveries");
         }
       }
@@ -296,7 +296,7 @@ const OutForDelivery = () => {
                       <Button
                         className="bg-green-500 text-white flex-1"
                         onClick={() =>
-                          handleUpdateStatus(order._id, "On the Way")
+                          handleUpdateStatus(order._id, "Delivery Accepted")
                         }
                       >
                         Accept Delivery
