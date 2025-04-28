@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payment-service
-  labels:
-    app: payment-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: payment-service
@@ -16,12 +14,17 @@ spec:
     spec:
       containers:
       - name: payment-service
-        image: food-delivery/payment-service:latest
+        image: food-delivery-payment-service:latest
+        imagePullPolicy: Never
         ports:
-        - containerPort: 3000
+        - containerPort: 3004
         env:
         - name: NODE_ENV
-          value: "production"
+          value: "development"
+        - name: PORT
+          value: "3004"
+        - name: MONGO_URI
+          value: "mongodb://mongodb:27017/payments"
 ---
 apiVersion: v1
 kind: Service
@@ -31,7 +34,6 @@ spec:
   selector:
     app: payment-service
   ports:
-    - protocol: TCP
-      port: 3005
-      targetPort: 3000
+  - port: 3004
+    targetPort: 3004
   type: ClusterIP 

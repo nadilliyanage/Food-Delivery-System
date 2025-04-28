@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: notification-service
-  labels:
-    app: notification-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: notification-service
@@ -16,12 +14,17 @@ spec:
     spec:
       containers:
       - name: notification-service
-        image: food-delivery/notification-service:latest
+        image: food-delivery-notification-service:latest
+        imagePullPolicy: Never
         ports:
-        - containerPort: 3000
+        - containerPort: 3007
         env:
         - name: NODE_ENV
-          value: "production"
+          value: "development"
+        - name: PORT
+          value: "3007"
+        - name: MONGO_URI
+          value: "mongodb://mongodb:27017/notifications"
 ---
 apiVersion: v1
 kind: Service
@@ -31,7 +34,6 @@ spec:
   selector:
     app: notification-service
   ports:
-    - protocol: TCP
-      port: 3006
-      targetPort: 3000
+  - port: 3007
+    targetPort: 3007
   type: ClusterIP 

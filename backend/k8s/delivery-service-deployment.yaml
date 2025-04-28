@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: delivery-service
-  labels:
-    app: delivery-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: delivery-service
@@ -16,12 +14,17 @@ spec:
     spec:
       containers:
       - name: delivery-service
-        image: food-delivery/delivery-service:latest
+        image: food-delivery-delivery-service:latest
+        imagePullPolicy: Never
         ports:
-        - containerPort: 3000
+        - containerPort: 3005
         env:
         - name: NODE_ENV
-          value: "production"
+          value: "development"
+        - name: PORT
+          value: "3005"
+        - name: MONGO_URI
+          value: "mongodb://mongodb:27017/deliveries"
 ---
 apiVersion: v1
 kind: Service
@@ -31,7 +34,6 @@ spec:
   selector:
     app: delivery-service
   ports:
-    - protocol: TCP
-      port: 3004
-      targetPort: 3000
+  - port: 3005
+    targetPort: 3005
   type: ClusterIP 
