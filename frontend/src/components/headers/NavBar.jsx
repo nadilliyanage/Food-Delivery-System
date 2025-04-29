@@ -540,7 +540,7 @@ const NavBar = () => {
                       {showNotifications && (
                         <div className="notification-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50">
                           <div className="p-4 border-b flex justify-between items-center">
-                            <h3 className="text-lg font-semibold">
+                            <h3 className="text-lg font-semibold text-black">
                               Notifications
                             </h3>
                             <div className="flex items-center gap-2">
