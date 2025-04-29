@@ -32,15 +32,15 @@ cd Food-Delivery-System
 
 Each service runs on its own port. Open separate terminals for each service:
 
-| Service | Port | Command |
-|---------|------|---------|
-| API Gateway | 3000 | `cd backend/api-gateway && npm install && npm start` |
-| Authentication | 3001 | `cd backend/authentication-service && npm install && npm start` |
-| Restaurant | 3003 | `cd backend/restaurant-service && npm install && npm start` |
-| Order | 3002 | `cd backend/order-service && npm install && npm start` |
-| Payment | 3005 | `cd backend/payment-service && npm install && npm start` |
-| Delivery | 3004 | `cd backend/delivery-service && npm install && npm start` |
-| Notification | 3006 | `cd backend/notification-service && npm install && npm start` |
+| Service | Command |
+|---------|---------|
+| API Gateway | `cd backend/api-gateway && npm install && npm start` |
+| Authentication | `cd backend/authentication-service && npm install && npm start` |
+| Restaurant | `cd backend/restaurant-service && npm install && npm start` |
+| Order | `cd backend/order-service && npm install && npm start` |
+| Payment | `cd backend/payment-service && npm install && npm start` |
+| Delivery | `cd backend/delivery-service && npm install && npm start` |
+| Notification | `cd backend/notification-service && npm install && npm start` |
 
 ### Environment Configuration
 
