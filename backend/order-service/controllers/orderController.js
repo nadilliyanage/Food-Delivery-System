@@ -334,7 +334,7 @@ const placeOrder = async (req, res) => {
         {
           type: "email",
           email: customer.email,
-          subject: "Order Confirmation - EatEase",
+          subject: "Order Status - EatEase",
           message: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
             <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 <h2 style="color: #333333; margin-bottom: 20px;">Order Confirmation</h2>
