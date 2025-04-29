@@ -334,7 +334,7 @@ const Checkout = () => {
       }
       
       // Validate delivery address
-      if (!deliveryAddress.street || !deliveryAddress.city || !position) {
+      if (!position) {
         console.error("Incomplete delivery address");
         setTimeout(() => {
           navigate("/my-orders");
