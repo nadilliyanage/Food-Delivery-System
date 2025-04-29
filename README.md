@@ -1,80 +1,53 @@
+# 📖 Food Delivery System Deployment Guide
 
-## Prerequisites
-- Node.js (v14 or higher)
-- npm (v6 or higher)
-- Docker Desktop
-- Kubernetes (Minikube)
-- Git
-- MongoDB Atlas account (for cloud database)
-- Stripe account (for payments)
-- Twilio account (for notifications)
-- Gmail account (for email notifications)
+## 🛠️ Prerequisites
 
-## 1. Clone and Setup
+Before you begin, ensure you have the following tools installed:
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Node.js | v14+ | Runtime environment |
+| npm | v6+ | Package manager |
+| Docker Desktop | Latest | Containerization |
+| Kubernetes (Minikube) | Latest | Container orchestration |
+| Git | Latest | Version control |
+| MongoDB Atlas | - | Cloud database |
+| Stripe | - | Payment processing |
+| Twilio | - | Notifications |
+| Gmail | - | Email notifications |
+
+## 📥 Initial Setup
+
 ```bash
+# Clone the repository
 git clone https://github.com/nadilliyanage/Food-Delivery-System.git
+
+# Navigate to project directory
 cd Food-Delivery-System
 ```
 
-## 2. Local Development Deployment
+## 🏗️ Local Development
 
-### Backend Services
-Open separate terminals for each service
+### Backend Services Setup
 
-#### Terminal 1 - API Gateway
-```bash
-cd backend/api-gateway
-npm install
-npm start
-```
+Each service runs on its own port. Open separate terminals for each service:
 
-#### Terminal 2 - Authentication Service
-```bash
-cd backend/authentication-service
-npm install
-npm start
-```
-
-#### Terminal 3 - Restaurant Service
-```bash
-cd backend/restaurant-service
-npm install
-npm start
-```
-
-#### Terminal 4 - Order Service
-```bash
-cd backend/order-service
-npm install
-npm start
-```
-
-#### Terminal 5 - Payment Service
-```bash
-cd backend/payment-service
-npm install
-npm start
-```
-
-#### Terminal 6 - Delivery Service
-```bash
-cd backend/delivery-service
-npm install
-npm start
-```
-
-#### Terminal 7 - Notification Service
-```bash
-cd backend/notification-service
-npm install
-npm start
-```
+| Service | Port | Command |
+|---------|------|---------|
+| API Gateway | 3000 | `cd backend/api-gateway && npm install && npm start` |
+| Authentication | 3001 | `cd backend/authentication-service && npm install && npm start` |
+| Restaurant | 3003 | `cd backend/restaurant-service && npm install && npm start` |
+| Order | 3002 | `cd backend/order-service && npm install && npm start` |
+| Payment | 3005 | `cd backend/payment-service && npm install && npm start` |
+| Delivery | 3004 | `cd backend/delivery-service && npm install && npm start` |
+| Notification | 3006 | `cd backend/notification-service && npm install && npm start` |
 
 ### Environment Configuration
-For local development, update the .env files in each service with the following URLs:
 
-#### api-gateway/.env
-```
+Create `.env` files in each service directory with the following configurations:
+
+#### 🔑 API Gateway (.env)
+```env
 PORT=3000
 AUTH_SERVICE_URL=http://localhost:3001
 ORDER_SERVICE_URL=http://localhost:3002
@@ -84,15 +57,22 @@ PAYMENT_SERVICE_URL=http://localhost:3005
 NOTIFICATION_SERVICE_URL=http://localhost:3006
 ```
 
-#### authentication-service/.env
-```
+#### 🔐 Authentication Service (.env)
+```env
 PORT=3001
 MONGO_URI=mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Authentication?retryWrites=true&w=majority&appName=Cluster
 JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
 ```
 
-#### order-service/.env
+#### 🍽️ Restaurant Service (.env)
+```env
+PORT=3003
+MONGO_URI=mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Restaurant?retryWrites=true&w=majority&appName=Cluster
+JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
 ```
+
+#### 📦 Order Service (.env)
+```env
 PORT=3002
 MONGO_URI=mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Order?retryWrites=true&w=majority&appName=Cluster
 JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
@@ -103,24 +83,8 @@ AUTH_SERVICE_URL=http://localhost:3001
 PAYMENT_SERVICE_URL=http://localhost:3005
 ```
 
-#### restaurant-service/.env
-```
-PORT=3003
-MONGO_URI=mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Restaurant?retryWrites=true&w=majority&appName=Cluster
-JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
-```
-
-#### delivery-service/.env
-```
-PORT=3004
-MONGO_URI=mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Delivery?retryWrites=true&w=majority&appName=Cluster
-JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
-ORDER_SERVICE_URL=http://localhost:3002
-AUTH_SERVICE_URL=http://localhost:3001
-```
-
-#### payment-service/.env
-```
+#### 💳 Payment Service (.env)
+```env
 PORT=3005
 MONGO_URI=mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Payment?retryWrites=true&w=majority&appName=Cluster
 JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
@@ -130,8 +94,17 @@ STRIPE_SECRET_KEY=sk_test_51RGXpNPsJKAfjT1p5U66HxUeNUZMLmChoERLW9fF7U89LwPjK4ne9
 FRONTEND_URL=http://localhost:5173
 ```
 
-#### notification-service/.env
+#### 🚚 Delivery Service (.env)
+```env
+PORT=3004
+MONGO_URI=mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Delivery?retryWrites=true&w=majority&appName=Cluster
+JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
+ORDER_SERVICE_URL=http://localhost:3002
+AUTH_SERVICE_URL=http://localhost:3001
 ```
+
+#### 📱 Notification Service (.env)
+```env
 PORT=3006
 MONGO_URI=mongodb+srv://Nadil:Nadil111@cluster.tejhn.mongodb.net/Notification?retryWrites=true&w=majority&appName=Cluster
 JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
@@ -140,7 +113,7 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=eatease.online@gmail.com
 EMAIL_PASS=nutzgvmbmfbuuexe
-# Twilio Configurations (For SMS & WhatsApp)
+# Twilio Configurations
 TWILIO_ACCOUNT_SID=AC9f4d7b04168f4407f1986917e63ff45d
 TWILIO_AUTH_TOKEN=eddc82dbacdf5b2d687e6a37825ca743
 TWILIO_PHONE_NUMBER=+17756183906
@@ -148,30 +121,30 @@ TWILIO_WHATSAPP_NUMBER=+14155238886
 TWILIO_WHATSAPP_SANDBOX_NUMBER=+14155238886
 ```
 
-## 3. Docker Deployment
+## 🐳 Docker Deployment
 
-### Start Docker Desktop
-1. Open Docker Desktop
-2. Wait for Docker to fully start
-3. Verify Docker is running:
+### 1. Start Docker Desktop
+- Open Docker Desktop application
+- Wait for the Docker engine to start
+- Verify Docker is running:
 ```bash
 docker info
 ```
 
-### Build and Run Services
+### 2. Build and Run Services
 ```bash
-# Build and run all services using Docker Compose
+# Build and run all services
 docker-compose up --build
 ```
 
-## 4. Kubernetes Deployment
+## ⚓ Kubernetes Deployment
 
-### Start Minikube
+### 1. Start Minikube
 ```bash
-# Start Minikube
+# Start Minikube cluster
 minikube start
 
-# Verify Minikube status
+# Verify cluster status
 minikube status
 
 # Enable required addons
@@ -179,9 +152,9 @@ minikube addons enable ingress
 minikube addons enable dashboard
 ```
 
-### Build Docker Images
+### 2. Build Docker Images
 ```bash
-# Build images for each service
+# Build service images
 docker build -t api-gateway:latest ./backend/api-gateway
 docker build -t auth-service:latest ./backend/authentication-service
 docker build -t restaurant-service:latest ./backend/restaurant-service
@@ -191,7 +164,7 @@ docker build -t delivery-service:latest ./backend/delivery-service
 docker build -t notification-service:latest ./backend/notification-service
 ```
 
-### Deploy to Kubernetes
+### 3. Deploy to Kubernetes
 ```bash
 # Navigate to k8s directory
 cd backend/k8s
@@ -199,21 +172,21 @@ cd backend/k8s
 # Deploy all services
 ./deploy.ps1
 
-# Check deployment status
+# Monitor deployment
 kubectl get pods
 kubectl get services
 ```
 
-### Access Services
+### 4. Access Services
 ```bash
 # Get Minikube IP
 minikube ip
 
-# Get service URLs
+# View service URLs
 kubectl get services
 ```
 
-## 5. Frontend Deployment
+## 🎨 Frontend Deployment
 
 ### Local Development
 ```bash
@@ -229,7 +202,7 @@ npm install
 npm run build
 ```
 
-## 6. Additional Resources
+## 📚 Additional Resources
 
 - [Docker Documentation](https://docs.docker.com/)
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
@@ -237,12 +210,48 @@ npm run build
 - [Stripe Documentation](https://stripe.com/docs)
 - [Twilio Documentation](https://www.twilio.com/docs)
 
-kubectl get pods
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Docker not starting**
+   - Check if virtualization is enabled in BIOS
+   - Ensure Docker Desktop is running
+   - Restart Docker Desktop
+
+2. **Minikube issues**
+   - Run `minikube delete` and `minikube start` to reset
+   - Check if Hyper-V is enabled
+   - Verify system resources
+
+3. **Service connection issues**
+   - Check if all services are running
+   - Verify environment variables
+   - Check service logs
+
+### Useful Commands
+
+```bash
+# Check service logs
+kubectl logs <pod-name>
+
+# Describe service
+kubectl describe service <service-name>
+
+# Get pod details
+kubectl describe pod <pod-name>
+
+# Check service status
 kubectl get services
+kubectl get pods
+```
 
+## 🎯 Best Practices
 
-5. Frontend Deployment
-
-cd frontend
-npm install
-npm run dev
+1. Always check service logs for errors
+2. Keep environment variables secure
+3. Regularly update dependencies
+4. Monitor system resources
+5. Backup database regularly
+6. Test all services after deployment
+7. Keep documentation updated
