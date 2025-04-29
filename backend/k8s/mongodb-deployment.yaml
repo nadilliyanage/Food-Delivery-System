@@ -13,23 +13,34 @@ spec:
         app: mongodb
     spec:
       containers:
-      - name: mongodb
-        image: bitnami/mongodb:4.4
-        ports:
-        - containerPort: 27017
-        resources:
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-        volumeMounts:
-        - name: mongodb-data
-          mountPath: /bitnami/mongodb
+        - name: mongodb
+          image: bitnami/mongodb:4.4
+          ports:
+            - containerPort: 27017
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /bitnami/mongodb
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - db.adminCommand('ping')
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
       volumes:
-      - name: mongodb-data
-        emptyDir: {}
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: mongodb-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -39,8 +50,8 @@ spec:
   selector:
     app: mongodb
   ports:
-  - port: 27017
-    targetPort: 27017
+    - port: 27017
+      targetPort: 27017
   type: ClusterIP
 ---
 apiVersion: v1
@@ -52,4 +63,4 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi 
+      storage: 1Gi
