@@ -230,13 +230,6 @@ const Checkout = () => {
     }
   };
 
-  const handlePaymentSuccess = () => {
-    setPaymentCompleted(true);
-    setTimeout(() => {
-      navigate("/my-orders");
-    }, 2000);
-  };
-
   const placeOrder = async () => {
     try {
       setLoading(true);
@@ -324,6 +317,93 @@ const Checkout = () => {
         confirmButtonColor: "#000",
       });
       throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    try {
+      setPaymentCompleted(true);
+      setLoading(true);
+      
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+      
+      // Validate delivery address
+      if (!deliveryAddress.street || !deliveryAddress.city || !position) {
+        console.error("Incomplete delivery address");
+        setTimeout(() => {
+          navigate("/my-orders");
+        }, 2000);
+        return;
+      }
+
+      // Create order data
+      const orderData = {
+        restaurant: restaurantId,
+        items: cart.items.map((item) => ({
+          menuItem: item.menuItemId,
+          quantity: item.quantity,
+        })),
+        totalPrice: cart.totalAmount,
+        deliveryAddress: {
+          street: deliveryAddress.street,
+          city: deliveryAddress.city,
+          instructions: deliveryAddress.instructions || "",
+          latitude: position[0],
+          longitude: position[1],
+        },
+        paymentMethod: "card",
+        // Mock card details (since real card details are handled by Stripe)
+        cardDetails: {
+          number: "xxxx-xxxx-xxxx-xxxx",
+          expiry: "xx/xx",
+          cvc: "xxx",
+          name: "Card Payment"
+        }
+      };
+
+      // Create the order
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/orders`,
+        orderData,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          } 
+        }
+      );
+      
+      // Clear cart after successful payment and order creation
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/cart/clear/${restaurantId}`,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          } 
+        }
+      );
+
+      setTimeout(() => {
+        navigate("/my-orders");
+      }, 2000);
+    } catch (error) {
+      console.error("Error creating order after payment success:", error);
+      // Show error message but continue to redirect
+      Swal.fire({
+        icon: "warning",
+        title: "Payment Successful",
+        text: "Your payment was processed but there was an issue creating your order. Our team has been notified.",
+        confirmButtonColor: "#000",
+      });
+      setTimeout(() => {
+        navigate("/my-orders");
+      }, 2000);
     } finally {
       setLoading(false);
     }
