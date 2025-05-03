@@ -32,6 +32,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
+      - JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
 
   order-service:
     build:
@@ -42,10 +43,12 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3003
+      - JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
       - RESTAURANT_SERVICE_URL=http://restaurant-service:3006
       - DELIVERY_SERVICE_URL=http://delivery-service:3005
       - NOTIFICATION_SERVICE_URL=http://notification-service:3007
       - AUTH_SERVICE_URL=http://authentication-service:3001
+      - PAYMENT_SERVICE_URL=http://localhost:3004
 
   payment-service:
     build:
@@ -56,6 +59,11 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3004
+      - JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
+      - ORDER_SERVICE_URL=http://localhost:3003
+      - DELIVERY_SERVICE_URL=http://localhost:3005
+      - STRIPE_SECRET_KEY=sk_test_51RGXpNPsJKAfjT1p5U66HxUeNUZMLmChoERLW9fF7U89LwPjK4ne9LCnPIqPdQQw7d5jOwRzI8c3G9UKoE4McA5g00qZjW7cnp
+      - FRONTEND_URL=http://localhost:5173
 
   delivery-service:
     build:
@@ -66,6 +74,9 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3005
+      - JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
+      - ORDER_SERVICE_URL=http://localhost:3003
+      - AUTH_SERVICE_URL=http://localhost:3001
 
   restaurant-service:
     build:
@@ -76,6 +87,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3006
+      - JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
 
   notification-service:
     build:
@@ -86,3 +98,13 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3007
+      - JWT_SECRET=HGFHGEAD%D^ghggjhd%dsgj
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+      - EMAIL_USER=eatease.online@gmail.com
+      - EMAIL_PASS=nutzgvmbmfbuuexe
+      - TWILIO_ACCOUNT_SID=AC9f4d7b04168f4407f1986917e63ff45d
+      - TWILIO_AUTH_TOKEN=eddc82dbacdf5b2d687e6a37825ca743
+      - TWILIO_PHONE_NUMBER=+17756183906
+      - TWILIO_WHATSAPP_NUMBER=+14155238886
+      - TWILIO_WHATSAPP_SANDBOX_NUMBER=+14155238886
